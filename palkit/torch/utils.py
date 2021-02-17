@@ -7,6 +7,7 @@ import torch
 
 __all__ = ["count_parameters", "random_seed", "inf_generator"]
 
+
 def count_parameters(model):
     """Count all parameters (that have a gradient) in the given model"""
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
