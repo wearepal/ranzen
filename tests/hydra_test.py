@@ -1,4 +1,4 @@
-from palkit import flatten_dict
+from kit import flatten_dict
 
 
 def test_flatten_dict() -> None:
