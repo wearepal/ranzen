@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  ubuntu:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Install packages
+      run: |
+        python -m pip install --upgrade pip
+        pip install black mypy pytest isort
+        pip install -e .
+    - name: Format with black
+      run: |
+        python -m black --check .
+    - name: Format with isort
+      run: |
+        isort --check --diff .
+    - name: Test with pytest
+      run: |
+        python -m pytest -vv tests/
+    - name: Check with mypy
+      run: |
+        mypy tests/
