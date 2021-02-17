@@ -8,12 +8,12 @@ def main() -> None:
     """Run the script."""
     repo = Repo()
     assert not repo.is_dirty(), "please commit or stash all other changes"
-    assert repo.active_branch.name == "master", "only tag versions on master"
+    assert repo.active_branch.name == "main", "only tag versions on main"
 
-    # merge master into release branch
+    # merge main into release branch
     git = repo.git
     git.checkout("release")
-    git.merge("--no-ff", "master", "--no-edit")
+    git.merge("--no-ff", "main", "--no-edit")
     print("updated release branch")
 
     # find out the version number
@@ -47,7 +47,7 @@ def main() -> None:
     git.push("origin", "release", tag_name)
 
     # clean up
-    git.checkout("master")
+    git.checkout("main")
 
 
 if __name__ == "__main__":
