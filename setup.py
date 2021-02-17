@@ -5,7 +5,7 @@ with open("README.md") as f:
 
 setup(
     name="palkit",
-    version="0.1.0",
+    version="0.1.1",
     author="PAL",
     author_email="info@predictive-analytics-lab.com",
     description="Useful functions",
