@@ -30,6 +30,7 @@ jobs:
         curl -fsS -o get-poetry.py https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
         python get-poetry.py -y
         echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+        rm get-poetry.py
     - name: Install dependencies
       run: poetry install --no-interaction
     - name: Format with black
