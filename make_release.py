@@ -24,7 +24,7 @@ def main() -> None:
     print(f"new version will be: {new_version}")
 
     # change version in setup.py
-    setup_path = Path("setup.py")
+    setup_path = Path("pyproject.toml")
     with setup_path.open("r") as fhandle:
         file_content = fhandle.read()
         count = 0
@@ -34,10 +34,10 @@ def main() -> None:
         assert count == 1, "couldn't properly change the version in setup.py... aborting"
     with setup_path.open("w") as fhandle:
         fhandle.write(file_content)
-    print("modified setup.py")
+    print("modified pyproject.toml")
 
     # commit change
-    repo.index.add(["setup.py"])
+    repo.index.add(["pyproject.toml"])
     repo.index.commit(f"Bump version to {new_version}")
 
     # # create tag and push
