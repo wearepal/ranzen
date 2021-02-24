@@ -1,4 +1,4 @@
-"""Utility functions."""
+"""Functions related to typing."""
 from typing import Any, Callable, TypeVar
 
 __all__ = ["implements"]
