@@ -1,7 +1,6 @@
 """Utility functions."""
 from typing import Any, Callable, TypeVar
 
-
 __all__ = ["implements"]
 
 _F = TypeVar("_F", bound=Callable[..., Any])
