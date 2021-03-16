@@ -58,6 +58,8 @@ class Event:
     >>> start.record()
     >>> y = some_nn_module(x)
     >>> end.record()
+    >>> if torch.cuda.is_available():
+    >>>     torch.cuda.synchronize()
     >>> print(start.elapsed_time(end))
     """
 
