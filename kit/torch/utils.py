@@ -1,7 +1,7 @@
 from __future__ import annotations
-import time
 from collections.abc import Iterable, Iterator
 import random
+import time
 from typing import TypeVar
 
 import numpy as np
@@ -47,7 +47,8 @@ def inf_generator(iterable: Iterable[T]) -> Iterator[T]:
         except StopIteration:
             iterator = iter(iterable)
 
-class Event():
+
+class Event:
     """Emulates torch.cuda.Event, but supports running on a CPU too.
 
     Examples:
