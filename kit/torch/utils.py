@@ -1,3 +1,5 @@
+from __future__ import annotations
+import time
 from collections.abc import Iterable, Iterator
 import random
 from typing import TypeVar
@@ -5,7 +7,7 @@ from typing import TypeVar
 import numpy as np
 import torch
 
-__all__ = ["count_parameters", "random_seed", "inf_generator"]
+__all__ = ["count_parameters", "random_seed", "inf_generator", "Event"]
 
 
 def count_parameters(model):
@@ -44,3 +46,42 @@ def inf_generator(iterable: Iterable[T]) -> Iterator[T]:
             yield next(iterator)
         except StopIteration:
             iterator = iter(iterable)
+
+class Event():
+    """Emulates torch.cuda.Event, but supports running on a CPU too.
+
+    Examples:
+    >>> from kit.torch import Event
+    >>> start = Event()
+    >>> end = Event()
+    >>> start.record()
+    >>> y = some_nn_module(x)
+    >>> end.record()
+    >>> print(start.elapsed_time(end))
+    """
+
+    def __init__(self):
+        self.event_obj = torch.cuda.Event(enable_timing=True) if torch.cuda.is_available() else None
+        self.time = 0
+
+    def record(self):
+        """Mark a time.
+
+        Mimics torch.cuda.Event.
+        """
+        if torch.cuda.is_available():
+            assert self.event_obj is not None
+            self.event_obj.record()
+        else:
+            self.time = time.time()
+
+    def elapsed_time(self, e: Event) -> int:
+        """Measure difference between 2 times.
+
+        Mimics torch.cuda.Event.
+        """
+        if not torch.cuda.is_available():
+            return e.time - self.time
+        assert self.event_obj is not None
+        assert isinstance(e.event_obj, torch.cuda.Event)
+        return self.event_obj.elapsed_time(e.event_obj)
