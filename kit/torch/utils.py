@@ -2,7 +2,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 import random
 import time
-from typing import TypeVar
+from typing import Any, TypeVar
 
 import numpy as np
 import torch
@@ -54,38 +54,37 @@ class Event:
 
     Examples:
     >>> from kit.torch import Event
-    >>> start = Event()
-    >>> end = Event()
-    >>> start.record()
-    >>> y = some_nn_module(x)
-    >>> end.record()
-    >>> if torch.cuda.is_available():
-    >>>     torch.cuda.synchronize()
-    >>> print(start.elapsed_time(end))
+    >>> with Event() as event:
+    >>>     y = some_nn_module(x)
+    >>> print(event.time)
     """
 
     def __init__(self):
-        self.event_obj = torch.cuda.Event(enable_timing=True) if torch.cuda.is_available() else None
-        self.time = 0
+        self.time = 0.0
+        self._cuda = torch.cuda.is_available()  # type: ignore
+        self._event_start = None
 
-    def record(self):
+    def __enter__(self) -> Event:
         """Mark a time.
 
         Mimics torch.cuda.Event.
         """
-        if torch.cuda.is_available():
-            assert self.event_obj is not None
-            self.event_obj.record()
+        if self._cuda:
+            self._event_start = torch.cuda.Event(enable_timing=True)
+            self._event_start.record()
         else:
-            self.time = time.time()
+            self._event_start = time.time()
+        return self
 
-    def elapsed_time(self, e: Event) -> int:
-        """Measure difference between 2 times.
+    def __exit__(self, *args: Any) -> None:
+        if self._cuda:
+            event_end = torch.cuda.Event(enable_timing=True)
+            event_end.record()
+            torch.cuda.synchronize()
+            self.time = self._event_start.elapsed_time(event_end)
+        else:
+            assert isinstance(self._event_start, float)
+            self.time = time.time() - self._event_start
 
-        Mimics torch.cuda.Event.
-        """
-        if not torch.cuda.is_available():
-            return e.time - self.time
-        assert self.event_obj is not None
-        assert isinstance(e.event_obj, torch.cuda.Event)
-        return self.event_obj.elapsed_time(e.event_obj)
+    def __repr__(self) -> str:
+        return f"Event of duration: {self.time}"
