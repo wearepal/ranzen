@@ -6,16 +6,17 @@ from typing import TypeVar
 
 import numpy as np
 import torch
+import torch.nn as nn
 
 __all__ = ["count_parameters", "random_seed", "inf_generator", "Event"]
 
 
-def count_parameters(model):
+def count_parameters(model: nn.Module) -> int:
     """Count all parameters (that have a gradient) in the given model"""
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-def random_seed(seed_value, use_cuda) -> None:
+def random_seed(seed_value: int, use_cuda: bool) -> None:
     np.random.seed(seed_value)  # cpu vars
     torch.manual_seed(seed_value)  # cpu  vars
     random.seed(seed_value)  # Python
