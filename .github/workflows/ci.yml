@@ -41,6 +41,7 @@ jobs:
         isort --check --diff .
     - name: Test with pytest
       run: |
+        poetry install -E torch
         python -m pytest -vv tests/
     - name: Check with mypy
       run: |
