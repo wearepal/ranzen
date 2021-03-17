@@ -40,8 +40,9 @@ jobs:
       run: |
         isort --check --diff .
     - name: Test with pytest
+      # TODO: install torch with extra dependencies
       run: |
-        poetry install -E torch
+        pip install torch
         python -m pytest -vv tests/
     - name: Check with mypy
       run: |
