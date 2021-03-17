@@ -1,7 +1,8 @@
 import time
 
-from kit.torch.utils import Event
 import pytest
+
+from kit.torch.utils import Event
 
 
 def test_event():
