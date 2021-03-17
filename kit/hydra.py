@@ -1,14 +1,14 @@
 """Functions for dealing with hydra."""
 from __future__ import annotations
 from collections.abc import MutableMapping
+from contextlib import contextmanager
 from dataclasses import asdict
 from enum import Enum
 import shlex
 from typing import Any, Iterator, Sequence
-from contextlib import contextmanager
 
-from hydra.core.hydra_config import HydraConfig
 from hydra.core.config_store import ConfigStore
+from hydra.core.hydra_config import HydraConfig
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 
