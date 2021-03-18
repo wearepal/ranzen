@@ -1,5 +1,6 @@
 from __future__ import annotations
 from collections.abc import Iterable, Iterator
+from datetime import datetime
 import random
 import time
 from typing import Any, TypeVar
@@ -59,10 +60,10 @@ class Event:
     >>> print(event.time)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.time = 0.0
         self._cuda = torch.cuda.is_available()  # type: ignore
-        self._event_start = None
+        self._event_start: torch.cuda.Event | datetime
 
     def __enter__(self) -> Event:
         """Mark a time.
@@ -73,7 +74,7 @@ class Event:
             self._event_start = torch.cuda.Event(enable_timing=True)
             self._event_start.record()
         else:
-            self._event_start = time.time()
+            self._event_start = datetime.now()
         return self
 
     def __exit__(self, *args: Any) -> None:
@@ -81,10 +82,11 @@ class Event:
             event_end = torch.cuda.Event(enable_timing=True)
             event_end.record()
             torch.cuda.synchronize()
+            assert isinstance(self._event_start, torch.cuda.Event)
             self.time = self._event_start.elapsed_time(event_end)
         else:
-            assert isinstance(self._event_start, float)
-            self.time = time.time() - self._event_start
+            assert isinstance(self._event_start, datetime)
+            self.time = datetime.now().microsecond - self._event_start.microsecond
 
     def __repr__(self) -> str:
         return f"Event of duration: {self.time}"

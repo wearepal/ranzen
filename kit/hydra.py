@@ -15,7 +15,7 @@ __all__ = ["flatten_dict", "as_pretty_dict", "reconstruct_cmd", "recursively_ins
 
 def flatten_dict(d: MutableMapping, parent_key: str = "", sep: str = ".") -> dict:
     """Flatten a nested dictionary by separating the keys with `sep`."""
-    items = []
+    items: list[tuple[Any, Any]] = []
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
         if isinstance(v, MutableMapping):
@@ -46,7 +46,7 @@ def reconstruct_cmd() -> str:
     internal_config = HydraConfig.get()
     program = internal_config.job.name + ".py"
     args = internal_config.overrides.task
-    return shlex.join([program] + OmegaConf.to_container(args))
+    return shlex.join([program] + OmegaConf.to_container(args))  # type: ignore[operator]
 
 
 def recursively_instantiate(
