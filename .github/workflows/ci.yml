@@ -6,8 +6,7 @@ on:
     - main
 
 jobs:
-  ubuntu:
-
+  ci_suite:
     runs-on: ubuntu-latest
     env:
       POETRY_VIRTUALENVS_CREATE: false
@@ -39,11 +38,13 @@ jobs:
     - name: Format with isort
       run: |
         isort --check --diff .
-    - name: Test with pytest
-      # TODO: install torch with extra dependencies
-      run: |
-        pip install torch
-        python -m pytest -vv tests/
     - name: Check with mypy
       run: |
+        mypy kit/
         mypy tests/
+    - name: Install Additional Dependencies for Tests
+      run: poetry install -E ci --no-interaction
+    - name: Test with pytest
+      run: |
+        python -m pytest -vv tests/
+
