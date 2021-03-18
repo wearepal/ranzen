@@ -40,7 +40,6 @@ jobs:
         isort --check --diff .
     - name: Check with mypy
       run: |
-        mypy kit/
         mypy tests/
     - name: Install Additional Dependencies for Tests
       run: poetry install -E ci --no-interaction
