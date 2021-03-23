@@ -20,24 +20,6 @@ class RunsDownloader:
         self.entity = entity
         self.api = get_api()
 
-    @staticmethod
-    def _runs_to_df(runs: Sequence[wandb.wandb_run.Run]) -> pd.DataFrame:
-        summary_list = []
-        config_list = []
-        name_list = []
-        for run in runs:
-            # run.summary are the output key/values like accuracy.
-            # We call ._json_dict to omit large files
-            summary_list.append(run.summary._json_dict)
-            # run.config is the input metrics.  We remove special values that start with _.
-            config_list.append({k: v for k, v in run.config.items() if not k.startswith("_")})
-            # run.name is the name of the run.
-            name_list.append(run.name)
-        summary_df = pd.DataFrame.from_records(summary_list)
-        config_df = pd.DataFrame.from_records(config_list)
-        name_df = pd.DataFrame({"name": name_list})
-        return pd.concat([name_df, config_df, summary_df], axis=1)
-
     def runs(self, *run_ids: str) -> pd.DataFrame:
         """Download runs given the run IDs (i.e., "qvlp96vk")."""
         runs = []
@@ -59,6 +41,10 @@ class RunsDownloader:
     def modify_config(
         self, group: str, config_key: str, new_value: bool | int | float | str
     ) -> None:
+        """Modify the config value of runs logged on W&B.
+
+        This is not possible with the web UI.
+        """
         path = f"{self.entity}/{self.project}"
         runs = self.api.runs(path, {"group": group})
         i = 0
@@ -66,3 +52,21 @@ class RunsDownloader:
             run.config[config_key] = new_value
             run.update()
         print(f"Changed config for {i} runs.")
+
+    @staticmethod
+    def _runs_to_df(runs: Sequence[wandb.wandb_run.Run]) -> pd.DataFrame:
+        summary_list = []
+        config_list = []
+        name_list = []
+        for run in runs:
+            # run.summary are the output key/values like accuracy.
+            # We call ._json_dict to omit large files
+            summary_list.append(run.summary._json_dict)
+            # run.config is the input metrics.  We remove special values that start with _.
+            config_list.append({k: v for k, v in run.config.items() if not k.startswith("_")})
+            # run.name is the name of the run.
+            name_list.append(run.name)
+        summary_df = pd.DataFrame.from_records(summary_list)
+        config_df = pd.DataFrame.from_records(config_list)
+        name_df = pd.DataFrame({"name": name_list})
+        return pd.concat([name_df, config_df, summary_df], axis=1)
