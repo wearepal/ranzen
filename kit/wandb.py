@@ -21,7 +21,7 @@ class RunsDownloader:
         self.api = get_api()
 
     def runs(self, *run_ids: str) -> pd.DataFrame:
-        """Download runs given the run IDs (i.e., "qvlp96vk")."""
+        """Download runs given the run IDs (e.g., "qvlp96vk")."""
         runs = []
         for run_id in run_ids:
             run = self.api.run(f"{self.entity}/{self.project}/{run_id}")
