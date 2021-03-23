@@ -39,6 +39,7 @@ class RunsDownloader:
         return pd.concat([name_df, config_df, summary_df], axis=1)
 
     def runs(self, *run_ids: str) -> pd.DataFrame:
+        """Download runs given the run IDs (i.e., "qvlp96vk")."""
         runs = []
         for run_id in run_ids:
             run = self.api.run(f"{self.entity}/{self.project}/{run_id}")
