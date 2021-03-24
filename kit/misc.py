@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import Any, MutableMapping
 
-
 __all__ = ["flatten_dict"]
 
 
