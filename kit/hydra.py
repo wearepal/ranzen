@@ -12,26 +12,14 @@ from hydra.core.hydra_config import HydraConfig
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 
+
 __all__ = [
     "GroupRegistration",
     "SchemaRegistration",
-    "flatten_dict",
     "as_pretty_dict",
     "reconstruct_cmd",
     "recursively_instantiate",
 ]
-
-
-def flatten_dict(d: MutableMapping, parent_key: str = "", sep: str = ".") -> dict:
-    """Flatten a nested dictionary by separating the keys with `sep`."""
-    items: list[tuple[Any, Any]] = []
-    for k, v in d.items():
-        new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, MutableMapping):
-            items.extend(flatten_dict(v, new_key, sep=sep).items())
-        else:
-            items.append((new_key, v))
-    return dict(items)
 
 
 def _clean_up_dict(obj: Any) -> Any:
