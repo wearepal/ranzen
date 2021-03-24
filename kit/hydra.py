@@ -12,7 +12,14 @@ from hydra.core.hydra_config import HydraConfig
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 
-__all__ = ["flatten_dict", "as_pretty_dict", "reconstruct_cmd", "recursively_instantiate"]
+__all__ = [
+    "GroupRegistration",
+    "SchemaRegistration",
+    "flatten_dict",
+    "as_pretty_dict",
+    "reconstruct_cmd",
+    "recursively_instantiate",
+]
 
 
 def flatten_dict(d: MutableMapping, parent_key: str = "", sep: str = ".") -> dict:
@@ -62,7 +69,17 @@ def recursively_instantiate(
 
 
 class SchemaRegistration:
-    """Register hydra schemas."""
+    """Register hydra schemas.
+
+    Example:
+        >>> sr = SchemaRegistration()
+        >>> sr.register(Config, path="experiment_schema")
+        >>> sr.register(TrainerConf, path="trainer/trainer_schema")
+        >>>
+        >>> with sr.new_group("schema/data", target_path="data") as group:
+        >>>    group.add_option(CelebaDataConf, name="celeba")
+        >>>    group.add_option(WaterbirdsDataConf, name="waterbirds")
+    """
 
     def __init__(self) -> None:
         self._cs = ConfigStore.instance()
@@ -79,8 +96,7 @@ class SchemaRegistration:
     @contextmanager
     def new_group(self, group_name: str, *, target_path: str) -> Iterator[GroupRegistration]:
         package = target_path.replace("/", ".")
-        group_reg = GroupRegistration(self._cs, group_name=group_name, package=package)
-        yield group_reg
+        yield GroupRegistration(self._cs, group_name=group_name, package=package)
 
 
 class GroupRegistration:
