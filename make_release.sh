@@ -30,5 +30,9 @@ echo New tag: $new_tag
 git tag $new_tag
 git push origin release $new_tag
 
+# clean previous build and build
+rm -rf build dist
+poetry build
+
 # clean up
 git checkout main
