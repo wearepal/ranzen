@@ -12,7 +12,6 @@ from hydra.core.hydra_config import HydraConfig
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 
-
 __all__ = [
     "GroupRegistration",
     "SchemaRegistration",
