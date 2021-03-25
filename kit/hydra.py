@@ -78,7 +78,7 @@ class SchemaRegistration:
         parts = path.split("/")
         name = parts[-1]
         package = ".".join(parts[:-1])
-        self._cs.store(name=name, node=config_class, package=package)
+        self._cs.store(name=name, node=config_class, package=package, group=name)
 
     @contextmanager
     def new_group(self, group_name: str, *, target_path: str) -> Iterator[GroupRegistration]:
