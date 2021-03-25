@@ -1,6 +1,9 @@
 #!/bin/bash
 
-if [ -n "$(git status --porcelain)" ]; then 
+# fail on error
+set -e
+
+if [ -n "$(git status --porcelain)" ]; then
   echo "repository is dirty"
   exit 1
 fi
@@ -31,8 +34,14 @@ git tag $new_tag
 git push origin release $new_tag
 
 # clean previous build and build
+echo "clean up old builds"
 rm -rf build dist
+echo "do new build"
 poetry build
+echo "publish package"
+# to use this, set up an API token with `poetry config pypi-token.pypi <api token>`
+poetry publish
 
 # clean up
+echo "go back to main branch"
 git checkout main
