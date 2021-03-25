@@ -3,6 +3,20 @@
 # fail on error
 set -e
 
+# confirm the supplied version bump is valid
+version_bump=$1
+
+case $version_bump in
+  "patch" | "minor" | "major" | "prepatch" | "preminor" | "premajor" | "prerelease")
+    echo "valid version bump: $version_bump"
+    ;;
+  *)
+    echo "invalid version bump: \"$version_bump\""
+    echo "Usage: bash make_release.sh <version bump>"
+    exit 1
+    ;;
+esac
+
 if [ -n "$(git status --porcelain)" ]; then
   echo "repository is dirty"
   exit 1
@@ -23,8 +37,8 @@ git pull
 echo merge main into release branch
 git merge --no-ff main --no-edit
 
-# bump patch version (e.g. from 0.1.3 to 0.1.4)
-poetry version patch
+# bump version
+poetry version $version_bump
 
 # commit change
 git add pyproject.toml
