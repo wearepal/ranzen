@@ -38,8 +38,8 @@ authors = ["PAL <info@predictive-analytics-lab.com>"]
 license = "Apache License 2.0"
 packages = [
   { include = "kit" },
-  { include = "kit/py.typed" }
 ]
+include=["kit/py.typed"]
 classifiers=[
   "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
