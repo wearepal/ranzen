@@ -1,6 +1,9 @@
 #!/bin/bash
 
-if [ -n "$(git status --porcelain)" ]; then 
+# fail on error
+set -e
+
+if [ -n "$(git status --porcelain)" ]; then
   echo "repository is dirty"
   exit 1
 fi
@@ -10,11 +13,14 @@ if [ $(git symbolic-ref --short -q HEAD) != "main" ]; then
   exit 2
 fi
 
-# ensure main branch is up-to-date
+echo ensure main branch is up-to-date
 git pull
 
-# merge main into release branch
+echo checkout release branch
 git checkout release
+echo ensure release branch is up-to-date
+git pull
+echo merge main into release branch
 git merge --no-ff main --no-edit
 
 # bump patch version (e.g. from 0.1.3 to 0.1.4)
@@ -31,8 +37,14 @@ git tag $new_tag
 git push origin release $new_tag
 
 # clean previous build and build
+echo "clean up old builds"
 rm -rf build dist
+echo "do new build"
 poetry build
+echo "publish package"
+# to use this, set up an API token with `poetry config pypi-token.pypi <api token>`
+poetry publish
 
 # clean up
+echo "go back to main branch"
 git checkout main
