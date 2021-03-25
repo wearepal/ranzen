@@ -13,11 +13,14 @@ if [ $(git symbolic-ref --short -q HEAD) != "main" ]; then
   exit 2
 fi
 
-# ensure main branch is up-to-date
+echo ensure main branch is up-to-date
 git pull
 
-# merge main into release branch
+echo checkout release branch
 git checkout release
+echo ensure release branch is up-to-date
+git pull
+echo merge main into release branch
 git merge --no-ff main --no-edit
 
 # bump patch version (e.g. from 0.1.3 to 0.1.4)
