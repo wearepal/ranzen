@@ -23,12 +23,12 @@ def group_ids() -> List[int]:
 
 def test_simple(group_ids: List[int]) -> None:
     num_samples_per_group = 800
-    indexes = next(
+    indexes_ls = next(
         iter(
             StratifiedSampler(group_ids, num_samples_per_group, replacement=True, multipliers=None)
         )
     )
-    indexes = np.array(indexes)
+    indexes = np.array(indexes_ls)
     assert len(indexes) == 4 * num_samples_per_group
     assert count_true(indexes < 100) == num_samples_per_group
     assert count_true((100 <= indexes) & (indexes < 300)) == num_samples_per_group
@@ -38,12 +38,12 @@ def test_simple(group_ids: List[int]) -> None:
 
 def test_without_replacement(group_ids: List[int]) -> None:
     num_samples_per_group = 100
-    indexes = next(
+    indexes_ls = next(
         iter(
             StratifiedSampler(group_ids, num_samples_per_group, replacement=True, multipliers=None)
         )
     )
-    indexes = np.array(indexes)
+    indexes = np.array(indexes_ls)
 
     assert len(indexes) == 4 * num_samples_per_group
     assert count_true(indexes < 100) == num_samples_per_group
@@ -54,14 +54,14 @@ def test_without_replacement(group_ids: List[int]) -> None:
 
 def test_with_multipliers(group_ids: List[int]) -> None:
     num_samples_per_group = 800
-    indexes = next(
+    indexes_ls = next(
         iter(
             StratifiedSampler(
                 group_ids, num_samples_per_group, replacement=True, multipliers={0: 2, 1: 0, 2: 3}
             )
         ),
     )
-    indexes = np.array(indexes)
+    indexes = np.array(indexes_ls)
 
     assert len(indexes) == (2 + 0 + 3 + 1) * num_samples_per_group
     assert count_true(indexes < 100) == 2 * num_samples_per_group
