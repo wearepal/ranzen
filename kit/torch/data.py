@@ -1,6 +1,6 @@
 from __future__ import annotations
-from typing import Iterator, List, Sequence, Sized
 from abc import abstractmethod
+from typing import Iterator, List, Sequence, Sized
 
 import numpy as np
 import torch
