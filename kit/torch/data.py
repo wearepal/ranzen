@@ -9,7 +9,7 @@ from torch.utils.data.dataset import Subset, random_split
 
 from kit import implements
 
-__all__ = ["prop_random_split", "InfSequentialSampler"]
+__all__ = ["prop_random_split", "InfSequentialBatchSampler"]
 
 
 def prop_random_split(
