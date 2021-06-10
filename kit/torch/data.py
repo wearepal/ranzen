@@ -74,7 +74,7 @@ class InfSequentialBatchSampler(Sampler[List[int]]):
                 new_idx_seq = self._generate_idx_seq()
                 if batch_idxs is not None:
                     # Rather than dropping the last batch if it is incomplete or simply using it,
-                    # incomlpete as it may be, we take the alternative approach of concatenating the surplus
+                    # incomplete as it may be, we take the alternative approach of concatenating the surplus
                     # batch to the beginning of the next generation of indexes
                     new_idx_seq = torch.cat([batch_idxs, new_idx_seq])
                 batched_idxs_iter = iter(self.batch_indexes(new_idx_seq))
