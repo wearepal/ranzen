@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterator, Sequence, List, Sized
+from typing import Iterator, List, Sequence, Sized
 
 import numpy as np
 import torch
