@@ -31,9 +31,18 @@ def prop_random_split(
     return random_split(dataset, section_sizes, generator=generator)
 
 
-class InfSequentialSampler(Sampler[List[int]]):
+class InfSequentialBatchSampler(Sampler[List[int]]):
     r"""Infinitely samples elements sequentially, always in the same order.
     This is useful for enabling iteration-based training.
+    Note that unlike torch's SequentialSampler which is an ordinary sampler that yields independent sample indexes,
+    this is a BatchSampler, requiring slightly different treatment when used with a DataLoader.
+
+    Example:
+        >>> batch_sampler = InfSequentialBatchSampler(data_source=train_data, batch_size=100, shuffle=True)
+        >>> train_loader = DataLoader(train_data, batch_sampler=batch_sampler, shuffle=False, drop_last=False) # drop_last and shuffle need to be False
+        >>> train_loader_iter = iter(train_loader)
+        >>> for _ in range(train_iters):
+        >>>     batch = next(train_loader_iter)
 
     Args:
         data_source (Sized): dataset to sample from
