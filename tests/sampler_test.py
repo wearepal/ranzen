@@ -1,9 +1,9 @@
 from __future__ import annotations
+from typing import List
 
 import numpy as np
 import pytest
 import torch
-from typing import List
 from torch.utils.data import DataLoader, TensorDataset
 
 from kit.torch.data import StratifiedSampler
