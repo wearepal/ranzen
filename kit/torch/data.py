@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Iterator, List, Sequence, Sized
+from abc import abstractmethod
 
 import numpy as np
 import torch
@@ -31,7 +32,22 @@ def prop_random_split(
     return random_split(dataset, section_sizes, generator=generator)
 
 
-class InfSequentialBatchSampler(Sampler[List[int]]):
+class InfBatchSampler(Sampler[Sequence[int]]):
+    @implements(Sampler)
+    @abstractmethod
+    def __iter__(self) -> Iterator[List[int]]:
+        ...
+
+    def __len__(self) -> None:
+        """The number of samples drawn.
+        Since such samplers are inherently non-terminating, their length is undefined.
+        However, __len__ still needs to be defined for downstream compatibility
+        (e.g. with PyTorch Lightning) and for this it suffices to simply return None.
+        """
+        return None
+
+
+class InfSequentialBatchSampler(InfBatchSampler):
     r"""Infinitely samples elements sequentially, always in the same order.
     This is useful for enabling iteration-based training.
     Note that unlike torch's SequentialSampler which is an ordinary sampler that yields independent sample indexes,
@@ -64,7 +80,7 @@ class InfSequentialBatchSampler(Sampler[List[int]]):
         """Split the indexes into batches."""
         return indexes.split(self.batch_size)
 
-    @implements(Sampler)
+    @implements(InfBatchSampler)
     def __iter__(self) -> Iterator[List[int]]:
         batched_idxs_iter = iter(self.batch_indexes(self._generate_idx_seq()))
         # Iterate until some externally-defined stopping criterion is reached
@@ -81,16 +97,8 @@ class InfSequentialBatchSampler(Sampler[List[int]]):
             else:
                 yield batch_idxs.tolist()
 
-    def __len__(self) -> None:
-        """The number of samples drawn.
-        Since the sampler is by design non-terminating, its length is undefined.
-        However__len__ still needs to be defined for downstream compatibility
-        (e.g. with PyTorch Lightning) and for this it suffices to simply return None.
-        """
-        return None
 
-
-class StratifiedSampler(Sampler[Sequence[int]]):
+class StratifiedSampler(InfBatchSampler):
     r"""Samples equal proportion of elements from ``[0,..,len(group_ids)-1]``.
 
     To drop certain groups, set their multiplier to 0.
@@ -121,7 +129,7 @@ class StratifiedSampler(Sampler[Sequence[int]]):
         num_samples_per_group: int,
         replacement: bool = True,
         multipliers: dict[int, int] | None = None,
-    ):
+    ) -> None:
         if (
             not isinstance(num_samples_per_group, int)
             or isinstance(num_samples_per_group, bool)
@@ -161,7 +169,7 @@ class StratifiedSampler(Sampler[Sequence[int]]):
         self.groupwise_idxs = groupwise_idxs
         self.num_groups_effective = num_groups_effective
 
-    @implements(Sampler)
+    @implements(InfBatchSampler)
     def __iter__(self) -> Iterator[list[int]]:
         # loop over the groups and sample from each group separately
         while True:
@@ -185,6 +193,3 @@ class StratifiedSampler(Sampler[Sequence[int]]):
                     sampled_idxs += list(chunks[:multiplier])
 
             yield torch.cat(sampled_idxs, dim=0).tolist()
-
-    def __len__(self) -> None:
-        return None
