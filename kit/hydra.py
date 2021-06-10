@@ -78,6 +78,7 @@ class SchemaRegistration:
         parts = path.split("/")
         name = parts[-1]
         package = ".".join(parts[:-1])
+        breakpoint()
         self._cs.store(name=name, node=config_class, package=package, group=name)
 
     @contextmanager
