@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import abstractmethod
-from typing import Iterator, List, Sequence, Sized
+from typing import Iterator, Sequence, Sized
 
 import numpy as np
 import torch
@@ -15,7 +15,7 @@ __all__ = ["prop_random_split", "InfSequentialBatchSampler", "StratifiedSampler"
 
 def prop_random_split(
     dataset: Dataset, props: Sequence[float], seed: int | None = None
-) -> List[Subset]:
+) -> list[Subset]:
     """Splits a dataset based on proportions rather than on absolute sizes."""
     if not hasattr(dataset, "__len__"):
         raise ValueError(
@@ -35,7 +35,7 @@ def prop_random_split(
 class InfBatchSampler(Sampler[Sequence[int]]):
     @implements(Sampler)
     @abstractmethod
-    def __iter__(self) -> Iterator[List[int]]:
+    def __iter__(self) -> Iterator[list[int]]:
         ...
 
     def __len__(self) -> None:
@@ -81,7 +81,7 @@ class InfSequentialBatchSampler(InfBatchSampler):
         return indexes.split(self.batch_size)
 
     @implements(InfBatchSampler)
-    def __iter__(self) -> Iterator[List[int]]:
+    def __iter__(self) -> Iterator[list[int]]:
         batched_idxs_iter = iter(self.batch_indexes(self._generate_idx_seq()))
         # Iterate until some externally-defined stopping criterion is reached
         while True:
