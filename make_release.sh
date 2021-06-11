@@ -65,3 +65,7 @@ poetry publish
 # clean up
 echo "go back to main branch"
 git checkout main
+
+echo ""
+echo "go to https://github.com/predictive-analytics-lab/palkit/releases/tag/$new_tag"
+echo "and click on \"Edit Tag\" to write release notes"
