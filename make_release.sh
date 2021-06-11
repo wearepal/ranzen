@@ -17,7 +17,7 @@ case $version_bump in
     ;;
 esac
 
-if [ -n "$(git status --porcelain)" ]; then
+if [ -n "$(git status --untracked-files=no --porcelain)" ]; then
   echo "repository is dirty"
   exit 1
 fi
