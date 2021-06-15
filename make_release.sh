@@ -12,29 +12,48 @@ case $version_bump in
     ;;
   *)
     echo "invalid version bump: \"$version_bump\""
-    echo "Usage: bash make_release.sh <version bump>"
+    echo "Usage:"
+    echo ""
+    echo "    bash make_release.sh <version bump>"
+    echo ""
+    echo "List of valid version bumps: patch, minor, major, prepatch, preminor, premajor, prerelease"
     exit 1
     ;;
 esac
 
 if [ -n "$(git status --untracked-files=no --porcelain)" ]; then
-  echo "repository is dirty"
-  exit 1
+  echo "The repository has uncommitted changes."
+  echo "This will lead to problems with git checkout."
+  exit 2
 fi
 
 if [ $(git symbolic-ref --short -q HEAD) != "main" ]; then
   echo "not on main branch"
-  exit 2
+  exit 3
 fi
 
-echo ensure main branch is up-to-date
+echo ""
+echo "######################################"
+echo "# ensure main branch is up-to-date  #"
+echo "######################################"
 git pull
 
-echo checkout release branch
+echo ""
+echo "######################################"
+echo "#       checkout release branch      #"
+echo "######################################"
 git checkout release
-echo ensure release branch is up-to-date
+
+echo ""
+echo "#######################################"
+echo "# ensure release branch is up-to-date #"
+echo "#######################################"
 git pull
-echo merge main into release branch
+
+echo ""
+echo "#######################################"
+echo "#   merge main into release branch  #"
+echo "#######################################"
 git merge --no-ff main --no-edit
 
 # bump version
@@ -46,19 +65,39 @@ git commit -m "Bump version"
 
 # create tag and push
 new_tag=v$(poetry version -s)
-echo New tag: $new_tag
+echo "#######################################"
+echo "#          new tag: $new_tag          #"
+echo "#######################################"
 git tag $new_tag
 git push origin release $new_tag
 
 # clean previous build and build
-echo "clean up old builds"
+echo "#######################################"
+echo "#        clean up old builds          #"
+echo "#######################################"
 rm -rf build dist
-echo "do new build"
+
+echo "#######################################"
+echo "#            do new build             #"
+echo "#######################################"
 poetry build
-echo "publish package"
-# to use this, set up an API token with `poetry config pypi-token.pypi <api token>`
+
+echo ""
+echo "#######################################"
+echo "#          publish package            #"
+echo "#######################################"
+# to use this, set up an API token with
+#  `poetry config pypi-token.pypi <api token>`
 poetry publish
 
 # clean up
-echo "go back to main branch"
+echo "#######################################"
+echo "#      go back to main branch         #"
+echo "#######################################"
 git checkout main
+
+echo "#####################################################"
+echo "#               all done! now go to                 #"
+echo "# https://github.com/predictive-analytics-lab/palkit/releases/tag/$new_tag"
+echo "# and click on \"Edit Tag\" to write release notes  #"
+echo "#####################################################"

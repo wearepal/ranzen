@@ -54,12 +54,12 @@ readme="README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.7,<4.0"
-hydra-core = "^1.1.0.dev4"
-numpy = "^1.20.1"
 torch = { version = "^1.8", optional = true }
+hydra-core = {version = "^1.1.0", optional = true}
+numpy = {version = "^1.20.3", optional = true}
 
 [tool.poetry.extras]
-ci = ["torch"]
+ci = ["torch", "numpy"]
 
 
 [tool.poetry.dev-dependencies]
