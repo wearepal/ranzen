@@ -1,3 +1,4 @@
+from __future__ import annotations
 import sys
 from typing import Any, Sequence
 
@@ -10,8 +11,26 @@ __all__ = ["IterationBasedProgBar"]
 
 
 class IterationBasedProgBar(ProgressBar):
+    """Iteration-based PL progress bar.
+
+    Training in Pytorch-lightning is epoch-centric - the default progress bar reflects this ethos.
+    However in many cases iteration-based training is desirable or even required (when using non-sequential
+    sampling, for instance). This progress bar is designed to be used with iteration-based training (which can
+    be enabled by using, for instance,  an infBatchSampler), which means removing 'Epoch' from the display,
+    excluding the validation iterations from the length of the main progress bar, and displaying progress with
+    respect to max_steps instead of a combination of epochs and batches.
+
+    Example:
+        >>>
+        datamodule = MyDataModule()
+        model = MyModel()
+        trainer = pl.Trainer(max_steps=1000, val_check_interval=150, callbacks=[IterationBasedProgBar()])
+        trainer.fit(model=model, dm=dm)
+        >>>
+    """
+
     def init_train_tqdm(self) -> tqdm:
-        """Override this to customize the tqdm bar for training."""
+        """Initialise the tqdm bar for training."""
         return tqdm(
             desc="Training",
             initial=self.train_batch_idx,
@@ -46,8 +65,6 @@ class IterationBasedProgBar(ProgressBar):
             self.main_progress_bar.set_postfix(trainer.progress_bar_dict)
 
     def init_validation_tqdm(self) -> tqdm:
-        """Override this to customize the tqdm bar for validation."""
-        # The main progress bar doesn't exist in `trainer.validate()`
         return tqdm(
             desc="Validating",
             disable=self.is_disabled,
