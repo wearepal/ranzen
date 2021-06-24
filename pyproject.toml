@@ -32,7 +32,7 @@ classes = ["MISSING"]
 
 [tool.poetry]
 name = "palkit"
-version = "0.2.0.dev0"
+version = "1.0.0.dev0"
 description = "Useful functions."
 authors = ["PAL <info@predictive-analytics-lab.com>"]
 license = "Apache License 2.0"
