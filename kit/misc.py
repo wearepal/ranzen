@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import Any, MutableMapping
+from typing import Any, MutableMapping, TypeVar
 
-__all__ = ["flatten_dict"]
+__all__ = ["flatten_dict", "copy"]
 
 
 def flatten_dict(
@@ -16,3 +16,18 @@ def flatten_dict(
         else:
             items.append((new_key, v))
     return dict(items)
+
+
+T = TypeVar("T")
+
+
+def copy(obj: T, deep: bool = True, **kwargs: Any) -> T:
+    if deep:
+        obj_cp = copy.deepcopy(obj)
+    else:
+        obj_cp = copy.copy(obj)
+    for attr, value in kwargs.items():
+        if not hasattr(obj_cp, attr):
+            raise AttributeError(f"Object of type {type(obj_cp)} has no attribute {attr}.")
+        setattr(obj_cp, attr, value)
+    return obj_cp
