@@ -33,6 +33,9 @@ def prop_random_split(
 
 
 class InfBatchSampler(Sampler[Sequence[int]]):
+    def __init__(self, drop_last: bool = False) -> None:
+        self.drop_last = drop_last
+
     @implements(Sampler)
     @abstractmethod
     def __iter__(self) -> Iterator[list[int]]:
@@ -64,7 +67,10 @@ class InfSequentialBatchSampler(InfBatchSampler):
         data_source (Sized): dataset to sample from
     """
 
-    def __init__(self, data_source: Sized, batch_size: int, shuffle: bool = True) -> None:
+    def __init__(
+        self, data_source: Sized, batch_size: int, shuffle: bool = True, drop_last: bool = False
+    ) -> None:
+        super().__init__(drop_last=drop_last)
         self.data_source = data_source
         self.shuffle = shuffle
         self._dataset_size = len(data_source)
@@ -88,7 +94,7 @@ class InfSequentialBatchSampler(InfBatchSampler):
             batch_idxs = next(batched_idxs_iter, None)  # type: ignore
             if batch_idxs is None or (len(batch_idxs) < self.batch_size):
                 new_idx_seq = self._generate_idx_seq()
-                if batch_idxs is not None:
+                if (batch_idxs is not None) and (not self.drop_last):
                     # Rather than dropping the last batch if it is incomplete or simply using it,
                     # incomplete as it may be, we take the alternative approach of concatenating the surplus
                     # batch to the beginning of the next generation of indexes
@@ -129,7 +135,9 @@ class StratifiedSampler(InfBatchSampler):
         num_samples_per_group: int,
         replacement: bool = True,
         multipliers: dict[int, int] | None = None,
+        drop_last: bool = False,
     ) -> None:
+        super().__init__(drop_last=drop_last)
         if (
             not isinstance(num_samples_per_group, int)
             or isinstance(num_samples_per_group, bool)
@@ -179,6 +187,8 @@ class StratifiedSampler(InfBatchSampler):
                     for _ in range(multiplier):
                         # sampling with replacement:
                         # just sample enough random numbers to fill the quota
+                        # TODO: There should be the option to switch between random sampling and
+                        # conditional sequential sampling (the latter able to make use of 'drop_last')
                         idx_of_idx = torch.randint(
                             low=0, high=len(group_idx), size=(self.num_samples_per_group,)
                         )
