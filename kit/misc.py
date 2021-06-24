@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import Any, MutableMapping
+import copy as copy_
+from typing import Any, Iterator, MutableMapping, TypeVar, overload
 
-__all__ = ["flatten_dict"]
+__all__ = ["flatten_dict", "gcopy"]
 
 
 def flatten_dict(
@@ -16,3 +17,30 @@ def flatten_dict(
         else:
             items.append((new_key, v))
     return dict(items)
+
+
+T = TypeVar("T")
+
+
+@overload
+def gcopy(obj: T, deep: bool = True, num_copies: None = ..., **kwargs: Any) -> T:
+    ...
+
+
+@overload
+def gcopy(obj: T, deep: bool = True, num_copies: int = ..., **kwargs: Any) -> list[T]:
+    ...
+
+
+def gcopy(obj: T, deep: bool = True, num_copies: int | None = None, **kwargs: Any) -> T | list[T]:
+    if num_copies is not None:
+        return [gcopy(obj=obj, deep=deep, num_copies=None, **kwargs) for _ in range(num_copies)]
+    copy_fn = copy_.deepcopy if deep else copy_.copy
+    obj_cp = copy_fn(obj)
+    for attr, value in kwargs.items():
+        if not hasattr(obj_cp, attr):
+            raise AttributeError(
+                f"Object of type '{type(obj_cp).__name__}' has no attribute '{attr}'."
+            )
+        setattr(obj_cp, attr, value)
+    return obj_cp
