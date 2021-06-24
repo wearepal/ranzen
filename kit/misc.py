@@ -2,7 +2,7 @@ from __future__ import annotations
 import copy as copy_
 from typing import Any, Iterator, MutableMapping, TypeVar, overload
 
-__all__ = ["flatten_dict", "copy"]
+__all__ = ["flatten_dict", "gcopy"]
 
 
 def flatten_dict(
@@ -23,21 +23,21 @@ T = TypeVar("T")
 
 
 @overload
-def mcopy(obj: T, deep: bool = True, num_copies: None = ..., **kwargs: Any) -> T:
+def gcopy(obj: T, deep: bool = True, num_copies: None = ..., **kwargs: Any) -> T:
     ...
 
 
 @overload
-def mcopy(obj: T, deep: bool = True, num_copies: int = ..., **kwargs: Any) -> Iterator[T]:
+def gcopy(obj: T, deep: bool = True, num_copies: int = ..., **kwargs: Any) -> Iterator[T]:
     ...
 
 
-def mcopy(
+def gcopy(
     obj: T, deep: bool = True, num_copies: int | None = None, **kwargs: Any
 ) -> T | Iterator[T]:
     if num_copies is not None:
         for _ in range(num_copies):
-            yield mcopy(obj=obj, deep=deep, num_copies=None, kwargs=kwargs)
+            yield gcopy(obj=obj, deep=deep, num_copies=None, kwargs=kwargs)
     copy_fn = copy_.deepcopy if deep else copy_.copy
     obj_cp = copy_fn(obj)
     for attr, value in kwargs.items():
