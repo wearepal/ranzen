@@ -1,6 +1,6 @@
 from __future__ import annotations
 import copy as copy_
-from typing import Any, Iterator, MutableMapping, TypeVar, overload
+from typing import Any, MutableMapping, TypeVar, overload
 
 __all__ = ["flatten_dict", "gcopy"]
 
