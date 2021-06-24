@@ -1,5 +1,5 @@
 from __future__ import annotations
-import copy as copy_
+import copy
 from typing import Any, MutableMapping, TypeVar, overload
 
 __all__ = ["flatten_dict", "gcopy"]
@@ -35,7 +35,7 @@ def gcopy(obj: T, deep: bool = True, num_copies: int = ..., **kwargs: Any) -> li
 def gcopy(obj: T, deep: bool = True, num_copies: int | None = None, **kwargs: Any) -> T | list[T]:
     if num_copies is not None:
         return [gcopy(obj=obj, deep=deep, num_copies=None, **kwargs) for _ in range(num_copies)]
-    copy_fn = copy_.deepcopy if deep else copy_.copy
+    copy_fn = copy.deepcopy if deep else copy.copy
     obj_cp = copy_fn(obj)
     for attr, value in kwargs.items():
         if not hasattr(obj_cp, attr):
