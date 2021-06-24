@@ -22,10 +22,8 @@ T = TypeVar("T")
 
 
 def copy(obj: T, deep: bool = True, **kwargs: Any) -> T:
-    if deep:
-        obj_cp = copy.deepcopy(obj)
-    else:
-        obj_cp = copy.copy(obj)
+    copy_fn = copy.deepcopy if deep else copy.copy
+    obj_cp = copy_fn(obj)
     for attr, value in kwargs.items():
         if not hasattr(obj_cp, attr):
             raise AttributeError(f"Object of type {type(obj_cp)} has no attribute {attr}.")
