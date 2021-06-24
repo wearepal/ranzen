@@ -23,21 +23,21 @@ T = TypeVar("T")
 
 
 @overload
-def copy(obj: T, deep: bool = True, num_copies: None = ..., **kwargs: Any) -> T:
+def mcopy(obj: T, deep: bool = True, num_copies: None = ..., **kwargs: Any) -> T:
     ...
 
 
 @overload
-def copy(obj: T, deep: bool = True, num_copies: int = ..., **kwargs: Any) -> Iterator[T]:
+def mcopy(obj: T, deep: bool = True, num_copies: int = ..., **kwargs: Any) -> Iterator[T]:
     ...
 
 
-def copy(
+def mcopy(
     obj: T, deep: bool = True, num_copies: int | None = None, **kwargs: Any
 ) -> T | Iterator[T]:
     if num_copies is not None:
         for _ in range(num_copies):
-            yield copy(obj=obj, deep=deep, num_copies=None, kwargs=kwargs)
+            yield mcopy(obj=obj, deep=deep, num_copies=None, kwargs=kwargs)
     copy_fn = copy_.deepcopy if deep else copy_.copy
     obj_cp = copy_fn(obj)
     for attr, value in kwargs.items():
