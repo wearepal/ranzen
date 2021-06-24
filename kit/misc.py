@@ -1,4 +1,5 @@
 from __future__ import annotations
+import copy as copy_
 from typing import Any, Iterator, MutableMapping, TypeVar, overload
 
 __all__ = ["flatten_dict", "copy"]
@@ -37,7 +38,7 @@ def copy(
     if num_copies is not None:
         for _ in range(num_copies):
             yield copy(obj=obj, deep=deep, num_copies=None, kwargs=kwargs)
-    copy_fn = copy.deepcopy if deep else copy.copy
+    copy_fn = copy_.deepcopy if deep else copy_.copy
     obj_cp = copy_fn(obj)
     for attr, value in kwargs.items():
         if not hasattr(obj_cp, attr):
