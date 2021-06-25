@@ -195,8 +195,8 @@ class StratifiedSampler(InfBatchSampler):
                 ),
                 group_idx,
             )
-            # Skip any groups with a non-postivie multiplier
             for group_idx, multiplier in self.groupwise_idxs
+            # Skip any groups with a non-postivie multiplier
             if (multiplier > 0)
         ]
         while True:
