@@ -236,10 +236,3 @@ class StratifiedSampler(InfBatchSampler):
             return self._random_sampler()
         else:
             return self._sequential_sampler()
-
-    def __len__(self) -> float:
-        """The number of samples drawn."""
-        if self.sampler == "random":
-            return super().__len__()
-        else:
-            return self._size_largest_group
