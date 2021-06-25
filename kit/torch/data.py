@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import abstractmethod
+import math
 from typing import Iterator, Sequence, Sized
 
 import numpy as np
@@ -39,13 +40,13 @@ class InfBatchSampler(Sampler[Sequence[int]]):
     def __iter__(self) -> Iterator[list[int]]:
         ...
 
-    def __len__(self) -> None:
+    def __len__(self) -> float:
         """The number of samples drawn.
         Since such samplers are inherently non-terminating, their length is undefined.
         However, __len__ still needs to be defined for downstream compatibility
         (e.g. with PyTorch Lightning) and for this it suffices to simply return None.
         """
-        return None
+        return math.inf
 
 
 class InfSequentialBatchSampler(InfBatchSampler):
@@ -236,13 +237,9 @@ class StratifiedSampler(InfBatchSampler):
         else:
             return self._sequential_sampler()
 
-    def __len__(self) -> None | int:
-        """The number of samples drawn.
-        Since such samplers are inherently non-terminating, their length is undefined.
-        However, __len__ still needs to be defined for downstream compatibility
-        (e.g. with PyTorch Lightning) and for this it suffices to simply return None.
-        """
+    def __len__(self) -> float:
+        """The number of samples drawn."""
         if self.sampler == "random":
-            return None
+            return super().__len__()
         else:
-            self._size_largest_group
+            return self._size_largest_group
