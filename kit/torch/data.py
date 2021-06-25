@@ -162,11 +162,9 @@ class StratifiedSampler(InfBatchSampler):
         # get the indexes for each group separately and compute the effective number of groups
         groupwise_idxs: list[tuple[Tensor, int]] = []
         num_groups_effective = 0
-        group_sizes = []
         for group in groups:
             # Idxs needs to be 1 dimensional
             idxs = (group_ids_t == group).nonzero(as_tuple=False).view(-1)
-            group_sizes.append(len(idxs))
             multiplier = multipliers_.get(group, 1)
             assert isinstance(multiplier, int) and multiplier >= 0, "multiplier has to be >= 0"
             groupwise_idxs.append((idxs, multiplier))
