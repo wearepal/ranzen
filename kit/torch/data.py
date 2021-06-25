@@ -113,6 +113,9 @@ class StratifiedSampler(InfBatchSampler):
         replacement: if ``True``, samples are drawn with replacement. If not, they are drawn without
             replacement, which means that when a sample index is drawn for a row, it cannot be drawn
             again for that row.
+        base_sampler: the base sampling strategy to use (sequential vs. random).
+        shuffle. whether to shuffle the subsets of the data after each pass (only applicable when the
+            base_sampler is set to ``sequential``).
         multiplier: an optional dictionary that maps group IDs to multipliers. If a multiplier is
             greater than 1, the corresponding group will be sampled at twice the rate as the other
             groups. If a multiplier is 0, the group will be skipped.
