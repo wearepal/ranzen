@@ -1,12 +1,13 @@
 from __future__ import annotations
 from abc import abstractmethod
-from typing import Iterator, Literal, Sequence, Sized
+from typing import Iterator, Sequence, Sized
 
 import numpy as np
 import torch
 from torch import Tensor
 from torch.utils.data import Dataset, Sampler
 from torch.utils.data.dataset import Subset, random_split
+from typing_extensions import Literal
 
 from kit import implements
 
