@@ -180,7 +180,7 @@ class StratifiedSampler(InfBatchSampler):
         self.replacement = replacement
         self.shuffle = shuffle
 
-    def _sequential_sample(self) -> Iterator[list[int]]:
+    def _sequential_sampler(self) -> Iterator[list[int]]:
         samplers_and_idxs = [
             (
                 iter(
@@ -202,7 +202,7 @@ class StratifiedSampler(InfBatchSampler):
                 sampled_idxs.extend(group_idx[next(sampler)])
             yield sampled_idxs
 
-    def _random_sample(self) -> Iterator[list[int]]:
+    def _random_sampler(self) -> Iterator[list[int]]:
         while True:
             sampled_idxs: list[Tensor] = []
             for group_idx, multiplier in self.groupwise_idxs:
@@ -228,9 +228,9 @@ class StratifiedSampler(InfBatchSampler):
     def __iter__(self) -> Iterator[list[int]]:
         # loop over the groups and sample from each group separately
         if self.sampler == "random":
-            return self._random_sample()
+            return self._random_sampler()
         else:
-            return self._sequential_sample()
+            return self._sequential_sampler()
 
     def __len__(self) -> None | int:
         """The number of samples drawn.
