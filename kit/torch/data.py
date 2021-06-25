@@ -178,8 +178,6 @@ class StratifiedSampler(InfBatchSampler):
                 )
 
         self.groupwise_idxs = groupwise_idxs
-        self.group_sizes = group_sizes
-        self._size_largest_group = max(self.group_sizes)
         self.num_groups_effective = num_groups_effective
         self.sampler = base_sampler
         self.replacement = replacement
