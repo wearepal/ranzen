@@ -5,7 +5,7 @@ import pytest
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
-from kit.torch.data import StratifiedSampler
+from kit.torch.data import BaseSampler, StratifiedSampler
 
 
 def count_true(mask: np.ndarray) -> int:
@@ -20,60 +20,71 @@ def group_ids() -> list[int]:
     ).tolist()
 
 
-def test_simple(group_ids: list[int]) -> None:
+@pytest.mark.parametrize("sampler", ["sequential", "random"])
+def test_simple(group_ids: list[int], sampler: BaseSampler) -> None:
     num_samples_per_group = 800
-    indexes_ls = next(
+    indexes = next(
         iter(
-            StratifiedSampler(group_ids, num_samples_per_group, replacement=True, multipliers=None)
+            StratifiedSampler(
+                group_ids,
+                num_samples_per_group,
+                replacement=True,
+                multipliers=None,
+                base_sampler=sampler,
+            )
         )
     )
-    indexes = np.array(indexes_ls)
+    group_ids_t = torch.as_tensor(group_ids)
+    _, counts = group_ids_t[indexes].unique(return_counts=True)
     assert len(indexes) == 4 * num_samples_per_group
-    assert count_true(indexes < 100) == num_samples_per_group
-    assert count_true((100 <= indexes) & (indexes < 300)) == num_samples_per_group
-    assert count_true((300 <= indexes) & (indexes < 700)) == num_samples_per_group
-    assert count_true((700 <= indexes) & (indexes < 1500)) == num_samples_per_group
+    assert all(count == num_samples_per_group for count in counts)
 
 
 def test_without_replacement(group_ids: list[int]) -> None:
     num_samples_per_group = 100
-    indexes_ls = next(
+    indexes = next(
         iter(
             StratifiedSampler(group_ids, num_samples_per_group, replacement=True, multipliers=None)
         )
     )
-    indexes = np.array(indexes_ls)
-
+    group_ids_t = torch.as_tensor(group_ids)
+    _, counts = group_ids_t[indexes].unique(return_counts=True)
     assert len(indexes) == 4 * num_samples_per_group
-    assert count_true(indexes < 100) == num_samples_per_group
-    assert count_true((100 <= indexes) & (indexes < 300)) == num_samples_per_group
-    assert count_true((300 <= indexes) & (indexes < 700)) == num_samples_per_group
-    assert count_true((700 <= indexes) & (indexes < 1500)) == num_samples_per_group
+    assert all(count == num_samples_per_group for count in counts)
 
 
-def test_with_multipliers(group_ids: list[int]) -> None:
+@pytest.mark.parametrize("sampler", ["sequential", "random"])
+def test_with_multipliers(group_ids: list[int], sampler: BaseSampler) -> None:
     num_samples_per_group = 800
-    indexes_ls = next(
+    indexes = next(
         iter(
             StratifiedSampler(
-                group_ids, num_samples_per_group, replacement=True, multipliers={0: 2, 1: 0, 2: 3}
+                group_ids,
+                num_samples_per_group,
+                replacement=True,
+                multipliers={0: 2, 1: 0, 2: 3},
+                base_sampler=sampler,
             )
         ),
     )
-    indexes = np.array(indexes_ls)
-
+    group_ids_t = torch.as_tensor(group_ids)
     assert len(indexes) == (2 + 0 + 3 + 1) * num_samples_per_group
-    assert count_true(indexes < 100) == 2 * num_samples_per_group
-    assert count_true((100 <= indexes) & (indexes < 300)) == 0
-    assert count_true((300 <= indexes) & (indexes < 700)) == 3 * num_samples_per_group
-    assert count_true((700 <= indexes) & (indexes < 1500)) == num_samples_per_group
+    samples = group_ids_t[indexes]
+    assert (samples == 0).sum() == (2 * num_samples_per_group)
+    assert (samples == 1).sum() == 0
+    assert (samples == 2).sum() == (3 * num_samples_per_group)
 
 
-def test_with_dataloader(group_ids: list[int]) -> None:
+@pytest.mark.parametrize("sampler", ["sequential", "random"])
+def test_with_dataloader(group_ids: list[int], sampler: BaseSampler) -> None:
     num_samples_per_group = 100
     batch_size = num_samples_per_group * 4
     batch_sampler = StratifiedSampler(
-        group_ids, num_samples_per_group=num_samples_per_group, replacement=False, multipliers=None
+        group_ids,
+        num_samples_per_group=num_samples_per_group,
+        replacement=False,
+        multipliers=None,
+        base_sampler=sampler,
     )
     ds = TensorDataset(torch.as_tensor(group_ids))
     dl = DataLoader(dataset=ds, batch_sampler=batch_sampler, drop_last=False, shuffle=False)  # type: ignore
