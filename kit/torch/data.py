@@ -49,6 +49,16 @@ class InfBatchSampler(Sampler[Sequence[int]]):
         return math.inf
 
 
+def _check_generator(generator: torch.Generator | None) -> torch.Generator:
+    """ If the generator is None, randomly initialise a generator object."""
+    if generator is None:
+        generator = torch.Generator()
+        generator.manual_seed(int(torch.empty((), dtype=torch.int64).random_().item()))
+    else:
+        generator = generator
+    return generator
+
+
 class InfSequentialBatchSampler(InfBatchSampler):
     r"""Infinitely samples elements sequentially, always in the same order.
     This is useful for enabling iteration-based training.
@@ -66,16 +76,23 @@ class InfSequentialBatchSampler(InfBatchSampler):
         data_source (Sized): dataset to sample from
     """
 
-    def __init__(self, data_source: Sized, batch_size: int, shuffle: bool = True) -> None:
+    def __init__(
+        self,
+        data_source: Sized,
+        batch_size: int,
+        shuffle: bool = True,
+        generator: torch.Generator | None = None,
+    ) -> None:
         self.data_source = data_source
         self.shuffle = shuffle
         self._dataset_size = len(data_source)
         self.batch_size = batch_size
+        self.generator = generator
 
-    def _generate_idx_seq(self) -> Tensor:
+    def _generate_idx_seq(self, generator: torch.Generator) -> Tensor:
         """Generate a random sequence of unique indexes."""
         if self.shuffle:
-            return torch.randperm(self._dataset_size)
+            return torch.randperm(self._dataset_size, generator=generator)
         return torch.arange(self._dataset_size)
 
     def batch_indexes(self, indexes: Tensor) -> Sequence[Tensor]:
@@ -84,12 +101,13 @@ class InfSequentialBatchSampler(InfBatchSampler):
 
     @implements(InfBatchSampler)
     def __iter__(self) -> Iterator[list[int]]:
-        batched_idxs_iter = iter(self.batch_indexes(self._generate_idx_seq()))
+        generator = _check_generator(self.generator)
+        batched_idxs_iter = iter(self.batch_indexes(self._generate_idx_seq(generator=generator)))
         # Iterate until some externally-defined stopping criterion is reached
         while True:
             batch_idxs = next(batched_idxs_iter, None)  # type: ignore
             if batch_idxs is None or (len(batch_idxs) < self.batch_size):
-                new_idx_seq = self._generate_idx_seq()
+                new_idx_seq = self._generate_idx_seq(generator=generator)
                 if batch_idxs is not None:
                     # Rather than dropping the last batch if it is incomplete or simply using it,
                     # incomplete as it may be, we take the alternative approach of concatenating the surplus
@@ -139,6 +157,7 @@ class StratifiedSampler(InfBatchSampler):
         shuffle: bool = False,
         replacement: bool = True,
         multipliers: dict[int, int] | None = None,
+        generator: torch.Generator | None = None,
     ) -> None:
         if (
             not isinstance(num_samples_per_group, int)
@@ -180,8 +199,9 @@ class StratifiedSampler(InfBatchSampler):
         self.sampler = base_sampler
         self.replacement = replacement
         self.shuffle = shuffle
+        self.generator = generator
 
-    def _sequential_sampler(self) -> Iterator[list[int]]:
+    def _sequential_sampler(self, generator: torch.Generator) -> Iterator[list[int]]:
         samplers_and_idxs = [
             (
                 iter(
@@ -189,6 +209,7 @@ class StratifiedSampler(InfBatchSampler):
                         group_idx,
                         batch_size=self.num_samples_per_group * multiplier,
                         shuffle=self.shuffle,
+                        generator=generator,
                     )
                 ),
                 group_idx,
@@ -203,7 +224,7 @@ class StratifiedSampler(InfBatchSampler):
                 sampled_idxs.extend(group_idx[next(sampler)])
             yield sampled_idxs
 
-    def _random_sampler(self) -> Iterator[list[int]]:
+    def _random_sampler(self, generator: torch.Generator) -> Iterator[list[int]]:
         while True:
             sampled_idxs: list[Tensor] = []
             for group_idx, multiplier in self.groupwise_idxs:
@@ -212,13 +233,16 @@ class StratifiedSampler(InfBatchSampler):
                         # sampling with replacement:
                         # just sample enough random numbers to fill the quota
                         idx_of_idx = torch.randint(
-                            low=0, high=len(group_idx), size=(self.num_samples_per_group,)
+                            low=0,
+                            high=len(group_idx),
+                            size=(self.num_samples_per_group,),
+                            generator=generator,
                         )
                         sampled_idxs.append(group_idx[idx_of_idx])
                 else:
                     # sampling without replacement:
                     # first shuffle the indexes and then take as many as we need
-                    shuffled_idx = group_idx[torch.randperm(len(group_idx))]
+                    shuffled_idx = group_idx[torch.randperm(len(group_idx), generator=generator)]
                     # all elements in `sampled_idx` have to have the same size,
                     # so we split the tensor in equal-sized parts and then take as many as we need
                     chunks = torch.split(shuffled_idx, self.num_samples_per_group)
@@ -227,8 +251,8 @@ class StratifiedSampler(InfBatchSampler):
 
     @implements(InfBatchSampler)
     def __iter__(self) -> Iterator[list[int]]:
-        # loop over the groups and sample from each group separately
+        generator = _check_generator(self.generator)
         if self.sampler == "random":
-            return self._random_sampler()
+            return self._random_sampler(generator=generator)
         else:
-            return self._sequential_sampler()
+            return self._sequential_sampler(generator=generator)
