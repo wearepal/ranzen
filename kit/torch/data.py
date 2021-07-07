@@ -16,13 +16,15 @@ __all__ = ["prop_random_split", "InfSequentialBatchSampler", "StratifiedSampler"
 
 
 def prop_random_split(
-    dataset: Dataset, props: Sequence[float], seed: int | None = None
+    dataset: Dataset, props: Sequence[float] | float, seed: int | None = None
 ) -> list[Subset]:
     """Splits a dataset based on proportions rather than on absolute sizes."""
     if not hasattr(dataset, "__len__"):
         raise ValueError(
             "Split proportions can only be computed for datasets with __len__ defined."
         )
+    if isinstance(props, float):
+        props = [props]
     len_ = len(dataset)  # type: ignore
     sum_ = np.sum(props)  # type: ignore
     if (sum_ > 1.0) or any(prop < 0 for prop in props):
