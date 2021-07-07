@@ -1,9 +1,41 @@
+"""Test decorators."""
 from __future__ import annotations
 from typing import List, Union
 
 import pytest
 
+from kit import implements
 from kit.decorators import parsable
+
+
+def test_implements() -> None:
+    """Test the implements decorator."""
+
+    class BaseClass:
+        def func(self) -> None:
+            """Do nothing."""
+
+        def no_docstring(self) -> None:
+            pass
+
+    class CorrectImplementation(BaseClass):
+        @implements(BaseClass)
+        def func(self) -> None:
+            pass
+
+    with pytest.raises(AssertionError):
+
+        class IncorrectImplementation(BaseClass):
+            @implements(BaseClass)
+            def wrong_func(self) -> None:
+                pass
+
+    # with pytest.raises(AssertionError):
+
+    class NoDocstringImpl(BaseClass):
+        @implements(BaseClass)
+        def no_docstring(self) -> None:
+            pass
 
 
 def test_parsable() -> None:
