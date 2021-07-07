@@ -4,8 +4,7 @@ from typing import List, Union
 
 import pytest
 
-from kit import implements
-from kit.decorators import parsable
+from kit import implements, parsable
 
 
 def test_implements() -> None:
