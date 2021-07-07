@@ -6,16 +6,16 @@ import pytest
 from kit.typing import parsable
 
 
-def test_parsable():
+def test_parsable() -> None:
     class Foo:
         @parsable
-        def __init__(self):
+        def __init__(self) -> None:
             ...
 
     _ = Foo()
 
 
-def test_parsable_valid():
+def test_parsable_valid() -> None:
     class Foo:
         @parsable
         def __init__(self, a: int, b: Union[int, float], c: List[str]):
@@ -24,7 +24,7 @@ def test_parsable_valid():
     _ = Foo(a=1, b=1.2, c=["bar"])
 
 
-def test_parsable_invalid_union():
+def test_parsable_invalid_union() -> None:
     with pytest.raises(ValueError):
 
         class Foo:
@@ -33,7 +33,7 @@ def test_parsable_invalid_union():
                 ...
 
 
-def test_parsable_invalid_list():
+def test_parsable_invalid_list() -> None:
     with pytest.raises(ValueError):
 
         class Foo:
