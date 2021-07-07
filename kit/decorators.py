@@ -1,9 +1,7 @@
 """Functions related to typing."""
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, TypeVar, get_type_hints
 
-__all__ = ["implements"]
-
-from typing import get_type_hints
+__all__ = ["implements", "parsable"]
 
 _F = TypeVar("_F", bound=Callable[..., Any])
 

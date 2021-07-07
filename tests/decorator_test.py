@@ -3,7 +3,7 @@ from typing import List, Union
 
 import pytest
 
-from kit.typing import parsable
+from kit.decorators import parsable
 
 
 def test_parsable() -> None:
