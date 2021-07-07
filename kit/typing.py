@@ -22,3 +22,15 @@ class implements:  # pylint: disable=invalid-name
         super_method = getattr(self.interface, func.__name__, None)
         assert super_method is not None, f"'{func.__name__}' does not exist in {self.interface}"
         return func
+
+
+class parsable:  # pylint: disable=invalid-name
+    """Mark an object's __init__ as parsable by Configen, so only 3.7 type annotations should be used."""
+
+    def __init__(self):
+        """No args required."""
+
+    def __call__(self, func: _F) -> _F:
+        """Take an __init__ function and return it unchanged."""
+        assert func.__name__ == "__init__", "@parsable can only be used to decorate __init__."
+        return func
