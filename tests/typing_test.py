@@ -12,16 +12,12 @@ def test_parsable() -> None:
         def __init__(self) -> None:
             ...
 
-    _ = Foo()
-
 
 def test_parsable_valid() -> None:
     class Foo:
         @parsable
         def __init__(self, a: int, b: Union[int, float], c: List[str]):
             ...
-
-    _ = Foo(a=1, b=1.2, c=["bar"])
 
 
 def test_parsable_invalid_union() -> None:
