@@ -8,12 +8,12 @@ from kit.torch import prop_random_split
 
 
 @pytest.fixture(scope="module")
-def dummy_ds() -> TensorDataset:
+def dummy_ds() -> TensorDataset:  # type: ignore[no-any-unimported]
     return TensorDataset(torch.randn(100))
 
 
 @pytest.mark.parametrize("props", [0.5, [-0.2, 0.5], [0.1, 0.3, 0.4], [0.5, 0.6]])
-def test_prop_random_split(dummy_ds: TensorDataset, props: float | list[float]) -> None:
+def test_prop_random_split(dummy_ds: TensorDataset, props: float | list[float]) -> None:  # type: ignore[no-any-unimported]
     sum_ = props if isinstance(props, float) else sum(props)
     props_ls = [props] if isinstance(props, float) else props
     if sum_ > 1 or any((not (0 <= prop <= 1)) for prop in props_ls):
