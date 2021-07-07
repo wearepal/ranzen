@@ -32,5 +32,7 @@ def parsable(func: _F) -> _F:
     try:
         get_type_hints(func)
     except TypeError:
-        raise ValueError("the type annotations of this function are not automatically parseable.") from None
+        raise ValueError(
+            "the type annotations of this function are not automatically parseable."
+        ) from None
     return func

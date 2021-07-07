@@ -26,6 +26,7 @@ def test_parsable_valid():
 
 def test_parsable_invalid_union():
     with pytest.raises(ValueError):
+
         class Foo:
             @parsable
             def __init__(self, a: int, b: int | float, c: List[str]):
@@ -34,6 +35,7 @@ def test_parsable_invalid_union():
 
 def test_parsable_invalid_list():
     with pytest.raises(ValueError):
+
         class Foo:
             @parsable
             def __init__(self, a: int, b: Union[int, float], c: list[str]):
