@@ -25,7 +25,7 @@ class implements:  # pylint: disable=invalid-name
 
 
 class parsable:  # pylint: disable=invalid-name
-    """Mark an object's __init__ as parsable by Configen, so only 3.7 type annotations should be used."""
+    """Mark an object's __init__ as parsable by Configen, so only pre-3.9 type annotations should be used."""
 
     def __init__(self):
         """No args required."""
