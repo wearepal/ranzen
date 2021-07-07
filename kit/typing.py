@@ -3,7 +3,7 @@ from typing import Any, Callable, TypeVar
 
 __all__ = ["implements"]
 
-from typing_extensions import get_type_hints
+from typing import get_type_hints
 
 _F = TypeVar("_F", bound=Callable[..., Any])
 
