@@ -55,9 +55,7 @@ def _check_generator(generator: torch.Generator | None) -> torch.Generator:
     """ If the generator is None, randomly initialise a generator object."""
     if generator is None:
         generator = torch.Generator()
-        generator.manual_seed(int(torch.empty((), dtype=torch.int64).random_().item()))
-    else:
-        generator = generator
+        generator = generator.manual_seed(int(torch.empty((), dtype=torch.int64).random_().item()))
     return generator
 
 
@@ -97,14 +95,14 @@ class InfSequentialBatchSampler(InfBatchSampler):
             return torch.randperm(self._dataset_size, generator=generator)
         return torch.arange(self._dataset_size)
 
-    def batch_indexes(self, indexes: Tensor) -> Sequence[Tensor]:
+    def _batch_indexes(self, indexes: Tensor) -> Sequence[Tensor]:
         """Split the indexes into batches."""
         return indexes.split(self.batch_size)
 
     @implements(InfBatchSampler)
     def __iter__(self) -> Iterator[list[int]]:
         generator = _check_generator(self.generator)
-        batched_idxs_iter = iter(self.batch_indexes(self._generate_idx_seq(generator=generator)))
+        batched_idxs_iter = iter(self._batch_indexes(self._generate_idx_seq(generator=generator)))
         # Iterate until some externally-defined stopping criterion is reached
         while True:
             batch_idxs = next(batched_idxs_iter, None)  # type: ignore
@@ -115,7 +113,7 @@ class InfSequentialBatchSampler(InfBatchSampler):
                     # incomplete as it may be, we take the alternative approach of concatenating the surplus
                     # batch to the beginning of the next generation of indexes
                     new_idx_seq = torch.cat([batch_idxs, new_idx_seq])
-                batched_idxs_iter = iter(self.batch_indexes(new_idx_seq))
+                batched_idxs_iter = iter(self._batch_indexes(new_idx_seq))
             else:
                 yield batch_idxs.tolist()
 
@@ -217,7 +215,7 @@ class StratifiedSampler(InfBatchSampler):
                 group_idx,
             )
             for group_idx, multiplier in self.groupwise_idxs
-            # Skip any groups with a non-postivie multiplier
+            # Skip any groups with a non-positive multiplier
             if (multiplier > 0)
         ]
         while True:
