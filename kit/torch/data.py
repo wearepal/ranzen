@@ -13,7 +13,7 @@ from torch.utils.data.dataset import Subset, random_split
 from kit import implements
 from kit.misc import str_to_enum
 
-__all__ = ["prop_random_split", "SequentialBatchSampler", "StratifiedBatchSampler"]
+__all__ = ["prop_random_split", "SequentialBatchSampler", "StratifiedBatchSampler", "TrainingMode"]
 
 
 def prop_random_split(
@@ -35,6 +35,11 @@ def prop_random_split(
         section_sizes.append(len_ - sum(section_sizes))
     generator = torch.default_generator if seed is None else torch.Generator().manual_seed(seed)
     return random_split(dataset, section_sizes, generator=generator)
+
+
+class TrainingMode(Enum):
+    epoch = auto()
+    step = auto()
 
 
 class BatchSamplerBase(Sampler[Sequence[int]]):
@@ -93,10 +98,10 @@ class SequentialBatchSampler(BatchSamplerBase):
         data_source: Sized,
         *,
         batch_size: int,
+        training_mode: TrainingMode | str = TrainingMode.step,
         shuffle: bool = True,
         drop_last: bool = False,
         generator: torch.Generator | None = None,
-        sized: bool = False,
     ) -> None:
         self.data_source = data_source
         self.batch_size = batch_size
@@ -104,8 +109,10 @@ class SequentialBatchSampler(BatchSamplerBase):
         self.shuffle = shuffle
         self.drop_last = drop_last
         self.generator = generator
-        self.sized = sized
-        if self.sized:
+        if isinstance(training_mode, str):
+            training_mode = str_to_enum(str_=training_mode, enum=TrainingMode)
+        self.training_mode = training_mode
+        if self.training_mode is TrainingMode.epoch:
             epoch_length = num_batches_per_epoch(
                 num_samples=self._dataset_size, batch_size=self.batch_size, drop_last=self.drop_last
             )
@@ -134,7 +141,7 @@ class SequentialBatchSampler(BatchSamplerBase):
         while True:
             batch_idxs = next(batched_idxs_iter, None)  # type: ignore
             if batch_idxs is None or (len(batch_idxs) < self.batch_size):
-                if self.sized:
+                if self.epoch_length is not None:
                     if not self._should_drop(batch_idxs):
                         yield batch_idxs.tolist()
                     break
@@ -187,13 +194,13 @@ class StratifiedBatchSampler(BatchSamplerBase):
         group_ids: Sequence[int],
         *,
         num_samples_per_group: int,
-        base_sampler: BaseSampler | str = BaseSampler.sequential,
-        shuffle: bool = False,
-        replacement: bool = True,
         multipliers: dict[int, int] | None = None,
-        generator: torch.Generator | None = None,
-        sized: bool = False,
+        base_sampler: BaseSampler | str = BaseSampler.sequential,
+        training_mode: TrainingMode | str = TrainingMode.step,
+        replacement: bool = True,
+        shuffle: bool = False,
         drop_last: bool = True,
+        generator: torch.Generator | None = None,
     ) -> None:
         if (
             not isinstance(num_samples_per_group, int)
@@ -209,6 +216,8 @@ class StratifiedBatchSampler(BatchSamplerBase):
             )
         if isinstance(base_sampler, str):
             base_sampler = str_to_enum(str_=base_sampler, enum=BaseSampler)
+        if isinstance(training_mode, str):
+            training_mode = str_to_enum(str_=training_mode, enum=TrainingMode)
 
         self.num_samples_per_group = num_samples_per_group
         multipliers_ = {} if multipliers is None else multipliers
@@ -241,9 +250,9 @@ class StratifiedBatchSampler(BatchSamplerBase):
         self.shuffle = shuffle
         self.drop_last = drop_last
         self.generator = generator
-        self.sized = sized
+        self.training_mode = training_mode
 
-        if self.sized:
+        if self.training_mode is TrainingMode.epoch:
             # We define the length of the sampler to be the maximum number of steps
             # needed to do a complete pass of a group's data
             groupwise_epoch_length = [
@@ -272,7 +281,9 @@ class StratifiedBatchSampler(BatchSamplerBase):
                         batch_size=self.num_samples_per_group * multiplier,
                         shuffle=self.shuffle,
                         generator=generator,
-                        sized=self.sized and (i == 0),  # group-idxs are sorted by epoch-length
+                        training_mode=self.training_mode
+                        if self.training_mode is TrainingMode.epoch and (i == 0)
+                        else TrainingMode.step,  # group-idxs are sorted by epoch-length
                     )
                 ),
                 group_idxs,

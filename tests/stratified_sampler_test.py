@@ -5,7 +5,7 @@ import pytest
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
-from kit.torch.data import BaseSampler, StratifiedBatchSampler
+from kit.torch.data import BaseSampler, StratifiedBatchSampler, TrainingMode
 
 
 @pytest.fixture
@@ -106,7 +106,7 @@ def test_sized(group_ids: list[int], drop_last: bool) -> None:
         num_samples_per_group=225,
         multipliers=None,
         shuffle=False,
-        sized=True,
+        training_mode=TrainingMode.epoch,
         drop_last=drop_last,
     )
     batches = [batch for batch in sampler]
