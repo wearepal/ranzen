@@ -255,9 +255,9 @@ class StratifiedBatchSampler(InfBatchSampler):
                 for idxs, mult in self.groupwise_idxs
             ]
             # Sort the groupwise-idxs by their associated epoch-length
-            sorted_idxs = np.argsort(groupwise_epoch_length)[::-1]
-            self.groupwise_idxs = [self.groupwise_idxs[idx] for idx in sorted_idxs]
-            max_epoch_length = max(groupwise_epoch_length)
+            sorted_idxs_desc = np.argsort(groupwise_epoch_length)[::-1]
+            self.groupwise_idxs = [self.groupwise_idxs[idx] for idx in sorted_idxs_desc]
+            max_epoch_length = groupwise_epoch_length[sorted_idxs_desc[0]]
         else:
             max_epoch_length = None
 
