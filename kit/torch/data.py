@@ -12,12 +12,7 @@ from typing_extensions import Literal
 
 from kit import implements
 
-__all__ = [
-    "prop_random_split",
-    "InfSequentialBatchSampler",
-    "StratifiedSampler",
-    "SizedStratifiedSampler",
-]
+__all__ = ["prop_random_split", "InfSequentialBatchSampler", "StratifiedSampler"]
 
 
 def prop_random_split(
@@ -165,6 +160,7 @@ class StratifiedSampler(InfBatchSampler):
         replacement: bool = True,
         multipliers: dict[int, int] | None = None,
         generator: torch.Generator | None = None,
+        sized: bool = False,
     ) -> None:
         if (
             not isinstance(num_samples_per_group, int)
@@ -207,6 +203,18 @@ class StratifiedSampler(InfBatchSampler):
         self.replacement = replacement
         self.shuffle = shuffle
         self.generator = generator
+        self.sized = sized
+
+        if self.sized:
+            # We define the length of the sampler to be the maximum number of steps
+            # needed to do a complete pass of a group's data
+            groupwise_epoch_len = (
+                math.ceil(len(idxs) / (mult * num_samples_per_group))
+                for idxs, mult in self.groupwise_idxs
+            )
+            self._max_epoch_len = max(groupwise_epoch_len)
+        else:
+            self._max_epoch_len = None
 
     def _sequential_sampler(self, generator: torch.Generator) -> Iterator[list[int]]:
         samplers_and_idxs = [
@@ -264,35 +272,8 @@ class StratifiedSampler(InfBatchSampler):
         else:
             return self._sequential_sampler(generator=generator)
 
-
-class SizedStratifiedSampler(StratifiedSampler):
-    """StratifiedSampler with a finite length for epoch-based training."""
-
-    def __init__(
-        self,
-        group_ids: Sequence[int],
-        *,
-        num_samples_per_group: int,
-        shuffle: bool = False,
-        multipliers: dict[int, int] | None = None,
-        generator: torch.Generator | None = None,
-    ) -> None:
-        super().__init__(
-            group_ids=group_ids,
-            num_samples_per_group=num_samples_per_group,
-            base_sampler="sequential",
-            shuffle=shuffle,
-            replacement=False,
-            multipliers=multipliers,
-            generator=generator,
-        )
-        # We define the length of the sampler to be the maximum number of steps
-        # needed to do a complete pass of a group's data
-        groupwise_epoch_len = (
-            math.ceil(len(idxs) / (mult * num_samples_per_group))
-            for idxs, mult in self.groupwise_idxs
-        )
-        self._max_epoch_len = max(groupwise_epoch_len)
-
-    def __len__(self) -> int:
+    @implements(InfBatchSampler)
+    def __len__(self) -> float | int:
+        if self._max_epoch_len is None:
+            return math.inf
         return self._max_epoch_len
