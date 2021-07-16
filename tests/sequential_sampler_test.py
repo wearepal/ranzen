@@ -27,14 +27,14 @@ def test_regeneration(data: Tensor) -> None:  # type: ignore[no-any-unimported]
 
 
 @pytest.mark.parametrize("drop_last", [True, False])
-def test_sized(data: Tensor, drop_last: bool) -> None:  # type: ignore[no-any-unimported]
+@pytest.mark.parametrize("batch_size", [55, 50])
+def test_epoch_mode(data: Tensor, batch_size: int, drop_last: bool) -> None:  # type: ignore[no-any-unimported]
     sampler = SequentialBatchSampler(
         data_source=data,
-        batch_size=55,
+        batch_size=batch_size,
         shuffle=False,
         training_mode=TrainingMode.epoch,
         drop_last=drop_last,
     )
     batches = [batch for batch in sampler]
     assert len(batches) == len(sampler)  # type: ignore
-    assert len(batches) == (4 - drop_last)

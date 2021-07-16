@@ -137,21 +137,22 @@ class SequentialBatchSampler(BatchSamplerBase):
     def __iter__(self) -> Iterator[list[int]]:
         generator = _check_generator(self.generator)
         batched_idxs_iter = iter(self._batch_indexes(self._generate_idx_seq(generator=generator)))
-        # Iterate until some externally-defined stopping criterion is reached
+        # Iterate until some stopping criterion is reached
         while True:
-            batch_idxs = next(batched_idxs_iter, None)  # type: ignore
-            if batch_idxs is None or (len(batch_idxs) < self.batch_size):
-                if self.epoch_length is not None:
+            batch_idxs = next(batched_idxs_iter, None)
+            if (batch_idxs is None) or (len(batch_idxs) < self.batch_size):
+                if self.epoch_length is None:
+                    new_idx_seq = self._generate_idx_seq(generator=generator)
+                    if (batch_idxs is not None) and (not self.drop_last):
+                        # Rather than dropping the last batch if it is incomplete or simply using it,
+                        # incomplete as it may be, we take the alternative approach of concatenating the surplus
+                        # batch to the beginning of the next generation of indexes
+                        new_idx_seq = torch.cat([batch_idxs, new_idx_seq])
+                    batched_idxs_iter = iter(self._batch_indexes(new_idx_seq))
+                else:
                     if not self._should_drop(batch_idxs):
                         yield batch_idxs.tolist()
                     break
-                new_idx_seq = self._generate_idx_seq(generator=generator)
-                if (batch_idxs is not None) and (not self.drop_last):
-                    # Rather than dropping the last batch if it is incomplete or simply using it,
-                    # incomplete as it may be, we take the alternative approach of concatenating the surplus
-                    # batch to the beginning of the next generation of indexes
-                    new_idx_seq = torch.cat([batch_idxs, new_idx_seq])
-                batched_idxs_iter = iter(self._batch_indexes(new_idx_seq))
             else:
                 yield batch_idxs.tolist()
 
