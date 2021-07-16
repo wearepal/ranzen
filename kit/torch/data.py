@@ -286,7 +286,7 @@ class SizedStratifiedSampler(StratifiedSampler):
             multipliers=multipliers,
             generator=generator,
         )
-        # We define the legnth of the sampler to be the maximum number of steps
+        # We define the length of the sampler to be the maximum number of steps
         # needed to do a complete pass of a group's data
         groupwise_epoch_len = (
             math.ceil(len(idxs) / (mult * num_samples_per_group))
