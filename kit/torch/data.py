@@ -283,11 +283,11 @@ class StratifiedBatchSampler(InfBatchSampler):
         ]
         while True:
             sampled_idxs: list[int] = []
-            for sampler, group_idx in samplers_and_idxs:
+            for sampler, group_idxs in samplers_and_idxs:
                 idxs_of_idxs = next(sampler, None)
                 if idxs_of_idxs is None:
                     return
-                batch_idxs = group_idx[idxs_of_idxs]
+                batch_idxs = group_idxs[idxs_of_idxs]
                 sampled_idxs.extend(batch_idxs)
             if self.drop_last and self.sized and (len(sampled_idxs) < self.batch_size):
                 break
