@@ -281,17 +281,47 @@ class StratifiedBatchSampler(BatchSamplerBase):
             # Skip any groups with a non-positive multiplier
             if (multiplier > 0)
         ]
-        while True:
-            sampled_idxs: list[int] = []
-            for sampler, group_idxs in samplers_and_idxs:
-                idxs_of_idxs = next(sampler, None)
-                if idxs_of_idxs is None:
-                    return
-                batch_idxs = group_idxs[idxs_of_idxs]
-                sampled_idxs.extend(batch_idxs)
-            if self.drop_last and self.sized and (len(sampled_idxs) < self.batch_size):
-                break
-            yield sampled_idxs
+        sampled_idxs: list[int]
+        # 'step' mode is enabled, making the sampling procedure very simple
+        # because there's no need to special case the last batch
+        if self.epoch_length is None:
+            while True:
+                sampled_idxs = []
+                for sampler, group_idxs in samplers_and_idxs:
+                    sampled_idxs.extend(group_idxs[next(sampler)])
+                yield sampled_idxs
+        # 'epoch' mode is enabled - handling the last batch is quite involved
+        # as we need to preserve the ratio between the groups prescribed by the
+        # multipliers
+        else:
+            # Factor by which to reduce the batch by - only relevant for the
+            # last batch and is computed as the ratio of the number of
+            # drawn for the final batch to the group-specific batch size
+            # for the group with the longest epoch-length
+            batch_reduction_factor: float | None = None
+            for step in range(1, self.epoch_length + 1):
+                sampled_idxs = []
+                for group_num, (sampler, group_idxs) in enumerate(samplers_and_idxs):
+                    idxs_of_idxs = next(sampler)
+                    # The groups are ordered by epoch-length so we only need to check the first group
+                    # (being the one that dictates the lenght of a epoch for the whole sampler)
+                    if group_num == 0:
+                        if step == self.epoch_length:
+                            batch_reduction_factor = len(idxs_of_idxs) / (
+                                self.num_samples_per_group * self.groupwise_idxs[group_num][1]
+                            )
+                            # The batch is incomplete and drop-last is enabled - terminte the iteration
+                            if self.drop_last and (not batch_reduction_factor):
+                                return
+                    else:
+                        if batch_reduction_factor is not None:
+                            # Subsample the indexes according to the batch-reduction-factor
+                            reduced_sample_count = round(len(idxs_of_idxs) * batch_reduction_factor)
+                            idxs_of_idxs = idxs_of_idxs[:reduced_sample_count]
+                    # Collate the indexes
+                    sampled_idxs.extend(group_idxs[idxs_of_idxs])
+
+                yield sampled_idxs
 
     def _random_sampler(self, generator: torch.Generator) -> Iterator[list[int]]:
         while True:
