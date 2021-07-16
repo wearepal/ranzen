@@ -283,13 +283,13 @@ class StratifiedBatchSampler(BatchSamplerBase):
                         shuffle=self.shuffle,
                         generator=generator,
                         training_mode=self.training_mode
-                        if self.training_mode is TrainingMode.epoch and (i == 0)
+                        if self.training_mode is TrainingMode.epoch and (group_num == 0)
                         else TrainingMode.step,  # group-idxs are sorted by epoch-length
                     )
                 ),
                 group_idxs,
             )
-            for i, (group_idxs, multiplier) in enumerate(self.groupwise_idxs)
+            for group_num, (group_idxs, multiplier) in enumerate(self.groupwise_idxs)
             # Skip any groups with a non-positive multiplier
             if (multiplier > 0)
         ]
