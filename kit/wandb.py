@@ -15,7 +15,7 @@ def get_api():
 class RunsDownloader:
     """Download logged runs from W&B."""
 
-    def __init__(self, project: str, entity: str):
+    def __init__(self, *, project: str, entity: str) -> None:
         self.project = project
         self.entity = entity
         self.api = get_api()
@@ -43,7 +43,7 @@ class RunsDownloader:
         return pd.concat(dfs, axis=1, sort=False, keys=groups_)
 
     def modify_config(
-        self, group: str, config_key: str, new_value: bool | int | float | str
+        self, *, group: str, config_key: str, new_value: bool | int | float | str
     ) -> None:
         """Modify the config value of runs logged on W&B.
 

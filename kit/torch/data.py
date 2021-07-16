@@ -12,11 +12,16 @@ from typing_extensions import Literal
 
 from kit import implements
 
-__all__ = ["prop_random_split", "InfSequentialBatchSampler", "StratifiedSampler"]
+__all__ = [
+    "prop_random_split",
+    "InfSequentialBatchSampler",
+    "StratifiedSampler",
+    "SizedStratifiedSampler",
+]
 
 
 def prop_random_split(
-    dataset: Dataset, props: Sequence[float] | float, seed: int | None = None
+    dataset: Dataset, *, props: Sequence[float] | float, seed: int | None = None
 ) -> list[Subset]:
     """Splits a dataset based on proportions rather than on absolute sizes."""
     if not hasattr(dataset, "__len__"):
@@ -79,6 +84,7 @@ class InfSequentialBatchSampler(InfBatchSampler):
     def __init__(
         self,
         data_source: Sized,
+        *,
         batch_size: int,
         shuffle: bool = True,
         generator: torch.Generator | None = None,
@@ -152,6 +158,7 @@ class StratifiedSampler(InfBatchSampler):
     def __init__(
         self,
         group_ids: Sequence[int],
+        *,
         num_samples_per_group: int,
         base_sampler: BaseSampler = "random",
         shuffle: bool = False,
@@ -206,7 +213,7 @@ class StratifiedSampler(InfBatchSampler):
             (
                 iter(
                     InfSequentialBatchSampler(
-                        group_idx,
+                        data_source=group_idx,
                         batch_size=self.num_samples_per_group * multiplier,
                         shuffle=self.shuffle,
                         generator=generator,
@@ -256,3 +263,36 @@ class StratifiedSampler(InfBatchSampler):
             return self._random_sampler(generator=generator)
         else:
             return self._sequential_sampler(generator=generator)
+
+
+class SizedStratifiedSampler(StratifiedSampler):
+    """StratifiedSampler with a finite length for epoch-based training."""
+
+    def __init__(
+        self,
+        group_ids: Sequence[int],
+        *,
+        num_samples_per_group: int,
+        shuffle: bool = False,
+        multipliers: dict[int, int] | None = None,
+        generator: torch.Generator | None = None,
+    ) -> None:
+        super().__init__(
+            group_ids=group_ids,
+            num_samples_per_group=num_samples_per_group,
+            base_sampler="sequential",
+            shuffle=shuffle,
+            replacement=False,
+            multipliers=multipliers,
+            generator=generator,
+        )
+        # We define the legnth of the sampler to be the maximum number of steps
+        # needed to do a complete pass of a group's data
+        groupwise_epoch_len = (
+            math.ceil(len(idxs) / (mult * num_samples_per_group))
+            for idxs, mult in self.groupwise_idxs
+        )
+        self._max_epoch_len = max(groupwise_epoch_len)
+
+    def __len__(self) -> int:
+        return self._max_epoch_len

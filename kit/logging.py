@@ -3,7 +3,7 @@
 __all__ = ["readable_duration"]
 
 
-def readable_duration(seconds: float, pad: str = "") -> str:
+def readable_duration(seconds: float, *, pad: str = "") -> str:
     """Produce human-readable duration."""
     if seconds < 10:
         return f"{seconds:.2g}s"
