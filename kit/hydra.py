@@ -46,7 +46,7 @@ def reconstruct_cmd() -> str:
 
 
 def recursively_instantiate(
-    hydra_config: DictConfig, keys_to_exclude: Sequence[str] = ()
+    hydra_config: DictConfig, *, keys_to_exclude: Sequence[str] = ()
 ) -> dict[str, Any]:
     return {
         str(k): instantiate(v, _convert_="partial")
@@ -89,7 +89,7 @@ class SchemaRegistration:
 class GroupRegistration:
     """Helper for registering a group in hydra."""
 
-    def __init__(self, cs: ConfigStore, group_name: str, package: str):
+    def __init__(self, cs: ConfigStore, *, group_name: str, package: str):
         self._cs = cs
         self._group_name = group_name
         self._package = package
