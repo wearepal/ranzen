@@ -37,7 +37,7 @@ def prop_random_split(
     return random_split(dataset, section_sizes, generator=generator)
 
 
-class InfBatchSampler(Sampler[Sequence[int]]):
+class BatchSamplerBase(Sampler[Sequence[int]]):
     def __init__(self, epoch_length: int | None = None) -> None:
         self.epoch_length = epoch_length
 
@@ -71,7 +71,7 @@ def num_batches_per_epoch(num_samples: int, *, batch_size: int, drop_last: bool 
     return rounding_fn(num_samples / batch_size)
 
 
-class SequentialBatchSampler(InfBatchSampler):
+class SequentialBatchSampler(BatchSamplerBase):
     r"""Infinitely samples elements sequentially, always in the same order.
     This is useful for enabling iteration-based training.
     Note that unlike torch's SequentialSampler which is an ordinary sampler that yields independent sample indexes,
@@ -126,7 +126,7 @@ class SequentialBatchSampler(InfBatchSampler):
     def _should_drop(self, batch_idxs: Tensor | None) -> bool:
         return (batch_idxs is None) or self.drop_last
 
-    @implements(InfBatchSampler)
+    @implements(BatchSamplerBase)
     def __iter__(self) -> Iterator[list[int]]:
         generator = _check_generator(self.generator)
         batched_idxs_iter = iter(self._batch_indexes(self._generate_idx_seq(generator=generator)))
@@ -154,7 +154,7 @@ class BaseSampler(Enum):
     sequential = auto()
 
 
-class StratifiedBatchSampler(InfBatchSampler):
+class StratifiedBatchSampler(BatchSamplerBase):
     r"""Samples equal proportion of elements from ``[0,..,len(group_ids)-1]``.
 
     To drop certain groups, set their multiplier to 0.
@@ -318,7 +318,7 @@ class StratifiedBatchSampler(InfBatchSampler):
                     sampled_idxs += list(chunks[:multiplier])
             yield torch.cat(sampled_idxs, dim=0).tolist()
 
-    @implements(InfBatchSampler)
+    @implements(BatchSamplerBase)
     def __iter__(self) -> Iterator[list[int]]:
         generator = _check_generator(self.generator)
         if self.sampler is BaseSampler.random:

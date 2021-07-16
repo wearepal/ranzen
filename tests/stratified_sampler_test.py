@@ -15,7 +15,7 @@ def group_ids() -> list[int]:
     ).tolist()
 
 
-@pytest.mark.parametrize("sampler", [BaseSampler.random, BaseSampler.sequential])
+@pytest.mark.parametrize("sampler", [list(BaseSampler)])
 def test_simple(group_ids: list[int], sampler: BaseSampler) -> None:
     num_samples_per_group = 800
     indexes = next(
@@ -53,7 +53,7 @@ def test_without_replacement(group_ids: list[int]) -> None:
     assert all(count == num_samples_per_group for count in counts)
 
 
-@pytest.mark.parametrize("sampler", [BaseSampler.random, BaseSampler.sequential])
+@pytest.mark.parametrize("sampler", [list(BaseSampler)])
 def test_with_multipliers(group_ids: list[int], sampler: BaseSampler) -> None:
     num_samples_per_group = 800
     indexes = next(
@@ -75,7 +75,7 @@ def test_with_multipliers(group_ids: list[int], sampler: BaseSampler) -> None:
     assert (samples == 2).sum() == (3 * num_samples_per_group)
 
 
-@pytest.mark.parametrize("sampler", [BaseSampler.random, BaseSampler.sequential])
+@pytest.mark.parametrize("sampler", [list(BaseSampler)])
 def test_with_dataloader(group_ids: list[int], sampler: BaseSampler) -> None:
     num_samples_per_group = 100
     batch_size = num_samples_per_group * 4
@@ -110,5 +110,5 @@ def test_sized(group_ids: list[int], drop_last: bool) -> None:
         drop_last=drop_last,
     )
     batches = [batch for batch in sampler]
-    assert len(batches) == sampler.epoch_length
+    assert len(batches) == len(sampler)  # type: ignore
     assert len(batches) == (4 - drop_last)
