@@ -2,6 +2,19 @@
 line-length = 100
 target-version = ['py37']
 
+[tool.mypy]
+python_version = "3.8"
+no_implicit_optional = true
+allow_redefinition = true
+strict_equality = true
+check_untyped_defs = true
+warn_unreachable = true
+disallow_any_unimported = false
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+show_error_codes = true
+warn_unused_ignores = true
+
 [tool.isort]
 known_third_party = [
   "black",

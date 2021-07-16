@@ -10,7 +10,7 @@ def data() -> Tensor:  # type: ignore[no-any-unimported]
     return torch.arange(200)
 
 
-def test_regeneration(data: Tensor) -> None:
+def test_regeneration(data: Tensor) -> None:  # type: ignore[no-any-unimported]
     batch_size = 175
     dataset_size = 200
     sampler = SequentialBatchSampler(data_source=data, batch_size=batch_size, shuffle=False)
@@ -26,7 +26,7 @@ def test_regeneration(data: Tensor) -> None:
 
 
 @pytest.mark.parametrize("drop_last", [True, False])
-def test_sized(data: Tensor, drop_last: bool) -> None:
+def test_sized(data: Tensor, drop_last: bool) -> None:  # type: ignore[no-any-unimported]
     sampler = SequentialBatchSampler(
         data_source=data, batch_size=55, shuffle=False, sized=True, drop_last=drop_last
     )
