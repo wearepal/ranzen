@@ -27,7 +27,7 @@ def test_simple(group_ids: list[int], sampler: BaseSampler) -> None:
         iter(
             StratifiedSampler(
                 group_ids,
-                num_samples_per_group,
+                num_samples_per_group=num_samples_per_group,
                 replacement=True,
                 multipliers=None,
                 base_sampler=sampler,
@@ -44,7 +44,12 @@ def test_without_replacement(group_ids: list[int]) -> None:
     num_samples_per_group = 100
     indexes = next(
         iter(
-            StratifiedSampler(group_ids, num_samples_per_group, replacement=True, multipliers=None)
+            StratifiedSampler(
+                group_ids,
+                num_samples_per_group=num_samples_per_group,
+                replacement=True,
+                multipliers=None,
+            )
         )
     )
     group_ids_t = torch.as_tensor(group_ids)
@@ -60,7 +65,7 @@ def test_with_multipliers(group_ids: list[int], sampler: BaseSampler) -> None:
         iter(
             StratifiedSampler(
                 group_ids,
-                num_samples_per_group,
+                num_samples_per_group=num_samples_per_group,
                 replacement=True,
                 multipliers={0: 2, 1: 0, 2: 3},
                 base_sampler=sampler,
