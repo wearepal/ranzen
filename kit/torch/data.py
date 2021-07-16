@@ -316,7 +316,7 @@ class StratifiedBatchSampler(BatchSamplerBase):
                 for group_num, (sampler, group_idxs) in enumerate(samplers_and_idxs):
                     idxs_of_idxs = next(sampler)
                     # The groups are ordered by epoch-length so we only need to check the first group
-                    # (being the one that dictates the lenght of a epoch for the whole sampler)
+                    # (being the one that dictates the length of a epoch for the whole sampler)
                     if group_num == 0:
                         if step == self.epoch_length:
                             batch_reduction_factor = len(idxs_of_idxs) / (
