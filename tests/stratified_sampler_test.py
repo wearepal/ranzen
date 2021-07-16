@@ -5,12 +5,7 @@ import pytest
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
-from kit.torch.data import BaseSampler, StratifiedSampler
-
-
-def count_true(mask: np.ndarray) -> int:
-    """Count the number of elements that are True."""
-    return mask.nonzero()[0].shape[0]
+from kit.torch.data import BaseSampler, StratifiedBatchSampler
 
 
 @pytest.fixture
@@ -20,12 +15,12 @@ def group_ids() -> list[int]:
     ).tolist()
 
 
-@pytest.mark.parametrize("sampler", ["sequential", "random"])
+@pytest.mark.parametrize("sampler", [BaseSampler.random, BaseSampler.sequential])
 def test_simple(group_ids: list[int], sampler: BaseSampler) -> None:
     num_samples_per_group = 800
     indexes = next(
         iter(
-            StratifiedSampler(
+            StratifiedBatchSampler(
                 group_ids,
                 num_samples_per_group=num_samples_per_group,
                 replacement=True,
@@ -44,7 +39,7 @@ def test_without_replacement(group_ids: list[int]) -> None:
     num_samples_per_group = 100
     indexes = next(
         iter(
-            StratifiedSampler(
+            StratifiedBatchSampler(
                 group_ids,
                 num_samples_per_group=num_samples_per_group,
                 replacement=True,
@@ -58,12 +53,12 @@ def test_without_replacement(group_ids: list[int]) -> None:
     assert all(count == num_samples_per_group for count in counts)
 
 
-@pytest.mark.parametrize("sampler", ["sequential", "random"])
+@pytest.mark.parametrize("sampler", [BaseSampler.random, BaseSampler.sequential])
 def test_with_multipliers(group_ids: list[int], sampler: BaseSampler) -> None:
     num_samples_per_group = 800
     indexes = next(
         iter(
-            StratifiedSampler(
+            StratifiedBatchSampler(
                 group_ids,
                 num_samples_per_group=num_samples_per_group,
                 replacement=True,
@@ -80,11 +75,11 @@ def test_with_multipliers(group_ids: list[int], sampler: BaseSampler) -> None:
     assert (samples == 2).sum() == (3 * num_samples_per_group)
 
 
-@pytest.mark.parametrize("sampler", ["sequential", "random"])
+@pytest.mark.parametrize("sampler", [BaseSampler.random, BaseSampler.sequential])
 def test_with_dataloader(group_ids: list[int], sampler: BaseSampler) -> None:
     num_samples_per_group = 100
     batch_size = num_samples_per_group * 4
-    batch_sampler = StratifiedSampler(
+    batch_sampler = StratifiedBatchSampler(
         group_ids,
         num_samples_per_group=num_samples_per_group,
         replacement=False,
@@ -102,3 +97,18 @@ def test_with_dataloader(group_ids: list[int], sampler: BaseSampler) -> None:
         iters += 1
         if iters == 2:
             break
+
+
+@pytest.mark.parametrize("drop_last", [True, False])
+def test_sized(group_ids: list[int], drop_last: bool) -> None:
+    sampler = StratifiedBatchSampler(
+        group_ids=group_ids,
+        num_samples_per_group=225,
+        multipliers=None,
+        shuffle=False,
+        sized=True,
+        drop_last=drop_last,
+    )
+    batches = [batch for batch in sampler]
+    assert len(batches) == sampler.epoch_length
+    assert len(batches) == (4 - drop_last)
