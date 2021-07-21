@@ -77,18 +77,29 @@ echo "#        clean up old builds          #"
 echo "#######################################"
 rm -rf build dist
 
-echo "#######################################"
-echo "#            do new build             #"
-echo "#######################################"
-poetry build
+build_and_publish() {
+  echo "#######################################"
+  echo "#          switching to $1            #"
+  echo "#######################################"
+  pushd $1
 
-echo ""
-echo "#######################################"
-echo "#          publish package            #"
-echo "#######################################"
-# to use this, set up an API token with
-#  `poetry config pypi-token.pypi <api token>`
-poetry publish
+  echo "#######################################"
+  echo "#            do new build             #"
+  echo "#######################################"
+  poetry build
+
+  echo ""
+  echo "#######################################"
+  echo "#          publish package            #"
+  echo "#######################################"
+  # to use this, set up an API token with
+  #  `poetry config pypi-token.pypi <api token>`
+  poetry publish
+
+  popd  # switch back to previous directory
+}
+
+build_and_publish "palkit/"
 
 # clean up
 echo "#######################################"

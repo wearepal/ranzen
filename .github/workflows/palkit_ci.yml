@@ -1,4 +1,4 @@
-name: CI
+name: Palkit CI
 
 on:
   pull_request:
@@ -6,8 +6,11 @@ on:
     - main
 
 jobs:
-  ci_suite:
+  palkit_ci:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./palkit
     env:
       POETRY_VIRTUALENVS_CREATE: false
 
