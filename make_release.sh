@@ -56,32 +56,23 @@ echo "#   merge main into release branch  #"
 echo "#######################################"
 git merge --no-ff main --no-edit
 
-# bump version
-poetry version $version_bump
-
-# commit change
-git add pyproject.toml
-git commit -m "Bump version"
-
-# create tag and push
-new_tag=v$(poetry version -s)
-echo "#######################################"
-echo "#          new tag: $new_tag          #"
-echo "#######################################"
-git tag $new_tag
-git push origin release $new_tag
-
-# clean previous build and build
-echo "#######################################"
-echo "#        clean up old builds          #"
-echo "#######################################"
-rm -rf build dist
-
-build_and_publish() {
+bump_build_publish() {
   echo "#######################################"
   echo "#          switching to $1            #"
   echo "#######################################"
   pushd $1
+
+  echo "#######################################"
+  echo "#            bump version             #"
+  echo "#######################################"
+  poetry version $version_bump
+  git add pyproject.toml
+
+  # clean previous build and build
+  echo "#######################################"
+  echo "#        clean up old builds          #"
+  echo "#######################################"
+  rm -rf build dist
 
   echo "#######################################"
   echo "#            do new build             #"
@@ -99,7 +90,24 @@ build_and_publish() {
   popd  # switch back to previous directory
 }
 
-build_and_publish "palkit/"
+# go through all project directories
+bump_build_publish "palkit/"
+# (it's currently only one)
+
+# commit changes
+git commit -m "Bump version"
+
+# get the version from palkit
+pushd palkit
+new_tag=v$(poetry version -s)
+popd
+
+# create tag and push
+echo "#######################################"
+echo "#          new tag: $new_tag          #"
+echo "#######################################"
+git tag $new_tag
+git push origin release $new_tag
 
 # clean up
 echo "#######################################"
