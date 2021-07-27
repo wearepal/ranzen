@@ -1,8 +1,8 @@
 from __future__ import annotations
+
+import random
 from collections.abc import Iterable, Iterator
 from datetime import datetime
-import random
-import time
 from typing import Any, TypeVar
 
 import numpy as np
