@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 from enum import Enum, auto
 from functools import partial
 from typing import Optional, Union
 
 import torch
-from torch import Tensor, nn
 import torch.nn.functional as F
+from torch import Tensor, nn
 
 from kit import parsable, str_to_enum
 
@@ -94,6 +95,5 @@ class CrossEntropyLoss(nn.Module):
             reduction="none",
         )
         if instance_weight is not None:
-            _weight = instance_weight.flatten()
-            losses *= _weight
+            losses *= instance_weight.flatten()
         return _reduce(losses=losses, reduction_type=reduction)
