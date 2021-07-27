@@ -1,12 +1,11 @@
 from __future__ import annotations
-
 from enum import Enum, auto
 from functools import partial
 from typing import Optional, Union
 
 import torch
-import torch.nn.functional as F
 from torch import Tensor, nn
+import torch.nn.functional as F
 
 from kit import parsable, str_to_enum
 
