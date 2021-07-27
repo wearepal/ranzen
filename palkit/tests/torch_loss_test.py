@@ -7,7 +7,7 @@ from kit.torch import CrossEntropyLoss, ReductionType
 BATCH_SIZE: Final[int] = 3
 
 
-@pytest.mark.parametrize("out_dim", [0, 1, 3])
+@pytest.mark.parametrize("out_dim", [1, 3])
 @pytest.mark.parametrize("dtype", ["long", "float"])
 @pytest.mark.parametrize("reduction_type", list(ReductionType))
 def test_xent(out_dim: int, dtype: str, reduction_type: ReductionType) -> None:

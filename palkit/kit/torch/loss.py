@@ -95,5 +95,5 @@ class CrossEntropyLoss(nn.Module):
             reduction="none",
         )
         if instance_weight is not None:
-            losses *= instance_weight.flatten()
+            losses *= instance_weight.view_as(losses)
         return _reduce(losses=losses, reduction_type=reduction)
