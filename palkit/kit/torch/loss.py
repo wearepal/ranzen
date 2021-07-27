@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 from enum import Enum, auto
 from functools import partial
 from typing import Optional, Union
 
 import torch
-from torch import Tensor, nn
 import torch.nn.functional as F
+from torch import Tensor, nn
 
 from kit import parsable, str_to_enum
 
@@ -17,6 +18,22 @@ class ReductionType(Enum):
     none = auto()
     sum = auto()
     batch_mean = auto()
+
+
+def _reduce(losses: Tensor, reduction_type: ReductionType | str) -> Tensor:
+    if isinstance(reduction_type, str):
+        reduction_type = str_to_enum(str_=reduction_type, enum=ReductionType)
+    if reduction_type is ReductionType.mean:
+        return losses.mean()
+    elif reduction_type is ReductionType.batch_mean:
+        return losses.mean(0)
+    elif reduction_type is ReductionType.sum:
+        return losses.sum()
+    elif reduction_type is ReductionType.none:
+        return losses
+    raise TypeError(
+        f"Received invalid type '{type(reduction_type)}' for argument 'reduction_type'."
+    )
 
 
 class CrossEntropyLoss(nn.Module):
@@ -80,11 +97,4 @@ class CrossEntropyLoss(nn.Module):
         if instance_weight is not None:
             _weight = instance_weight.flatten()
             losses *= _weight
-        if self._reduction is ReductionType.mean:
-            return losses.mean()
-        elif self._reduction is ReductionType.batch_mean:
-            return losses.mean(0)
-        elif self._reduction is ReductionType.sum:
-            return losses.sum()
-        else:
-            return losses
+        return _reduce(losses=losses, reduction_type=reduction)
