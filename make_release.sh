@@ -91,16 +91,16 @@ bump_build_publish() {
 }
 
 # go through all project directories
-bump_build_publish "palkit/"
+bump_build_publish "."
 # (it's currently only one)
 
 # commit changes
 git commit -m "Bump version"
 
 # get the version from palkit
-pushd palkit
+# pushd palkit
 new_tag=v$(poetry version -s)
-popd
+# popd
 
 # create tag and push
 echo "#######################################"

@@ -8,9 +8,6 @@ on:
 jobs:
   palkit_ci:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./palkit
     env:
       POETRY_VIRTUALENVS_CREATE: false
 
@@ -49,4 +46,3 @@ jobs:
     - name: Test with pytest
       run: |
         python -m pytest -vv tests/
-
