@@ -59,7 +59,7 @@ class RandomMixUp:
         self.num_classes = num_classes
         self.inplace = inplace
 
-    def _mix(self, tensor_a, *, tensor_b, lambda_) -> Tensor:
+    def _mix(self, tensor_a: Tensor, *, tensor_b: Tensor, lambda_: Tensor) -> Tensor:
         lambda_c = 1 - lambda_
         if self.mode is MixUpMode.linear:
             return lambda_ * tensor_a + lambda_c * tensor_b
