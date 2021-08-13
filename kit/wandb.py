@@ -58,7 +58,7 @@ class RunsDownloader:
         print(f"Changed config for {i} runs.")
 
     @staticmethod
-    def _runs_to_df(runs: Sequence[wandb.wandb_run.Run]) -> pd.DataFrame:
+    def _runs_to_df(runs: Sequence[wandb.wandb_run.Run]) -> pd.DataFrame:  # type: ignore
         summary_list = []
         config_list = []
         name_list = []
