@@ -49,7 +49,7 @@ def gcopy(
     return obj_cp
 
 
-T_co = TypeVar("T_co", covariant=True, bound=Enum)
+T_co = TypeVar("T_co", covariant=False, bound=Enum)
 
 
 def str_to_enum(str_: str, *, enum: type[T_co]) -> T_co:
