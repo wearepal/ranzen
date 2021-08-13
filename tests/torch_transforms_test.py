@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import pytest
 import torch
+from typing_extensions import Final
 
 from kit.torch.transforms import BernoulliMixUp, BetaMixUp, MixUpMode, UniformMixUp
 
-BATCH_SIZE = 7
-NUM_CLASSES = 3
+BATCH_SIZE: Final[int] = 7
+NUM_CLASSES: Final[int] = 3
 
 
 @pytest.mark.parametrize("mixup_cls", [BernoulliMixUp, BetaMixUp, UniformMixUp])
