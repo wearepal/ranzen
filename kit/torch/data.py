@@ -130,9 +130,6 @@ class SequentialBatchSampler(BatchSamplerBase):
         """Split the indexes into batches."""
         return indexes.split(self.batch_size)
 
-    def _should_drop(self, batch_idxs: Tensor | None) -> bool:
-        return (batch_idxs is None) or self.drop_last
-
     @implements(BatchSamplerBase)
     def __iter__(self) -> Iterator[list[int]]:
         generator = _check_generator(self.generator)
@@ -150,7 +147,7 @@ class SequentialBatchSampler(BatchSamplerBase):
                         new_idx_seq = torch.cat([batch_idxs, new_idx_seq])
                     batched_idxs_iter = iter(self._batch_indexes(new_idx_seq))
                 else:
-                    if not self._should_drop(batch_idxs):
+                    if (batch_idxs is not None) and (not self.drop_last):
                         yield batch_idxs.tolist()
                     break
             else:

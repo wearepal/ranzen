@@ -3,5 +3,6 @@
 echo "Begin check..." \
 && black . \
 && python -m pytest -vv tests/ \
-&& mypy tests \
+&& pyright kit \
+&& pyright tests \
 && echo "Check all complete!"
