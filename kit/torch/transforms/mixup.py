@@ -71,14 +71,16 @@ class RandomMixUp:
         return tensor_a ** lambda_ * tensor_b ** lambda_c
 
     @overload
-    def transform(self, inputs: Tensor, *, targets: Tensor) -> InputsTargetsPair:
+    def transform(self, inputs: Tensor, *, targets: Tensor = ...) -> InputsTargetsPair:
         ...
 
     @overload
-    def transform(self, inputs: Tensor, *, targets: None) -> Tensor:
+    def transform(self, inputs: Tensor, *, targets: None = ...) -> Tensor:
         ...
 
-    def transform(self, inputs: Tensor, *, targets: Tensor | None) -> Tensor | InputsTargetsPair:
+    def transform(
+        self, inputs: Tensor, *, targets: Tensor | None = None
+    ) -> Tensor | InputsTargetsPair:
         batch_size = len(inputs)
         if (targets is not None) and (self.num_classes is None):
             raise ValueError("Mixup can only be applied to targets if 'num_classes' is specified.")
@@ -124,14 +126,16 @@ class RandomMixUp:
         return InputsTargetsPair(inputs, targets)
 
     @overload
-    def __call__(self, inputs: Tensor, *, targets: Tensor) -> InputsTargetsPair:
+    def __call__(self, inputs: Tensor, *, targets: Tensor = ...) -> InputsTargetsPair:
         ...
 
     @overload
-    def __call__(self, inputs: Tensor, *, targets: None) -> Tensor:
+    def __call__(self, inputs: Tensor, *, targets: None = ...) -> Tensor:
         ...
 
-    def __call__(self, inputs: Tensor, *, targets: Tensor | None) -> Tensor | InputsTargetsPair:
+    def __call__(
+        self, inputs: Tensor, *, targets: Tensor | None = None
+    ) -> Tensor | InputsTargetsPair:
         return self.transform(inputs=inputs, targets=targets)
 
 
