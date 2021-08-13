@@ -100,12 +100,9 @@ class RandomMixUp:
         lambdas_tiled = lambdas.view(num_selected, *((1,) * (inputs.ndim - 1)))
 
         inputs = inputs.clone()
-        try:
-            inputs[indices] = self._mix(
-                tensor_a=inputs[indices], tensor_b=inputs[pair_indices], lambda_=lambdas_tiled
-            )
-        except:
-            breakpoint()
+        inputs[indices] = self._mix(
+            tensor_a=inputs[indices], tensor_b=inputs[pair_indices], lambda_=lambdas_tiled
+        )
 
         if targets is None:
             return inputs
