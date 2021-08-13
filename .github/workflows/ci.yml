@@ -44,14 +44,13 @@ jobs:
     - name: Setup node.js (for pyright)
       uses: actions/setup-node@v1
       with:
-        node-version: "12"
-    - name: Run type checking 
+        node-version: "14"
+    - name: Install pyright
+      run: npm install -g pyright
+    - name: Run type checking
       run: |
-       npm install -g pyright
+       pyright kit
        pyright tests
-    # - name: Check with mypy
-    #   run: |
-    #     mypy tests/
     - name: Test with pytest
       run: |
         python -m pytest -vv tests/

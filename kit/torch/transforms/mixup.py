@@ -1,6 +1,6 @@
 from __future__ import annotations
 from enum import Enum, auto
-from typing import cast, overload
+from typing import NamedTuple, cast, overload
 
 import torch
 from torch import Tensor
@@ -22,6 +22,11 @@ class MixUpMode(Enum):
 
     linear = auto()
     geometric = auto()
+
+
+class InputsTargetsPair(NamedTuple):
+    inputs: Tensor
+    targets: Tensor
 
 
 class RandomMixUp:
@@ -66,21 +71,21 @@ class RandomMixUp:
         return tensor_a ** lambda_ * tensor_b ** lambda_c
 
     @overload
-    def transform(self, inputs: Tensor, *, targets: Tensor) -> dict[str, Tensor]:
+    def transform(self, inputs: Tensor, *, targets: Tensor) -> InputsTargetsPair:
         ...
 
     @overload
     def transform(self, inputs: Tensor, *, targets: None) -> Tensor:
         ...
 
-    def transform(self, inputs: Tensor, *, targets: Tensor | None) -> Tensor | dict[str, Tensor]:
+    def transform(self, inputs: Tensor, *, targets: Tensor | None) -> Tensor | InputsTargetsPair:
         batch_size = len(inputs)
         if (targets is not None) and (self.num_classes is None):
             raise ValueError("Mixup can only be applied to targets if 'num_classes' is specified.")
         if self.p == 0:
             if targets is None:
                 return inputs
-            return dict(inputs=inputs, targets=targets)
+            return InputsTargetsPair(inputs=inputs, targets=targets)
         elif self.p < 1:
             # Sample a mask determining which samples in the batch are to be transformed
             selected = torch.rand(batch_size, device=inputs.device) < self.p
@@ -107,28 +112,26 @@ class RandomMixUp:
         inputs[indices] = self._mix(
             tensor_a=inputs[indices], tensor_b=inputs[pair_indices], lambda_=lambdas
         )
-
         if targets is None:
             return inputs
-        else:
-            targets = cast(Tensor, F.one_hot(targets, num_classes=self.num_classes).float())
-            if not self.inplace:
-                targets = targets.clone()
-            lambdas = lambdas.view(num_selected, *((1,) * (targets.ndim - 1)))
-            targets[indices] = self._mix(
-                tensor_a=targets[indices], tensor_b=targets[pair_indices], lambda_=lambdas
-            )
-            return dict(inputs=inputs, targets=targets)
+        targets = cast(Tensor, F.one_hot(targets, num_classes=self.num_classes).float())
+        if not self.inplace:
+            targets = targets.clone()
+        lambdas = lambdas.view(num_selected, *((1,) * (targets.ndim - 1)))
+        targets[indices] = self._mix(
+            tensor_a=targets[indices], tensor_b=targets[pair_indices], lambda_=lambdas
+        )
+        return InputsTargetsPair(inputs, targets)
 
     @overload
-    def __call__(self, inputs: Tensor, *, targets: Tensor) -> dict[str, Tensor]:
+    def __call__(self, inputs: Tensor, *, targets: Tensor) -> InputsTargetsPair:
         ...
 
     @overload
     def __call__(self, inputs: Tensor, *, targets: None) -> Tensor:
         ...
 
-    def __call__(self, inputs: Tensor, *, targets: Tensor | None) -> Tensor | dict[str, Tensor]:
+    def __call__(self, inputs: Tensor, *, targets: Tensor | None) -> Tensor | InputsTargetsPair:
         return self.transform(inputs=inputs, targets=targets)
 
 

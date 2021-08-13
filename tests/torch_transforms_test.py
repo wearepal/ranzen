@@ -31,10 +31,10 @@ def test_mixup(
     transform = mixup_cls(num_classes=num_classes, mode=mode, p=p)
 
     res = transform(inputs=inputs, targets=targets)
-    if isinstance(res, dict):
+    if isinstance(res, tuple):
         assert targets is not None
-        mixed_inputs = res["inputs"]
-        mixed_targets = res["targets"]
+        mixed_inputs = res.inputs
+        mixed_targets = res.targets
         assert len(mixed_inputs) == len(mixed_targets) == BATCH_SIZE
         assert mixed_inputs.shape == inputs.shape
         assert mixed_targets.size(1) == num_classes

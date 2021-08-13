@@ -41,9 +41,9 @@ class IterationBasedProgBar(ProgressBar):
         )
 
     def on_train_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
-        self._train_batch_idx = trainer.batch_idx
+        self._train_batch_idx = trainer.batch_idx  # type: ignore
         self.main_progress_bar = self.init_train_tqdm()
-        reset(self.main_progress_bar, trainer.max_steps)
+        reset(self.main_progress_bar, trainer.max_steps)  # type: ignore
 
     def on_train_epoch_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
         ...
@@ -58,8 +58,8 @@ class IterationBasedProgBar(ProgressBar):
         dataloader_idx: int,
     ) -> None:
         self._train_batch_idx += 1
-        if self._should_update(self.train_batch_idx, convert_inf(trainer.max_steps)):
-            self._update_bar(self.main_progress_bar)
+        if self._should_update(self.train_batch_idx, convert_inf(trainer.max_steps)):  # type: ignore
+            self._update_bar(self.main_progress_bar)  # type: ignore
             self.main_progress_bar.set_postfix(trainer.progress_bar_dict)
 
     def init_validation_tqdm(self) -> tqdm:
@@ -74,11 +74,12 @@ class IterationBasedProgBar(ProgressBar):
     def on_validation_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
         self._val_batch_idx = 0
         if trainer.sanity_checking:
-            reset(self.val_progress_bar, sum(trainer.num_sanity_val_batches))
+            reset(self.val_progress_bar, sum(trainer.num_sanity_val_batches))  # type: ignore
         else:
             self.val_progress_bar = self.init_validation_tqdm()
-            self._update_bar(self.val_progress_bar)  # fill up remaining
-            reset(self.val_progress_bar, int(sum(trainer.num_val_batches)))
+            # fill up remaining
+            self._update_bar(self.val_progress_bar)  # type: ignore
+            reset(self.val_progress_bar, int(sum(trainer.num_val_batches)))  # type: ignore
 
     def on_validation_batch_end(
         self,
@@ -89,7 +90,7 @@ class IterationBasedProgBar(ProgressBar):
         batch_idx: int,
         dataloader_idx: int,
     ) -> None:
-        self._update_bar(self.val_progress_bar)
+        self._update_bar(self.val_progress_bar)  # type: ignore
 
     def on_validation_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
         self.val_progress_bar.close()
