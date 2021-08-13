@@ -46,7 +46,7 @@ jobs:
         isort --check --diff .
 
     - name: Install Additional Dependencies for Type-Checking/Tests
-      run: poetry install -E ci --no-interaction
+      run: poetry install -E all --no-interaction
 
     - name: Setup node.js (for pyright)
       uses: actions/setup-node@v1
