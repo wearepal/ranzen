@@ -27,7 +27,7 @@ class MixUpMode(Enum):
 class RandomMixUp:
     r"""Apply MixUp augmentation to a batch of tensors.
 
-    Implemention for `mixup: BEYOND EMPIRICAL RISK MINIMIZATION`.
+    Implemention of `mixup: Beyond Empirical Risk Minimization` (https://arxiv.org/abs/1710.09412).
     This implementation allows for transformation of the the input in the absence
     of labels -- this is relevant for contrastive methods that use mixup to generate
     different views of samples for instance-distance discrimination -- and additionally
