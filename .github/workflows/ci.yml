@@ -13,10 +13,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
       with:
         python-version: 3.7
+
     - name: Set up Poetry cache for Python dependencies
       uses: actions/cache@v2
       if: startsWith(runner.os, 'Linux')
@@ -24,20 +26,25 @@ jobs:
         path: ~/.cache/pypoetry
         key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
         restore-keys: ${{ runner.os }}-poetry-
+
     - name: Install Poetry
       run: |
         curl -fsS -o get-poetry.py https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
         python get-poetry.py -y
         echo "$HOME/.poetry/bin" >> $GITHUB_PATH
         rm get-poetry.py
+
     - name: Install dependencies
       run: poetry install --no-interaction
+
     - name: Format with black
       run: |
         python -m black --check .
+
     - name: Format with isort
       run: |
         isort --check --diff .
+
     - name: Install Additional Dependencies for Type-Checking/Tests
       run: poetry install -E ci --no-interaction
 
@@ -45,12 +52,13 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: "14"
-    - name: Install pyright
-      run: npm install -g pyright
+
     - name: Run type checking
       run: |
-       pyright kit
-       pyright tests
+        npm install -g pyright
+        pyright kit
+        pyright tests
+
     - name: Test with pytest
       run: |
         python -m pytest -vv tests/
