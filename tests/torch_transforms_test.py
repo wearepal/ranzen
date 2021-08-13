@@ -15,8 +15,8 @@ NUM_CLASSES = 3
 @pytest.mark.parametrize("num_classes", [3, None])
 @pytest.mark.parametrize("input_shape", [(7,), (3, 5, 5)])
 def test_mixup(
-    mixup_cls: type[BernoulliMixUp] | type[BetaMixUp] | type[UniformMixUp],
-    mode: MixUpMode,
+    mixup_cls: type[BernoulliMixUp] | type[BetaMixUp] | type[UniformMixUp],  # type: ignore
+    mode: MixUpMode,  # type: ignore
     p: float,
     num_classes: int | None,
     input_shape: tuple[int, ...],

@@ -40,9 +40,18 @@ jobs:
         isort --check --diff .
     - name: Install Additional Dependencies for Type-Checking/Tests
       run: poetry install -E ci --no-interaction
-    - name: Check with mypy
+
+    - name: Setup node.js (for pyright)
+      uses: actions/setup-node@v1
+      with:
+        node-version: "12"
+    - name: Run type checking 
       run: |
-        mypy tests/
+       npm install -g pyright
+       pyright tests
+    # - name: Check with mypy
+    #   run: |
+    #     mypy tests/
     - name: Test with pytest
       run: |
         python -m pytest -vv tests/
