@@ -44,6 +44,7 @@ class RandomMixUp:
         mode: MixUpMode | str = MixUpMode.linear,
         p: float = 1.0,
         num_classes: int | None = None,
+        inplace: bool = False,
     ) -> None:
         super().__init__()
         self.lambda_sampler = lambda_sampler
@@ -56,6 +57,7 @@ class RandomMixUp:
         if (num_classes is not None) and num_classes < 1:
             raise ValueError(f"{ num_classes } must be greater than 1.")
         self.num_classes = num_classes
+        self.inplace = inplace
 
     def _mix(self, tensor_a, *, tensor_b, lambda_) -> Tensor:
         lambda_c = 1 - lambda_
@@ -73,6 +75,8 @@ class RandomMixUp:
 
     def transform(self, inputs: Tensor, *, targets: Tensor | None) -> Tensor | dict[str, Tensor]:
         batch_size = len(inputs)
+        if (targets is not None) and (self.num_classes is None):
+            raise ValueError("Mixup can only be applied to targets if 'num_classes' is specified.")
         if self.p == 0:
             if targets is None:
                 return inputs
@@ -99,22 +103,23 @@ class RandomMixUp:
         ).to(inputs.device)
         lambdas_tiled = lambdas.view(num_selected, *((1,) * (inputs.ndim - 1)))
 
-        inputs = inputs.clone()
+        if not self.inplace:
+            inputs = inputs.clone()
         inputs[indices] = self._mix(
             tensor_a=inputs[indices], tensor_b=inputs[pair_indices], lambda_=lambdas_tiled
         )
 
         if targets is None:
             return inputs
-
-        elif self.num_classes is not None:
+        else:
             targets = cast(Tensor, F.one_hot(targets, num_classes=self.num_classes).float())
+            if not self.inplace:
+                targets = targets.clone()
             lambdas_tiled = lambdas.view(num_selected, *((1,) * (targets.ndim - 1)))
             targets[indices] = self._mix(
                 tensor_a=targets[indices], tensor_b=targets[pair_indices], lambda_=lambdas_tiled
             )
             return dict(inputs=inputs, targets=targets)
-        raise ValueError("Mixup can only be applied to targets if 'num_classes' is specified.")
 
     @overload
     def __call__(self, inputs: Tensor, *, targets: Tensor) -> dict[str, Tensor]:
@@ -136,10 +141,13 @@ class BetaMixUp:
         mode: MixUpMode | str = MixUpMode.linear,
         p: float = 1.0,
         num_classes: int | None = None,
+        inplace: bool = False,
     ) -> RandomMixUp:
         beta = alpha if beta is None else beta
         lambda_sampler = td.Beta(concentration0=alpha, concentration1=beta)
-        return RandomMixUp(lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes)
+        return RandomMixUp(
+            lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes, inplace=inplace
+        )
 
 
 class UniformMixUp:
@@ -150,9 +158,12 @@ class UniformMixUp:
         mode: MixUpMode | str = MixUpMode.linear,
         p: float = 1.0,
         num_classes: int | None = None,
+        inplace: bool = False,
     ) -> RandomMixUp:
         lambda_sampler = td.Uniform(low=low, high=high)
-        return RandomMixUp(lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes)
+        return RandomMixUp(
+            lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes, inplace=inplace
+        )
 
 
 class BernoulliMixUp:
@@ -162,6 +173,9 @@ class BernoulliMixUp:
         mode: MixUpMode | str = MixUpMode.linear,
         p: float = 1.0,
         num_classes: int | None = None,
+        inplace: bool = False,
     ) -> RandomMixUp:
         lambda_sampler = td.Bernoulli(probs=prob_1)
-        return RandomMixUp(lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes)
+        return RandomMixUp(
+            lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes, inplace=inplace
+        )
