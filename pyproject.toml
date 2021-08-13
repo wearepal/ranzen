@@ -64,7 +64,6 @@ ci = ["torch", "numpy"]
 torch = ["torch", "pytorch-lightning"]
 hydra = ["hydra-core"]
 
-
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"
 mypy = "^0.800"
@@ -72,13 +71,21 @@ pytest = "^6.2.2"
 isort = "^5.7.0"
 
 [tool.pyright]
-reportMissingTypeStubs = "none"
-reportUnknownParameterType = "none"
-reportUnknownArgumentType = "none"
-reportUnknownLambdaType = "none"
-reportUnknownVariableType = "none"
-reportUnknownMemberType = "none"
-reportMissingTypeArgument = "none"
+include = ["bolts"]
+exclude = ["**/node_modules", "**/__pycache__"]
+typeCheckingMode = "basic"
+pythonVersion = "3.7"
+reportUnusedImport = "error"
+reportDuplicateImport  = "error"
+reportIncompatibleVariableOverride = "error"
+reportOverlappingOverload = "error"
+reportUntypedNamedTuple = "error"
+reportConstantRedefinition = "warning"
+reportMissingImports = "error"
+reportMissingTypeStubs = "warning"
+strictListInference = true
+strictSetInference = true
+strictParameterNoneValue = true
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
