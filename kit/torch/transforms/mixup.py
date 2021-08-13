@@ -101,12 +101,11 @@ class RandomMixUp:
         lambdas = self.lambda_sampler.sample(
             sample_shape=(num_selected, *((1,) * (inputs.ndim - 1)))
         ).to(inputs.device)
-        lambdas_tiled = lambdas.view(num_selected, *((1,) * (inputs.ndim - 1)))
 
         if not self.inplace:
             inputs = inputs.clone()
         inputs[indices] = self._mix(
-            tensor_a=inputs[indices], tensor_b=inputs[pair_indices], lambda_=lambdas_tiled
+            tensor_a=inputs[indices], tensor_b=inputs[pair_indices], lambda_=lambdas
         )
 
         if targets is None:
@@ -115,9 +114,9 @@ class RandomMixUp:
             targets = cast(Tensor, F.one_hot(targets, num_classes=self.num_classes).float())
             if not self.inplace:
                 targets = targets.clone()
-            lambdas_tiled = lambdas.view(num_selected, *((1,) * (targets.ndim - 1)))
+            lambdas = lambdas.view(num_selected, *((1,) * (targets.ndim - 1)))
             targets[indices] = self._mix(
-                tensor_a=targets[indices], tensor_b=targets[pair_indices], lambda_=lambdas_tiled
+                tensor_a=targets[indices], tensor_b=targets[pair_indices], lambda_=lambdas
             )
             return dict(inputs=inputs, targets=targets)
 
