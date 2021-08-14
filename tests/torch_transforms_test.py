@@ -37,13 +37,13 @@ def test_mixup(
         if one_hot:
             targets = cast(Tensor, F.one_hot(targets, num_classes=num_classes))
     if num_groups is None:
-        groups = None
+        group_inds = None
     else:
-        groups = torch.randint(low=0, high=num_groups, size=(BATCH_SIZE,), dtype=torch.long)
+        group_inds = torch.randint(low=0, high=num_groups, size=(BATCH_SIZE,), dtype=torch.long)
 
     transform = mixup_cls(num_classes=num_classes, mode=mode, p=p)
 
-    res = transform(inputs=inputs, targets=targets, groups=groups)
+    res = transform(inputs=inputs, targets=targets, group_inds=group_inds)
     if isinstance(res, tuple):
         assert targets is not None
         mixed_inputs = res.inputs
@@ -55,7 +55,7 @@ def test_mixup(
         if not one_hot:
             with pytest.raises(ValueError):
                 transform.num_classes = None
-                transform(inputs=inputs, targets=targets, groups=groups)
+                transform(inputs=inputs, targets=targets, group_inds=group_inds)
     else:
         assert targets is None
         assert res.shape == inputs.shape

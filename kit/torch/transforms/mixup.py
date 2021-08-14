@@ -81,18 +81,18 @@ class RandomMixUp:
 
     @overload
     def _transform(
-        self, inputs: Tensor, *, targets: Tensor = ..., groups: Tensor | None = ...
+        self, inputs: Tensor, *, targets: Tensor = ..., group_inds: Tensor | None = ...
     ) -> InputsTargetsPair:
         ...
 
     @overload
     def _transform(
-        self, inputs: Tensor, *, targets: None = ..., groups: Tensor | None = ...
+        self, inputs: Tensor, *, targets: None = ..., group_inds: Tensor | None = ...
     ) -> Tensor:
         ...
 
     def _transform(
-        self, inputs: Tensor, *, targets: Tensor | None = None, groups: Tensor | None = None
+        self, inputs: Tensor, *, targets: Tensor | None = None, group_inds: Tensor | None = None
     ) -> Tensor | InputsTargetsPair:
         batch_size = len(inputs)
         if self.p == 0:
@@ -110,7 +110,7 @@ class RandomMixUp:
             num_selected = batch_size
             indices = torch.arange(batch_size, device=inputs.device, dtype=torch.long)
 
-        if groups is None:
+        if group_inds is None:
             # Sample the mixup pairs with the guarantee that a given sample will
             # not be paired with itself
             offset = torch.randint(
@@ -118,14 +118,14 @@ class RandomMixUp:
             )
             pair_indices = (indices + offset) % batch_size
         else:
-            if groups.numel() != batch_size:
+            if group_inds.numel() != batch_size:
                 raise ValueError(
-                    "The number of elements in 'groups' should match the size of dimension 0 of 'inputs'."
+                    "The number of elements in 'group_inds' should match the size of dimension 0 of 'inputs'."
                 )
-            groups = groups.view(batch_size, 1)  # [batch_size]
+            group_inds = group_inds.view(batch_size, 1)  # [batch_size]
             # Compute the pairwise indicator matrix, indicating whether any two samples
             # belong to the same group (0) or different groups (1)
-            is_diff_group = groups[indices] != groups.t()  # [num_selected, batch_size]
+            is_diff_group = group_inds[indices] != group_inds.t()  # [num_selected, batch_size]
             # For each sample, compute how many other samples there are that belong
             # to a different group.
             diff_group_counts = is_diff_group.count_nonzero(dim=1)  # [num_selected]
@@ -188,29 +188,29 @@ class RandomMixUp:
 
     @overload
     def __call__(
-        self, inputs: Tensor, *, targets: Tensor = ..., groups: Tensor | None
+        self, inputs: Tensor, *, targets: Tensor = ..., group_inds: Tensor | None
     ) -> InputsTargetsPair:
         ...
 
     @overload
     def __call__(
-        self, inputs: Tensor, *, targets: None = ..., groups: Tensor | None = ...
+        self, inputs: Tensor, *, targets: None = ..., group_inds: Tensor | None = ...
     ) -> Tensor:
         ...
 
     def __call__(
-        self, inputs: Tensor, *, targets: Tensor | None = None, groups: Tensor | None = None
+        self, inputs: Tensor, *, targets: Tensor | None = None, group_inds: Tensor | None = None
     ) -> Tensor | InputsTargetsPair:
         """
         Args:
             inputs: The samples to be 'mixed up'.
             targets: The corresponding targets to be mixed up. If the targets are label-encoded
             then the 'num_classes' attribute cannot be None.
-            groups: Labels indicating which group each sample belongs to. If specified, mixup
+            group_inds: Labels indicating which group each sample belongs to. If specified, mixup
             pairs will be sampled in a cross-group fashion (only samples belonging to different groups
             will be mixed up).
         """
-        return self._transform(inputs=inputs, targets=targets, groups=groups)
+        return self._transform(inputs=inputs, targets=targets, group_inds=group_inds)
 
 
 class BetaMixUp:
