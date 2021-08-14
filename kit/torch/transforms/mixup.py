@@ -133,22 +133,25 @@ class RandomMixUp:
                 raise RuntimeError(
                     f"No samples from different groups to sample as mixup pairs for one or more groups."
                 )
-            # Perform cross-group pair-sampling - samples are paired exclusively with samples
-            # from other groups
-            rel_pair_indices = (
-                torch.randint(
-                    low=0,
-                    high=int(diff_group_counts.max()),
-                    size=(num_selected,),
-                    device=inputs.device,
-                    dtype=torch.long,
-                )
-                % diff_group_counts
-            )
-            # Convert the row-wise indices into row-major indices, considering only
+            # Sample the mixup pairs via cross-group sampling, meaning samples are paired exclusively
+            # with samples from other groups. This can be efficiently done as follows:
+            # 1) Sample uniformly from the range [0, diff_group_count - 1] to obtain the
+            # groupwise indices. This involves first sampling from the standard uniform distribution
+            # and then rescaling to [-diff_group_count, diff_group_count], followed by clamping, so that
+            # 0 and diff_group_count have the same probability of being drawn as any other value.
+            # The uniform samples are mapped to indices by multipling by diff_group_counts
+            # and rounding. randint is unsuitable here because the groups aren't guaranteed to
+            # have equal cardinality (using it to sample from the cyclic group, Z / diff_group_count Z,
+            # as above, leads to biased sampling).
+            step_size = diff_group_counts.reciprocal()
+            u = (
+                (torch.rand(num_selected, device=inputs.device) * (1 + (2 * step_size))) - step_size
+            ).clamp(min=0, max=1)
+            rel_pair_indices = (u * (diff_group_counts - 1)).round().long()
+            # 2) Convert the row-wise indices into row-major indices, considering only
             # only the postive entries in the rows
             rel_pair_indices[1:] += diff_group_counts.cumsum(dim=0)[:-1]
-            # Finally, map from group-relative indices to absolute ones
+            # 3) Finally, map from group-relative indices to absolute ones
             _, abs_pos_inds = is_diff_group.nonzero(as_tuple=True)
             pair_indices = abs_pos_inds[rel_pair_indices]
 
