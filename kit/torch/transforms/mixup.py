@@ -128,22 +128,26 @@ class RandomMixUp:
             is_diff_group = groups[indices] != groups.t()  # [num_selected, batch_size]
             # For each sample, compute how many other samples there are that belong
             # to a different group.
-            counts = is_diff_group.count_nonzero(dim=1)  # [num_selected]
-            # Perform cross-group sampling - samples are paired exclusively with samples
+            diff_group_counts = is_diff_group.count_nonzero(dim=1)  # [num_selected]
+            if torch.any(diff_group_counts == 0):
+                raise RuntimeError(
+                    f"No samples from different groups to sample as mixup pairs for one or more groups."
+                )
+            # Perform cross-group pair-sampling - samples are paired exclusively with samples
             # from other groups
             rel_pair_indices = (
                 torch.randint(
                     low=0,
-                    high=int(counts.max()),
+                    high=int(diff_group_counts.max()),
                     size=(num_selected,),
                     device=inputs.device,
                     dtype=torch.long,
                 )
-                % counts
+                % diff_group_counts
             )
             # Convert the row-wise indices into row-major indices, considering only
             # only the postive entries in the rows
-            rel_pair_indices[1:] += counts.cumsum(dim=0)[:-1]
+            rel_pair_indices[1:] += diff_group_counts.cumsum(dim=0)[:-1]
             # Finally, map from group-relative indices to absolute ones
             _, abs_pos_inds = is_diff_group.nonzero(as_tuple=True)
             pair_indices = abs_pos_inds[rel_pair_indices]
