@@ -124,7 +124,7 @@ class RandomMixUp:
                 )
             groups = groups.view(batch_size, 1)  # [batch_size]
             # Compute the pairwise indicator matrix, indicating whether any two samples
-            # belong to the same (0) or a different (1) group
+            # belong to the same group (0) or different groups (1)
             is_diff_group = groups[indices] != groups.t()  # [num_selected, batch_size]
             # For each sample, compute how many other samples there are that belong
             # to a different group.
