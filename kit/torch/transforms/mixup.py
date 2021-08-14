@@ -149,9 +149,9 @@ class RandomMixUp:
             ).clamp(min=0, max=1)
             rel_pair_indices = (u * (diff_group_counts - 1)).round().long()
             # 2) Convert the row-wise indices into row-major indices, considering only
-            # only the postive entries in the rows
+            # only the postive entries in the rows.
             rel_pair_indices[1:] += diff_group_counts.cumsum(dim=0)[:-1]
-            # 3) Finally, map from group-relative indices to absolute ones
+            # 3) Finally, map from group-relative indices to absolute ones.
             _, abs_pos_inds = is_diff_group.nonzero(as_tuple=True)
             pair_indices = abs_pos_inds[rel_pair_indices]
 
