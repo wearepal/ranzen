@@ -117,7 +117,6 @@ class RandomMixUp:
                 low=1, high=batch_size, size=(num_selected,), device=inputs.device, dtype=torch.long
             )
             pair_indices = (indices + offset) % batch_size
-            # Sample the mixup interpolation parameters
         else:
             if groups.numel() != batch_size:
                 raise ValueError(
@@ -149,17 +148,20 @@ class RandomMixUp:
             _, abs_pos_inds = is_diff_group.nonzero(as_tuple=True)
             pair_indices = abs_pos_inds[rel_pair_indices]
 
+        # Sample the mixing weights
         lambdas = self.lambda_sampler.sample(
             sample_shape=(num_selected, *((1,) * (inputs.ndim - 1)))
         ).to(inputs.device)
 
         if not self.inplace:
             inputs = inputs.clone()
+        # Apply mixup to the inputs
         inputs[indices] = self._mix(
             tensor_a=inputs[indices], tensor_b=inputs[pair_indices], lambda_=lambdas
         )
         if targets is None:
             return inputs
+
         # Targets are label-encoded and need to be one-hot encoded prior to mixup.
         if torch.atleast_1d(targets.squeeze()).ndim == 1:
             if self.num_classes is None:
@@ -172,6 +174,7 @@ class RandomMixUp:
         targets = targets.float()
         # Add singular dimensions to lambdas for broadcasting
         lambdas = lambdas.view(num_selected, *((1,) * (targets.ndim - 1)))
+        # Apply mixup to the targets
         targets[indices] = self._mix(
             tensor_a=targets[indices], tensor_b=targets[pair_indices], lambda_=lambdas
         )
