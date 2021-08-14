@@ -174,6 +174,8 @@ class RandomMixUp:
                     "'num_classes' is specified."
                 )
             targets = cast(Tensor, F.one_hot(targets, num_classes=self.num_classes))
+        elif not self.inplace:
+            targets = targets.clone()
         # Targets need to be floats to be mixed up
         targets = targets.float()
         # Add singular dimensions to lambdas for broadcasting
