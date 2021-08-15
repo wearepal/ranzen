@@ -144,7 +144,7 @@ class RandomMixUp:
             # Z / diff_group_count Z, as above, leads to biased sampling).
             step_size = diff_group_counts.reciprocal()
             u = (torch.rand(num_selected, device=inputs.device) * (1 + (2 * step_size))) - step_size
-            rel_pair_indices = (u.clamp(min=0, max=1) * (diff_group_counts - 1)).long()
+            rel_pair_indices = (u.clamp(min=0, max=1) * (diff_group_counts - 1)).round().long()
             # 2) Convert the row-wise indices into row-major indices, considering only
             # only the postive entries in the rows.
             rel_pair_indices[1:] += diff_group_counts.cumsum(dim=0)[:-1]
