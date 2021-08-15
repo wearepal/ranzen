@@ -137,13 +137,14 @@ class RandomMixUp:
             # with samples from other groups. This can be efficiently done as follows:
             # 1) Sample uniformly from {0, ..., diff_group_count - 1} to obtain the groupwise pair indices.
             # This involves first drawing samples from the standard uniform distribution, rescaling them to
-            # [-diff_group_count, diff_group_count], and then clamping them to [0, 1], making it os that 0 and
-            # diff_group_count have the same probability of being drawn as any other value. The uniform samples
-            # are then mapped to indices by multipling by diff_group_counts and rounding. 'randint' is unsuitable
-            # here because the groups aren't guaranteed to have equal cardinality (using it to sample from the
-            # cyclic group, Z / diff_group_count Z, as above, leads to biased sampling).
+            # [-1/(2*diff_group_count), diff_group_count + (1/(2*diff_group_count)], and then clamping them
+            # to [0, 1], making it so that 0 and diff_group_count have the same probability of being drawn
+            # as any other value. The uniform samples are then mapped to indices by multiplying by
+            # diff_group_counts and rounding. 'randint' is unsuitable here because the groups aren't
+            # guaranteed to have equal cardinality (using it to sample from the cyclic group,
+            # Z / diff_group_count Z, as above, leads to biased sampling).
             step_size = diff_group_counts.reciprocal()
-            u = (torch.rand(num_selected, device=inputs.device) * (1 + (2 * step_size))) - step_size
+            u = (torch.rand(num_selected, device=inputs.device) * (1 + step_size)) - (step_size / 2)
             rel_pair_indices = (u.clamp(min=0, max=1) * (diff_group_counts - 1)).round().long()
             # 2) Convert the row-wise indices into row-major indices, considering only
             # only the postive entries in the rows.
