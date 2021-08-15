@@ -143,8 +143,8 @@ class RandomMixUp:
             # diff_group_counts and rounding. 'randint' is unsuitable here because the groups aren't
             # guaranteed to have equal cardinality (using it to sample from the cyclic group,
             # Z / diff_group_count Z, as above, leads to biased sampling).
-            step_size = diff_group_counts.reciprocal()
-            u = (torch.rand(num_selected, device=inputs.device) * (1 + step_size)) - (step_size / 2)
+            step_sizes = diff_group_counts.reciprocal()
+            u = torch.rand(num_selected, device=inputs.device) * (1 + step_sizes) - step_sizes / 2
             rel_pair_indices = (u.clamp(min=0, max=1) * (diff_group_counts - 1)).round().long()
             # 2) Convert the row-wise indices into row-major indices, considering only
             # only the postive entries in the rows.
