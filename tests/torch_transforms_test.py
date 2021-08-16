@@ -5,7 +5,7 @@ import pytest
 import torch
 from torch import Tensor
 import torch.nn.functional as F
-from typing_extensions import Final
+from typing_extensions import Final, Literal
 
 from kit.torch.transforms import MixUpMode, RandomMixUp
 
@@ -21,7 +21,7 @@ NUM_CLASSES: Final[int] = 5
 @pytest.mark.parametrize("num_groups", [2, None])
 @pytest.mark.parametrize("input_shape", [(7,), (3, 5, 5)])
 def test_mixup(
-    lambda_dist: type[BernoulliMixUp] | type[BetaMixUp] | type[UniformMixUp],  # type: ignore
+    lambda_dist: Literal["beta", "uniform", "bernoulli"],
     mode: MixUpMode,  # type: ignore
     p: float,
     one_hot: bool,
