@@ -57,8 +57,8 @@ class RandomMixUp:
             mode: Which mode to use to mix up samples: geomtric or linear.
             p: The probability with which the transform will be applied to a given sample.
             num_classes: The total number of classes in the dataset that needs to be specified if wanting to
-            mix up targets that are label-enoded. Passing label-encoded targets without specifying 'num_classes'
-            inplace: Whether the transform should be performed in-place.
+                mix up targets that are label-enoded. Passing label-encoded targets without specifying 'num_classes'
+                inplace: Whether the transform should be performed in-place.
         """
         super().__init__()
         self.lambda_sampler = lambda_sampler
@@ -81,18 +81,18 @@ class RandomMixUp:
 
     @overload
     def _transform(
-        self, inputs: Tensor, *, targets: Tensor = ..., group_indices: Tensor | None = ...
+        self, inputs: Tensor, *, targets: Tensor = ..., group_labels: Tensor | None = ...
     ) -> InputsTargetsPair:
         ...
 
     @overload
     def _transform(
-        self, inputs: Tensor, *, targets: None = ..., group_indices: Tensor | None = ...
+        self, inputs: Tensor, *, targets: None = ..., group_labels: Tensor | None = ...
     ) -> Tensor:
         ...
 
     def _transform(
-        self, inputs: Tensor, *, targets: Tensor | None = None, group_indices: Tensor | None = None
+        self, inputs: Tensor, *, targets: Tensor | None = None, group_labels: Tensor | None = None
     ) -> Tensor | InputsTargetsPair:
         batch_size = len(inputs)
         if self.p == 0:
@@ -110,7 +110,7 @@ class RandomMixUp:
             num_selected = batch_size
             indices = torch.arange(batch_size, device=inputs.device, dtype=torch.long)
 
-        if group_indices is None:
+        if group_labels is None:
             # Sample the mixup pairs with the guarantee that a given sample will
             # not be paired with itself
             offset = torch.randint(
@@ -118,16 +118,14 @@ class RandomMixUp:
             )
             pair_indices = (indices + offset) % batch_size
         else:
-            if group_indices.numel() != batch_size:
+            if group_labels.numel() != batch_size:
                 raise ValueError(
-                    "The number of elements in 'group_indices' should match the size of dimension 0 of 'inputs'."
+                    "The number of elements in 'group_labels' should match the size of dimension 0 of 'inputs'."
                 )
-            group_indices = group_indices.view(batch_size, 1)  # [batch_size]
+            group_labels = group_labels.view(batch_size, 1)  # [batch_size]
             # Compute the pairwise indicator matrix, indicating whether any two samples
             # belong to the same group (0) or different groups (1)
-            is_diff_group = (
-                group_indices[indices] != group_indices.t()
-            )  # [num_selected, batch_size]
+            is_diff_group = group_labels[indices] != group_labels.t()  # [num_selected, batch_size]
             # For each sample, compute how many other samples there are that belong
             # to a different group.
             diff_group_counts = is_diff_group.count_nonzero(dim=1)  # [num_selected]
@@ -191,29 +189,33 @@ class RandomMixUp:
 
     @overload
     def __call__(
-        self, inputs: Tensor, *, targets: Tensor = ..., group_indices: Tensor | None
+        self, inputs: Tensor, *, targets: Tensor = ..., group_labels: Tensor | None
     ) -> InputsTargetsPair:
         ...
 
     @overload
     def __call__(
-        self, inputs: Tensor, *, targets: None = ..., group_indices: Tensor | None = ...
+        self, inputs: Tensor, *, targets: None = ..., group_labels: Tensor | None = ...
     ) -> Tensor:
         ...
 
     def __call__(
-        self, inputs: Tensor, *, targets: Tensor | None = None, group_indices: Tensor | None = None
+        self, inputs: Tensor, *, targets: Tensor | None = None, group_labels: Tensor | None = None
     ) -> Tensor | InputsTargetsPair:
         """
         Args:
             inputs: The samples to apply mixup to.
             targets: The corresponding targets to apply mixup to. If the targets are label-encoded
-            then the 'num_classes' attribute cannot be None.
-            group_indices: Labels indicating which group each sample belongs to. If specified, mixup
-            pairs will be sampled in a cross-group fashion (only samples belonging to different groups
-            will be paired for mixup).
+                then the 'num_classes' attribute cannot be None.
+            group_labels: Labels indicating which group each sample belongs to. If specified, mixup
+                pairs will be sampled in a cross-group fashion (only samples belonging to different groups
+                will be paired for mixup).
+        Returns:
+            If target is None, the Tensor of mixup-transformed inputs. If target is not None, a namedtuple
+            containing the Tensor of mixup-transformed inputs (inputs) and the corresponding Tensor of
+            mixup-transformed targets (targets).
         """
-        return self._transform(inputs=inputs, targets=targets, group_indices=group_indices)
+        return self._transform(inputs=inputs, targets=targets, group_labels=group_labels)
 
 
 class BetaMixUp:
