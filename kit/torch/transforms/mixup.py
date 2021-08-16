@@ -10,11 +10,8 @@ import torch.nn.functional as F
 from kit.misc import str_to_enum
 
 __all__ = [
-    "BernoulliMixUp",
-    "BetaMixUp",
     "MixUpMode",
     "RandomMixUp",
-    "UniformMixUp",
 ]
 
 
@@ -72,6 +69,51 @@ class RandomMixUp:
             raise ValueError(f"{ num_classes } must be greater than 1.")
         self.num_classes = num_classes
         self.inplace = inplace
+
+    @classmethod
+    def with_beta_distribution(
+        cls: type[RandomMixUp],
+        alpha: float = 0.2,
+        beta: float | None = None,
+        mode: MixUpMode | str = MixUpMode.linear,
+        p: float = 1.0,
+        num_classes: int | None = None,
+        inplace: bool = False,
+    ) -> RandomMixUp:
+        beta = alpha if beta is None else beta
+        lambda_sampler = td.Beta(concentration0=alpha, concentration1=beta)
+        return cls(
+            lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes, inplace=inplace
+        )
+
+    @classmethod
+    def with_uniform_distribution(
+        cls: type[RandomMixUp],
+        low: float = 0.0,
+        high: float = 1.0,
+        mode: MixUpMode | str = MixUpMode.linear,
+        p: float = 1.0,
+        num_classes: int | None = None,
+        inplace: bool = False,
+    ) -> RandomMixUp:
+        lambda_sampler = td.Uniform(low=low, high=high)
+        return cls(
+            lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes, inplace=inplace
+        )
+
+    @classmethod
+    def with_bernoulli_distribution(
+        cls: type[RandomMixUp],
+        prob_1: float = 0.5,
+        mode: MixUpMode | str = MixUpMode.linear,
+        p: float = 1.0,
+        num_classes: int | None = None,
+        inplace: bool = False,
+    ) -> RandomMixUp:
+        lambda_sampler = td.Bernoulli(probs=prob_1)
+        return cls(
+            lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes, inplace=inplace
+        )
 
     def _mix(self, tensor_a: Tensor, *, tensor_b: Tensor, lambda_: Tensor) -> Tensor:
         lambda_c = 1 - lambda_
@@ -216,51 +258,3 @@ class RandomMixUp:
             mixup-transformed targets (targets).
         """
         return self._transform(inputs=inputs, targets=targets, group_labels=group_labels)
-
-
-class BetaMixUp:
-    def __new__(
-        cls,
-        alpha: float = 0.2,
-        beta: float | None = None,
-        mode: MixUpMode | str = MixUpMode.linear,
-        p: float = 1.0,
-        num_classes: int | None = None,
-        inplace: bool = False,
-    ) -> RandomMixUp:
-        beta = alpha if beta is None else beta
-        lambda_sampler = td.Beta(concentration0=alpha, concentration1=beta)
-        return RandomMixUp(
-            lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes, inplace=inplace
-        )
-
-
-class UniformMixUp:
-    def __new__(
-        cls,
-        low: float = 0.0,
-        high: float = 1.0,
-        mode: MixUpMode | str = MixUpMode.linear,
-        p: float = 1.0,
-        num_classes: int | None = None,
-        inplace: bool = False,
-    ) -> RandomMixUp:
-        lambda_sampler = td.Uniform(low=low, high=high)
-        return RandomMixUp(
-            lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes, inplace=inplace
-        )
-
-
-class BernoulliMixUp:
-    def __new__(
-        cls,
-        prob_1: float = 0.5,
-        mode: MixUpMode | str = MixUpMode.linear,
-        p: float = 1.0,
-        num_classes: int | None = None,
-        inplace: bool = False,
-    ) -> RandomMixUp:
-        lambda_sampler = td.Bernoulli(probs=prob_1)
-        return RandomMixUp(
-            lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes, inplace=inplace
-        )
