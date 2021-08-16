@@ -206,12 +206,12 @@ class RandomMixUp:
     ) -> Tensor | InputsTargetsPair:
         """
         Args:
-            inputs: The samples to be 'mixed up'.
-            targets: The corresponding targets to be mixed up. If the targets are label-encoded
+            inputs: The samples to apply mixup to.
+            targets: The corresponding targets to apply mixup to. If the targets are label-encoded
             then the 'num_classes' attribute cannot be None.
             group_indices: Labels indicating which group each sample belongs to. If specified, mixup
             pairs will be sampled in a cross-group fashion (only samples belonging to different groups
-            will be mixed up).
+            will be paired for mixup).
         """
         return self._transform(inputs=inputs, targets=targets, group_indices=group_indices)
 
