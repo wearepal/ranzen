@@ -71,7 +71,7 @@ class RandomMixUp:
         self.inplace = inplace
 
     @classmethod
-    def init_with_beta_distribution(
+    def with_beta_distribution(
         cls: type[RandomMixUp],
         alpha: float = 0.2,
         beta: float | None = None,
@@ -87,7 +87,7 @@ class RandomMixUp:
         )
 
     @classmethod
-    def init_with_uniform_distribution(
+    def with_uniform_distribution(
         cls: type[RandomMixUp],
         low: float = 0.0,
         high: float = 1.0,
@@ -102,7 +102,7 @@ class RandomMixUp:
         )
 
     @classmethod
-    def init_with_bernoulli_distribution(
+    def with_bernoulli_distribution(
         cls: type[RandomMixUp],
         prob_1: float = 0.5,
         mode: MixUpMode | str = MixUpMode.linear,

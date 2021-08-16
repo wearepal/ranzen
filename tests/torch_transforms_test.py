@@ -43,7 +43,7 @@ def test_mixup(
 
     transform = cast(
         RandomMixUp,
-        getattr(RandomMixUp, f"init_with_{lambda_dist}_distribution")(
+        getattr(RandomMixUp, f"with_{lambda_dist}_distribution")(
             num_classes=num_classes, mode=mode, p=p
         ),
     )
