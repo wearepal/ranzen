@@ -7,13 +7,13 @@ from torch import Tensor
 import torch.nn.functional as F
 from typing_extensions import Final
 
-from kit.torch.transforms import BernoulliMixUp, BetaMixUp, MixUpMode, UniformMixUp
+from kit.torch.transforms import MixUpMode, RandomMixUp
 
 BATCH_SIZE: Final[int] = 20
 NUM_CLASSES: Final[int] = 5
 
 
-@pytest.mark.parametrize("mixup_cls", [BernoulliMixUp, BetaMixUp, UniformMixUp])
+@pytest.mark.parametrize("lambda_dist", ["beta", "uniform", "bernoulli"])
 @pytest.mark.parametrize("mode", list(MixUpMode))
 @pytest.mark.parametrize("p", [0.8, 1])
 @pytest.mark.parametrize("one_hot", [True, False])
@@ -21,7 +21,7 @@ NUM_CLASSES: Final[int] = 5
 @pytest.mark.parametrize("num_groups", [2, None])
 @pytest.mark.parametrize("input_shape", [(7,), (3, 5, 5)])
 def test_mixup(
-    mixup_cls: type[BernoulliMixUp] | type[BetaMixUp] | type[UniformMixUp],  # type: ignore
+    lambda_dist: type[BernoulliMixUp] | type[BetaMixUp] | type[UniformMixUp],  # type: ignore
     mode: MixUpMode,  # type: ignore
     p: float,
     one_hot: bool,
@@ -41,8 +41,12 @@ def test_mixup(
     else:
         group_labels = torch.randint(low=0, high=num_groups, size=(BATCH_SIZE,), dtype=torch.long)
 
-    transform = mixup_cls(num_classes=num_classes, mode=mode, p=p)
-
+    transform = cast(
+        RandomMixUp,
+        getattr(RandomMixUp, f"init_with_{lambda_dist}_distribution")(
+            num_classes=num_classes, mode=mode, p=p
+        ),
+    )
     res = transform(inputs=inputs, targets=targets, group_labels=group_labels)
     if isinstance(res, tuple):
         assert targets is not None
