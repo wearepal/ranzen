@@ -427,21 +427,15 @@ class GreedyCoreSetSampler(BatchSamplerBase):
 
             # Begin the furtherst-frist lraversal algorithm
             while len(sampled_idxs) < self.budget:
-                unsampled_idxs = os_batch_idxs[unsampled_m]
                 # p := argmax min_{i\inB}(d(x, x_i)); i.e. select the point which maximizes the
                 # minimum squared Euclidean-distance to all previously selected points
                 # NOTE: The argmax index is relative to the unsampled indexes
-                rel_idx = torch.argmax(
-                    torch.min(dists[~unsampled_m][:, unsampled_idxs], dim=0).values
-                )
+                rel_idx = torch.argmax(torch.min(dists[~unsampled_m][:, unsampled_m], dim=0).values)
                 # Retiieve the index corresponding to the previously-computed argmax index
-                to_sample = unsampled_idxs[rel_idx]
+                to_sample = os_batch_idxs[unsampled_m][rel_idx]
                 sampled_idxs.append(int(to_sample))
                 # Update the mask, which corresponds to moving the sampled index from the unsampled
                 # pool to the sampled pool
                 unsampled_m[unsampled_m.nonzero()[rel_idx]] = 0
 
             yield sampled_idxs
-
-    def __len__(self) -> None:
-        return None
