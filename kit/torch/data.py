@@ -406,7 +406,7 @@ class GreedyCoreSetSampler(BatchSamplerBase):
         sq = dist_mat.diagonal().view(num_images, 1)
         return -2 * dist_mat + sq + sq.t()
 
-    @implements(Sampler)
+    @implements(BatchSamplerBase)
     def __iter__(self) -> Iterator[list[int]]:
         # iterative forever (until some externally defined stopping-criterion is reached)
         while True:
