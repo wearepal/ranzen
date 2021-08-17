@@ -111,7 +111,6 @@ class SequentialBatchSampler(BatchSamplerBase):
     ) -> None:
         self.data_source = data_source
         self.batch_size = batch_size
-        self._dataset_size = len(data_source)
         self.shuffle = shuffle
         self.drop_last = drop_last
         self.generator = generator
@@ -120,7 +119,9 @@ class SequentialBatchSampler(BatchSamplerBase):
         self.training_mode = training_mode
         if self.training_mode is TrainingMode.epoch:
             epoch_length = num_batches_per_epoch(
-                num_samples=self._dataset_size, batch_size=self.batch_size, drop_last=self.drop_last
+                num_samples=len(self.data_source),
+                batch_size=self.batch_size,
+                drop_last=self.drop_last,
             )
         else:
             epoch_length = None
@@ -129,8 +130,8 @@ class SequentialBatchSampler(BatchSamplerBase):
     def _generate_idx_seq(self, generator: torch.Generator) -> Tensor:
         """Generate a random sequence of unique indexes."""
         if self.shuffle:
-            return torch.randperm(self._dataset_size, generator=generator)
-        return torch.arange(self._dataset_size)
+            return torch.randperm(len(self.data_source), generator=generator)
+        return torch.arange(len(self.data_source))
 
     def _batch_indexes(self, indexes: Tensor) -> Sequence[Tensor]:
         """Split the indexes into batches."""
@@ -390,28 +391,33 @@ class GreedyCoreSetSampler(BatchSamplerBase):
         embeddings: Tensor,
         batch_size: int,
         oversampling_factor: int,
+        generator: torch.Generator | None = None,
     ) -> None:
         self.oversampling_factor = oversampling_factor
-        self.embeddings = embeddings.detach().cpu()
+        self.embeddings = embeddings.flatten(start_dim=1).detach().cpu()
         self.budget = batch_size
         self._num_oversampled_samples = min(
             self.budget * self.oversampling_factor, len(self.embeddings)
         )
+        self.generator = generator
+
         super().__init__(epoch_length=None)
 
     def _get_dists(self, batch_idxs: Tensor) -> Tensor:
         batch = self.embeddings[batch_idxs]
-        num_images = batch.size(0)
         dist_mat = batch @ batch.t()
-        sq = dist_mat.diagonal().view(num_images, 1)
+        sq = dist_mat.diagonal().view(batch.size(0), 1)
         return -2 * dist_mat + sq + sq.t()
 
     @implements(BatchSamplerBase)
     def __iter__(self) -> Iterator[list[int]]:
+        generator = _check_generator(self.generator)
         # iterative forever (until some externally defined stopping-criterion is reached)
         while True:
             # First sample the 'oversampled' batch from which to construct the core-set
-            os_batch_idxs = torch.randperm(len(self.embeddings))[: self._num_oversampled_samples]
+            os_batch_idxs = torch.randperm(len(self.embeddings), generator=generator)[
+                : self._num_oversampled_samples
+            ]
             # Compute the euclidean distance between all pairs in said batch
             dists = self._get_dists(os_batch_idxs)
             # Mask indicating whether a sample is still yet to be sampled (1=unsampled, 0=sampled)
