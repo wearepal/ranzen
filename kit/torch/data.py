@@ -425,7 +425,7 @@ class GreedyCoreSetSampler(BatchSamplerBase):
             sampled_idxs = [int(os_batch_idxs[0])]
             unsampled_m[0] = 0
 
-            # Begin the furtherst-frist lraversal algorithm
+            # Begin the furthest-first traversal algorithm
             while len(sampled_idxs) < self.budget:
                 # p := argmax min_{i\inB}(d(x, x_i)); i.e. select the point which maximizes the
                 # minimum squared Euclidean-distance to all previously selected points
