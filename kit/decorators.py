@@ -1,7 +1,8 @@
 """Functions related to typing."""
+from enum import Enum, EnumMeta
 from typing import Any, Callable, TypeVar, get_type_hints
 
-__all__ = ["implements", "parsable"]
+__all__ = ["enum_name_str", "implements", "parsable"]
 
 _F = TypeVar("_F", bound=Callable[..., Any])
 
@@ -34,3 +35,15 @@ def parsable(func: _F) -> _F:
             "the type annotations of this function are not automatically parseable."
         ) from None
     return func
+
+
+E = TypeVar("E", bound=EnumMeta)
+
+
+def enum_name_str(enum_class: E) -> E:
+    """Patch the __str__ method of an enum so that it returns the name."""
+    def __str__(self: Enum) -> str:
+        return self.name
+
+    enum_class.__str__ = __str__  # type: ignore
+    return enum_class
