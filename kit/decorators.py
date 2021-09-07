@@ -1,5 +1,6 @@
 """Functions related to typing."""
-from enum import Enum, EnumMeta
+from __future__ import annotations
+from enum import Enum
 from typing import Any, Callable, TypeVar, get_type_hints
 
 __all__ = ["enum_name_str", "implements", "parsable"]
@@ -37,14 +38,14 @@ def parsable(func: _F) -> _F:
     return func
 
 
-E = TypeVar("E", bound=EnumMeta)
+E = TypeVar("E", bound=Enum)
 
 
-def enum_name_str(enum_class: E) -> E:
+def enum_name_str(enum_class: type[E]) -> type[E]:
     """Patch the __str__ method of an enum so that it returns the name."""
 
     def __str__(self: Enum) -> str:
         return self.name
 
-    enum_class.__str__ = __str__  # type: ignore
+    enum_class.__str__ = __str__
     return enum_class
