@@ -43,9 +43,11 @@ E = TypeVar("E", bound=Enum)
 
 def enum_name_str(enum_class: type[E]) -> type[E]:
     """Patch the __str__ method of an enum so that it returns the name."""
+    # use the original __str__ method as __repr__
+    enum_class.__repr__ = enum_class.__str__
 
     def __str__(self: Enum) -> str:
-        return self.name
+        return self.name.lower()
 
     enum_class.__str__ = __str__
     return enum_class

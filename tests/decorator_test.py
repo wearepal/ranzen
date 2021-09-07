@@ -80,3 +80,4 @@ class Stage(Enum):
 def test_enum_str() -> None:
     for stage in Stage:
         assert f"{stage}" == stage.name
+        assert f"{stage!r}" == f"Stage.{stage.name}"
