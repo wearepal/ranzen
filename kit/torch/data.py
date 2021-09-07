@@ -13,7 +13,13 @@ from torch.utils.data.dataset import Subset, random_split
 from kit import implements
 from kit.misc import str_to_enum
 
-__all__ = ["prop_random_split", "SequentialBatchSampler", "StratifiedBatchSampler", "TrainingMode"]
+__all__ = [
+    "GreedyCoreSetSampler",
+    "SequentialBatchSampler",
+    "StratifiedBatchSampler",
+    "TrainingMode",
+    "prop_random_split",
+]
 
 
 def prop_random_split(
@@ -105,7 +111,6 @@ class SequentialBatchSampler(BatchSamplerBase):
     ) -> None:
         self.data_source = data_source
         self.batch_size = batch_size
-        self._dataset_size = len(data_source)
         self.shuffle = shuffle
         self.drop_last = drop_last
         self.generator = generator
@@ -114,7 +119,9 @@ class SequentialBatchSampler(BatchSamplerBase):
         self.training_mode = training_mode
         if self.training_mode is TrainingMode.epoch:
             epoch_length = num_batches_per_epoch(
-                num_samples=self._dataset_size, batch_size=self.batch_size, drop_last=self.drop_last
+                num_samples=len(self.data_source),
+                batch_size=self.batch_size,
+                drop_last=self.drop_last,
             )
         else:
             epoch_length = None
@@ -123,8 +130,8 @@ class SequentialBatchSampler(BatchSamplerBase):
     def _generate_idx_seq(self, generator: torch.Generator) -> Tensor:
         """Generate a random sequence of unique indexes."""
         if self.shuffle:
-            return torch.randperm(self._dataset_size, generator=generator)
-        return torch.arange(self._dataset_size)
+            return torch.randperm(len(self.data_source), generator=generator)
+        return torch.arange(len(self.data_source))
 
     def _batch_indexes(self, indexes: Tensor) -> Sequence[Tensor]:
         """Split the indexes into batches."""
@@ -364,3 +371,77 @@ class StratifiedBatchSampler(BatchSamplerBase):
             return self._random_sampler(generator=generator)
         else:
             return self._sequential_sampler(generator=generator)
+
+
+class GreedyCoreSetSampler(BatchSamplerBase):
+    r"""Constructs batches from 'oversampled' batches through greedy core-set approximation.
+    Said approximation takes the form of the furtherst-frist traversal (FFT) algorithm.
+
+    Args:
+        batch_size: Budget for the core-set,
+        embeddings: Embedded dataset from which to sample the core-sets according;
+            the order of the embeddings, v, must match the order of the dataset
+            (i.e. f(x_i) = v_i, for embedding function f and inputs x)
+        oversampling_factor: How many times larger than the budget the batch to be sampled from
+        should be.
+    """
+
+    def __init__(
+        self,
+        embeddings: Tensor,
+        batch_size: int,
+        oversampling_factor: int,
+        generator: torch.Generator | None = None,
+    ) -> None:
+        self.oversampling_factor = oversampling_factor
+        self.embeddings = embeddings.flatten(start_dim=1).detach().cpu()
+        self.budget = batch_size
+        self._num_oversampled_samples = min(
+            self.budget * self.oversampling_factor, len(self.embeddings)
+        )
+        self.generator = generator
+
+        super().__init__(epoch_length=None)
+
+    def _get_dists(self, batch_idxs: Tensor) -> Tensor:
+        batch = self.embeddings[batch_idxs]
+        dist_mat = batch @ batch.t()
+        sq = dist_mat.diagonal().view(batch.size(0), 1)
+        return -2 * dist_mat + sq + sq.t()
+
+    @implements(BatchSamplerBase)
+    def __iter__(self) -> Iterator[list[int]]:
+        generator = _check_generator(self.generator)
+        # iterative forever (until some externally defined stopping-criterion is reached)
+        while True:
+            # First sample the 'oversampled' batch from which to construct the core-set
+            os_batch_idxs = torch.randperm(len(self.embeddings), generator=generator)[
+                : self._num_oversampled_samples
+            ]
+            # Compute the euclidean distance between all pairs in said batch
+            dists = self._get_dists(os_batch_idxs)
+            # Mask indicating whether a sample is still yet to be sampled (1=unsampled, 0=sampled)
+            # - updating a mask is far more efficnet than reconstructing the list of unsampled
+            # indexes every iteration (however, we do have to be careful about the 'meta-indexing'
+            # it introduces)
+            unsampled_m = torch.ones_like(os_batch_idxs, dtype=torch.bool)
+            # there's no obvious decision rule for seeding the core-set so we just select the first
+            # point arbitrarily, moving it from the unsampled pool to the sampled one by setting
+            # its corresponding mask-value to 0
+            sampled_idxs = [int(os_batch_idxs[0])]
+            unsampled_m[0] = 0
+
+            # Begin the furthest-first traversal algorithm
+            while len(sampled_idxs) < self.budget:
+                # p := argmax min_{i\inB}(d(x, x_i)); i.e. select the point which maximizes the
+                # minimum squared Euclidean-distance to all previously selected points
+                # NOTE: The argmax index is relative to the unsampled indexes
+                rel_idx = torch.argmax(torch.min(dists[~unsampled_m][:, unsampled_m], dim=0).values)
+                # Retiieve the index corresponding to the previously-computed argmax index
+                to_sample = os_batch_idxs[unsampled_m][rel_idx]
+                sampled_idxs.append(int(to_sample))
+                # Update the mask, which corresponds to moving the sampled index from the unsampled
+                # pool to the sampled pool
+                unsampled_m[unsampled_m.nonzero()[rel_idx]] = 0
+
+            yield sampled_idxs

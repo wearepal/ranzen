@@ -1,10 +1,11 @@
 """Test decorators."""
 from __future__ import annotations
+from enum import Enum, auto
 from typing import List, Union
 
 import pytest
 
-from kit import implements, parsable
+from kit import enum_name_str, implements, parsable
 
 
 def test_implements() -> None:
@@ -67,3 +68,16 @@ def test_parsable_invalid_list() -> None:
             @parsable
             def __init__(self, a: int, b: Union[int, float], c: list[str]):
                 ...
+
+
+@enum_name_str
+class Stage(Enum):
+    fit = auto()
+    validate = auto()
+    test = auto()
+
+
+def test_enum_str() -> None:
+    for stage in Stage:
+        assert f"{stage}" == stage.name
+        assert f"{stage!r}" == f"Stage.{stage.name}"
