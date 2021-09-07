@@ -42,6 +42,7 @@ E = TypeVar("E", bound=EnumMeta)
 
 def enum_name_str(enum_class: E) -> E:
     """Patch the __str__ method of an enum so that it returns the name."""
+
     def __str__(self: Enum) -> str:
         return self.name
 
