@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  docs:
     runs-on: ubuntu-latest
     env:
       POETRY_VIRTUALENVS_CREATE: false
@@ -36,6 +36,9 @@ jobs:
 
     - name: Install all dependencies
       run: poetry install -E all --no-interaction
+
+    - name: Install sphinx
+      run: pip install sphinx
 
     - name: Build docs
       run: |
