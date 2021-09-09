@@ -49,13 +49,14 @@ class RandomMixUp:
         inplace: bool = False,
     ) -> None:
         """
-        Args:
-            lambda_sampler: The distribution from which to sample lambda (the mixup interpolation parameter).
-            mode: Which mode to use to mix up samples: geomtric or linear.
-            p: The probability with which the transform will be applied to a given sample.
-            num_classes: The total number of classes in the dataset that needs to be specified if wanting to
-                mix up targets that are label-enoded. Passing label-encoded targets without specifying 'num_classes'
-                inplace: Whether the transform should be performed in-place.
+        :param lambda_sampler: The distribution from which to sample lambda (the mixup interpolation
+            parameter).
+        :param mode: Which mode to use to mix up samples: geomtric or linear.
+        :param p: The probability with which the transform will be applied to a given sample.
+        :param num_classes: The total number of classes in the dataset that needs to be specified if
+            wanting to mix up targets that are label-enoded. Passing label-encoded targets without
+            specifying 'num_classes'
+        :param inplace: Whether the transform should be performed in-place.
         """
         super().__init__()
         self.lambda_sampler = lambda_sampler
@@ -245,16 +246,15 @@ class RandomMixUp:
         self, inputs: Tensor, *, targets: Tensor | None = None, group_labels: Tensor | None = None
     ) -> Tensor | InputsTargetsPair:
         """
-        Args:
-            inputs: The samples to apply mixup to.
-            targets: The corresponding targets to apply mixup to. If the targets are label-encoded
-                then the 'num_classes' attribute cannot be None.
-            group_labels: Labels indicating which group each sample belongs to. If specified, mixup
-                pairs will be sampled in a cross-group fashion (only samples belonging to different groups
-                will be paired for mixup).
-        Returns:
-            If target is None, the Tensor of mixup-transformed inputs. If target is not None, a namedtuple
-            containing the Tensor of mixup-transformed inputs (inputs) and the corresponding Tensor of
-            mixup-transformed targets (targets).
+        :param inputs: The samples to apply mixup to.
+        :param targets: The corresponding targets to apply mixup to. If the targets are
+            label-encoded then the 'num_classes' attribute cannot be None.
+        :param group_labels: Labels indicating which group each sample belongs to. If specified,
+            mixup pairs will be sampled in a cross-group fashion (only samples belonging to
+            different groups will be paired for mixup).
+
+        :return: If target is None, the Tensor of mixup-transformed inputs. If target is not None, a
+            namedtuple containing the Tensor of mixup-transformed inputs (inputs) and the
+            corresponding Tensor of mixup-transformed targets (targets).
         """
         return self._transform(inputs=inputs, targets=targets, group_labels=group_labels)

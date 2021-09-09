@@ -84,19 +84,20 @@ def num_batches_per_epoch(num_samples: int, *, batch_size: int, drop_last: bool 
 
 class SequentialBatchSampler(BatchSamplerBase):
     r"""Infinitely samples elements sequentially, always in the same order.
+
     This is useful for enabling iteration-based training.
     Note that unlike torch's SequentialSampler which is an ordinary sampler that yields independent sample indexes,
     this is a BatchSampler, requiring slightly different treatment when used with a DataLoader.
 
-    Example:
-        >>> batch_sampler = InfSequentialBatchSampler(data_source=train_data, batch_size=100, shuffle=True)
-        >>> train_loader = DataLoader(train_data, batch_sampler=batch_sampler, shuffle=False, drop_last=False) # drop_last and shuffle need to be False
-        >>> train_loader_iter = iter(train_loader)
-        >>> for _ in range(train_iters):
-        >>>     batch = next(train_loader_iter)
+    :example:
 
-    Args:
-        data_source (Sized): Object of the same size as the data to be sampled from.
+    >>> batch_sampler = InfSequentialBatchSampler(data_source=train_data, batch_size=100, shuffle=True)
+    >>> train_loader = DataLoader(train_data, batch_sampler=batch_sampler, shuffle=False, drop_last=False) # drop_last and shuffle need to be False
+    >>> train_loader_iter = iter(train_loader)
+    >>> for _ in range(train_iters):
+    >>>     batch = next(train_loader_iter)
+
+    :param data_source: Object of the same size as the data to be sampled from.
     """
 
     def __init__(
@@ -171,27 +172,27 @@ class StratifiedBatchSampler(BatchSamplerBase):
 
     To drop certain groups, set their multiplier to 0.
 
-    Args:
-        group_ids: a sequence of group IDs, not necessarily contiguous.
-        num_samples_per_group: number of samples to draw per group. Note that if a multiplier is > 1
-            then effectively more samples will be drawn for that group.
-        replacement: if ``True``, samples are drawn with replacement. If not, they are drawn without
-            replacement, which means that when a sample index is drawn for a row, it cannot be drawn
-            again for that row.
-        base_sampler: the base sampling strategy to use (sequential vs. random).
-        shuffle. whether to shuffle the subsets of the data after each pass (only applicable when the
-            base_sampler is set to ``sequential``).
-        multiplier: an optional dictionary that maps group IDs to multipliers. If a multiplier is
-            greater than 1, the corresponding group will be sampled at twice the rate as the other
-            groups. If a multiplier is 0, the group will be skipped.
+    :example:
 
-    Example:
-        >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 2], 10, replacement=True))
-        [3, 5, 6, 3, 5, 6, 0, 5, 6]
-        >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 2], 10, replacement=True, multiplier={2: 2}))
-        [3, 4, 6, 6, 3, 5, 6, 6, 1, 5, 6, 6]
-        >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 1, 2, 2], 7, replacement=False))
-        [2, 6, 7, 0, 5, 8]
+    >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 2], 10, replacement=True))
+    [3, 5, 6, 3, 5, 6, 0, 5, 6]
+    >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 2], 10, replacement=True, multiplier={2: 2}))
+    [3, 4, 6, 6, 3, 5, 6, 6, 1, 5, 6, 6]
+    >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 1, 2, 2], 7, replacement=False))
+    [2, 6, 7, 0, 5, 8]
+
+    :param group_ids: a sequence of group IDs, not necessarily contiguous.
+    :param num_samples_per_group: number of samples to draw per group. Note that if a multiplier is > 1
+        then effectively more samples will be drawn for that group.
+    :param replacement: if ``True``, samples are drawn with replacement. If not, they are drawn without
+        replacement, which means that when a sample index is drawn for a row, it cannot be drawn
+        again for that row.
+    :param base_sampler: the base sampling strategy to use (sequential vs. random).
+    :param shuffle: whether to shuffle the subsets of the data after each pass (only applicable when the
+        base_sampler is set to ``sequential``).
+    :param multiplier: an optional dictionary that maps group IDs to multipliers. If a multiplier is
+        greater than 1, the corresponding group will be sampled at twice the rate as the other
+        groups. If a multiplier is 0, the group will be skipped.
     """
 
     def __init__(
@@ -375,14 +376,14 @@ class StratifiedBatchSampler(BatchSamplerBase):
 
 class GreedyCoreSetSampler(BatchSamplerBase):
     r"""Constructs batches from 'oversampled' batches through greedy core-set approximation.
+
     Said approximation takes the form of the furtherst-frist traversal (FFT) algorithm.
 
-    Args:
-        batch_size: Budget for the core-set,
-        embeddings: Embedded dataset from which to sample the core-sets according;
-            the order of the embeddings, v, must match the order of the dataset
-            (i.e. f(x_i) = v_i, for embedding function f and inputs x)
-        oversampling_factor: How many times larger than the budget the batch to be sampled from
+    :param batch_size: Budget for the core-set,
+    :param embeddings: Embedded dataset from which to sample the core-sets according;
+        the order of the embeddings, v, must match the order of the dataset
+        (i.e. f(x_i) = v_i, for embedding function f and inputs x)
+    :param oversampling_factor: How many times larger than the budget the batch to be sampled from
         should be.
     """
 
