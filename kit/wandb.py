@@ -23,8 +23,7 @@ class RunsDownloader:
     def runs(self, *run_ids: str) -> pd.DataFrame:
         """Download runs given the run IDs (e.g., "qvlp96vk").
 
-        Args:
-            run_ids: IDs for the runs to download.
+        :param run_ids: IDs for the runs to download.
         """
         runs = []
         for run_id in run_ids:

@@ -20,11 +20,12 @@ class IterationBasedProgBar(ProgressBar):
     excluding the validation iterations from the length of the main progress bar, and displaying progress with
     respect to max_steps instead of a combination of epochs and batches.
 
-    Example:
-        >>> datamodule = MyDataModule()
-        >>> model = MyModel()
-        >>> trainer = pl.Trainer(max_steps=1000, val_check_interval=150, callbacks=[IterationBasedProgBar()])
-        >>> trainer.fit(model=model, dm=dm)
+    :example:
+
+    >>> datamodule = MyDataModule()
+    >>> model = MyModel()
+    >>> trainer = pl.Trainer(max_steps=1000, val_check_interval=150, callbacks=[IterationBasedProgBar()])
+    >>> trainer.fit(model=model, dm=dm)
     """
 
     def init_train_tqdm(self) -> tqdm:
