@@ -12,30 +12,39 @@ jobs:
       POETRY_VIRTUALENVS_CREATE: false
 
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Set up Python 3.9
+    #----------------------------------------------
+    #       check-out repo and set-up python
+    #----------------------------------------------
+    - name: Check out repository
+      uses: actions/checkout@v2
+    - name: Set up python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
-
-    - name: Set up Poetry cache for Python dependencies
-      uses: actions/cache@v2
-      if: startsWith(runner.os, 'Linux')
-      with:
-        path: ~/.cache/pypoetry
-        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-        restore-keys: ${{ runner.os }}-poetry-
-
+        python-version: 3.10.0-rc.2
+    #----------------------------------------------
+    #  -----  install & configure poetry  -----
+    #----------------------------------------------
     - name: Install Poetry
-      run: |
-        curl -fsS -o get-poetry.py https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-        python get-poetry.py -y
-        echo "$HOME/.poetry/bin" >> $GITHUB_PATH
-        rm get-poetry.py
+      uses: snok/install-poetry@v1.2
+      with:
+        virtualenvs-create: false
+        installer-parallel: true
 
-    - name: Install all dependencies
-      run: poetry install -E all --no-interaction
+    #----------------------------------------------
+    #       load cached venv if cache exists
+    #----------------------------------------------
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v2
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+    #----------------------------------------------
+    # install dependencies if cache does not exist
+    #----------------------------------------------
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install -E all --no-interaction --no-root
 
     - name: Install sphinx
       run: pip install sphinx autodocsumm
