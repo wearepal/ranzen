@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to palkit's documentation!
-=================================
+==================================
 
 .. toctree::
    :maxdepth: 1
@@ -14,6 +14,7 @@ Welcome to palkit's documentation!
    kit.hydra
    kit.pl
    kit.torch
+   kit.torch.transforms
    kit.wandb
 
 

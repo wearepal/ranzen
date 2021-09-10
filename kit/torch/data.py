@@ -44,8 +44,12 @@ def prop_random_split(
 
 
 class TrainingMode(Enum):
+    """An enum for the training mode."""
+
     epoch = auto()
+    """epoch-based training"""
     step = auto()
+    """step-based training"""
 
 
 class BatchSamplerBase(Sampler[Sequence[int]]):
@@ -70,7 +74,7 @@ class BatchSamplerBase(Sampler[Sequence[int]]):
 
 
 def _check_generator(generator: torch.Generator | None) -> torch.Generator:
-    """ If the generator is None, randomly initialise a generator object."""
+    """If the generator is None, randomly initialise a generator object."""
     if generator is None:
         generator = torch.Generator()
         generator = generator.manual_seed(int(torch.empty((), dtype=torch.int64).random_().item()))
