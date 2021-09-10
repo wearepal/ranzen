@@ -58,7 +58,7 @@ def recursively_instantiate(
 class SchemaRegistration:
     """Register hydra schemas.
 
-    :example:
+    **Example:**
 
     >>> sr = SchemaRegistration()
     >>> sr.register(Config, path="experiment_schema")

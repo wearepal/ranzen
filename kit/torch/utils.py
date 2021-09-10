@@ -52,7 +52,7 @@ def inf_generator(iterable: Iterable[T]) -> Iterator[T]:
 class Event:
     """Emulates torch.cuda.Event, but supports running on a CPU too.
 
-    :example:
+    **Example:**
 
     >>> from kit.torch import Event
     >>> with Event() as event:
