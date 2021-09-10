@@ -16,9 +16,12 @@ __all__ = [
 
 
 class MixUpMode(Enum):
+    """An enum for the mix-up mode."""
 
     linear = auto()
+    """linear mix-up"""
     geometric = auto()
+    """geometric mix-up"""
 
 
 class InputsTargetsPair(NamedTuple):
