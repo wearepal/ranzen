@@ -34,10 +34,10 @@ class RandomMixUp:
 
     Implemention of `mixup: Beyond Empirical Risk Minimization` (https://arxiv.org/abs/1710.09412).
     This implementation allows for transformation of the the input in the absence
-    of labels -- this is relevant for contrastive methods that use mixup to generate
-    different views of samples for instance-distance discrimination -- and additionally
-    allows for different lambda samplers, different methods for mixing up samples
-    (linear vs geometric) based on lambda, and cross-group pair-sampling.
+    of labels (this is relevant, for instance,to contrastive methods that use mixup to generate
+    different views of samples to enable instance-discrimination) and additionally
+    allows for different lambda-samplers, different methods for mixing up samples
+    (linear vs. geometric) based on lambda, and cross-group pair-sampling.
 
     Note:
         This implementation randomly mixes images within a batch.
