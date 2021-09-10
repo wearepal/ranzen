@@ -53,9 +53,9 @@ def gcopy(
 
     :param obj: Object to be copied.
     :param deep: Whether to create deep (True) or shallow (False) copies.
-    :param num_copies: Number of copies to create with 'None' is equivalent to 1.
-    :param **kwargs: key-word arguments specifying a name of an attribute and the
-    new value to set for it in the copies.
+    :param num_copies: Number of copies to create with 'None' being equivalent to 1.
+    :param **kwargs: Key-word arguments specifying a name of an attribute and the
+    new value to set it to in the copies.
 
     :returns: A copy or list of copies (if num_copies > 1) of the object 'obj'.
     """
