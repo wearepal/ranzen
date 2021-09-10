@@ -167,8 +167,12 @@ class SequentialBatchSampler(BatchSamplerBase):
 
 
 class BaseSampler(Enum):
+    """An enum for the base-sampler to use for StratifiedBatchSampler."""
+
     random = auto()
+    """random sampler"""
     sequential = auto()
+    """sequential sampler"""
 
 
 class StratifiedBatchSampler(BatchSamplerBase):

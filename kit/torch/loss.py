@@ -13,10 +13,16 @@ __all__ = ["CrossEntropyLoss", "ReductionType"]
 
 
 class ReductionType(Enum):
+    """An enum for the type of reduction to apply to a batch of losses."""
+
     mean = auto()
+    """compute the mean the losses over all dimensions."""
     none = auto()
+    """no reduction"""
     sum = auto()
+    """compute the sum the losses over all dimensions."""
     batch_mean = auto()
+    """compute the sum the losses over the batch dimension."""
 
 
 def _reduce(losses: Tensor, reduction_type: ReductionType | str) -> Tensor:
