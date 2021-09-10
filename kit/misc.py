@@ -14,7 +14,7 @@ def flatten_dict(
     :param parent_key: Key-prefix (separated from the key with 'sep') to use for top-level
     keys of the flattened dictionary.
 
-    :param sep: Character to separate the parent keys from the child keys with at each level.
+    :param sep: Character to separate the parent keys from the child keys with at each level with.
 
     :returns: Flattened dictionary with keys capturing the nesting path as 'parent_key.child_key',
     where 'parent_key' is defined recursively, with base value 'parent_key' as specified in the
