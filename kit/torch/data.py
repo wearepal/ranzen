@@ -89,7 +89,7 @@ class SequentialBatchSampler(BatchSamplerBase):
     Note that unlike torch's SequentialSampler which is an ordinary sampler that yields independent sample indexes,
     this is a BatchSampler, requiring slightly different treatment when used with a DataLoader.
 
-    :example:
+    **Example:**
 
     >>> batch_sampler = InfSequentialBatchSampler(data_source=train_data, batch_size=100, shuffle=True)
     >>> train_loader = DataLoader(train_data, batch_sampler=batch_sampler, shuffle=False, drop_last=False) # drop_last and shuffle need to be False
@@ -172,7 +172,7 @@ class StratifiedBatchSampler(BatchSamplerBase):
 
     To drop certain groups, set their multiplier to 0.
 
-    :example:
+    **Example:**
 
     >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 2], 10, replacement=True))
     [3, 5, 6, 3, 5, 6, 0, 5, 6]

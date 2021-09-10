@@ -38,7 +38,7 @@ jobs:
       run: poetry install -E all --no-interaction
 
     - name: Install sphinx
-      run: pip install sphinx
+      run: pip install sphinx autodocsumm
 
     - name: Build docs
       run: |

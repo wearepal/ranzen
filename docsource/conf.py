@@ -44,7 +44,7 @@ extensions = [
     # Need the autodoc and autosummary packages to generate our docs.
     "sphinx.ext.autodoc",
     # 'sphinx.ext.autosummary',
-    # "autodocsumm",
+    "autodocsumm",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

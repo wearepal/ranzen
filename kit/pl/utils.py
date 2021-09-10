@@ -20,7 +20,7 @@ class IterationBasedProgBar(ProgressBar):
     excluding the validation iterations from the length of the main progress bar, and displaying progress with
     respect to max_steps instead of a combination of epochs and batches.
 
-    :example:
+    **Example:**
 
     >>> datamodule = MyDataModule()
     >>> model = MyModel()
