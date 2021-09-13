@@ -10,15 +10,15 @@ def flatten_dict(
     d: MutableMapping[str, Any], *, parent_key: str = "", sep: str = "."
 ) -> dict[str, Any]:
     """Flatten a nested dictionary by separating the keys with `sep`.
+
     :param d: Dictionary to be flattened.
     :param parent_key: Key-prefix (separated from the key with 'sep') to use for top-level
-    keys of the flattened dictionary.
-
+        keys of the flattened dictionary.
     :param sep: Character to separate the parent keys from the child keys with at each level with.
 
-    :returns: Flattened dictionary with keys capturing the nesting path as 'parent_key.child_key',
-    where 'parent_key' is defined recursively, with base value 'parent_key' as specified in the
-    function call.
+    :returns: Flattened dictionary with keys capturing the nesting path as ``parent_key.child_key``,
+        where 'parent_key' is defined recursively, with base value 'parent_key' as specified in the
+        function call.
     """
     items = []
     for k, v in d.items():
@@ -54,8 +54,8 @@ def gcopy(
     :param obj: Object to be copied.
     :param deep: Whether to create deep (True) or shallow (False) copies.
     :param num_copies: Number of copies to create with 'None' being equivalent to 1.
-    :param **kwargs: Key-word arguments specifying a name of an attribute and the
-    new value to set it to in the copies.
+    :param kwargs: Key-word arguments specifying a name of an attribute and the
+        new value to set it to in the copies.
 
     :returns: A copy or list of copies (if num_copies > 1) of the object 'obj'.
     """
@@ -80,11 +80,10 @@ def str_to_enum(str_: str, *, enum: type[E]) -> E:
     If the string is not a valid name of a member of the target enum,
     an error will be raised.
 
-    :param str_: String to be converted to an enum member of type 'enum'.
-    :param enum: Enum class to convert 'str_' to.
+    :param str_: String to be converted to an enum member of type ``enum``.
+    :param enum: Enum class to convert ``str_`` to.
 
-    :returns: The enum member of type 'enum' with name 'str_'.
-
+    :returns: The enum member of type ``enum`` with name ``str_``.
     """
     try:
         return enum[str_]  # type: ignore

@@ -8,7 +8,7 @@ Welcome to palkit's documentation!
 
 .. toctree::
    :maxdepth: 1
-   :caption: Contents:
+   :caption: Modules:
 
    kit
    kit.hydra

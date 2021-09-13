@@ -33,6 +33,7 @@ autodoc_default_options = {
     "show-inheritance": True,
     "autosummary": True,
     "autosummary-no-nesting": True,
+    "autosummary-nosignatures": True,
 }
 autodoc_typehints = "description"
 add_module_names = False
@@ -61,7 +62,8 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "alabaster"
+html_theme = "nature"
+html_sidebars = { '**': ['globaltoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html'] }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
