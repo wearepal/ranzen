@@ -58,7 +58,7 @@ def recursively_instantiate(
 class SchemaRegistration:
     """Register hydra schemas.
 
-    **Example:**
+    :example:
 
     >>> sr = SchemaRegistration()
     >>> sr.register(Config, path="experiment_schema")
@@ -69,10 +69,11 @@ class SchemaRegistration:
     >>>    group.add_option(WaterbirdsDataConf, name="waterbirds")
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         self._cs = ConfigStore.instance()
 
     def register(self, config_class: type, *, path: str) -> None:
+        """Register a schema."""
         if "." in path:
             raise ValueError(f"Separate path with '/' and not '.': {path}")
 
@@ -83,6 +84,7 @@ class SchemaRegistration:
 
     @contextmanager
     def new_group(self, group_name: str, *, target_path: str) -> Iterator[GroupRegistration]:
+        """Return a context manager for a new group."""
         package = target_path.replace("/", ".")
         yield GroupRegistration(self._cs, group_name=group_name, package=package)
 
@@ -96,4 +98,5 @@ class GroupRegistration:
         self._package = package
 
     def add_option(self, config_class: type, *, name: str) -> None:
+        """Register a schema as an option for this group."""
         self._cs.store(group=self._group_name, name=name, node=config_class, package=self._package)

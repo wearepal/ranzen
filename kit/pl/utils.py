@@ -13,14 +13,17 @@ __all__ = ["IterationBasedProgBar"]
 class IterationBasedProgBar(ProgressBar):
     """Iteration-based PL progress bar.
 
-    Training in Pytorch-lightning is epoch-centric - the default progress bar reflects this ethos.
+    Training in Pytorch-lightning is epoch-centric – the default progress bar reflects this ethos.
     However in many cases iteration-based training is desirable or even required (when using non-sequential
     sampling, for instance). This progress bar is designed to be used with iteration-based training (which can
     be enabled by using, for instance,  an infBatchSampler), which means removing 'Epoch' from the display,
     excluding the validation iterations from the length of the main progress bar, and displaying progress with
     respect to max_steps instead of a combination of epochs and batches.
 
-    **Example:**
+    :param refresh_rate: Refresh rate.
+    :param process_position: Process position.
+
+    :example:
 
     >>> datamodule = MyDataModule()
     >>> model = MyModel()

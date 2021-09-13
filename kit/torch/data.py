@@ -93,15 +93,15 @@ class SequentialBatchSampler(BatchSamplerBase):
     Note that unlike torch's SequentialSampler which is an ordinary sampler that yields independent sample indexes,
     this is a BatchSampler, requiring slightly different treatment when used with a DataLoader.
 
-    **Example:**
+    :param data_source: Object of the same size as the data to be sampled from.
+
+    :example:
 
     >>> batch_sampler = InfSequentialBatchSampler(data_source=train_data, batch_size=100, shuffle=True)
     >>> train_loader = DataLoader(train_data, batch_sampler=batch_sampler, shuffle=False, drop_last=False) # drop_last and shuffle need to be False
     >>> train_loader_iter = iter(train_loader)
     >>> for _ in range(train_iters):
     >>>     batch = next(train_loader_iter)
-
-    :param data_source: Object of the same size as the data to be sampled from.
     """
 
     def __init__(
@@ -180,15 +180,6 @@ class StratifiedBatchSampler(BatchSamplerBase):
 
     To drop certain groups, set their multiplier to 0.
 
-    **Example:**
-
-    >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 2], 10, replacement=True))
-    [3, 5, 6, 3, 5, 6, 0, 5, 6]
-    >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 2], 10, replacement=True, multiplier={2: 2}))
-    [3, 4, 6, 6, 3, 5, 6, 6, 1, 5, 6, 6]
-    >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 1, 2, 2], 7, replacement=False))
-    [2, 6, 7, 0, 5, 8]
-
     :param group_ids: a sequence of group IDs, not necessarily contiguous.
     :param num_samples_per_group: number of samples to draw per group. Note that if a multiplier is > 1
         then effectively more samples will be drawn for that group.
@@ -201,6 +192,15 @@ class StratifiedBatchSampler(BatchSamplerBase):
     :param multiplier: an optional dictionary that maps group IDs to multipliers. If a multiplier is
         greater than 1, the corresponding group will be sampled at twice the rate as the other
         groups. If a multiplier is 0, the group will be skipped.
+
+    :example:
+
+    >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 2], 10, replacement=True))
+    [3, 5, 6, 3, 5, 6, 0, 5, 6]
+    >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 2], 10, replacement=True, multiplier={2: 2}))
+    [3, 4, 6, 6, 3, 5, 6, 6, 1, 5, 6, 6]
+    >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 1, 2, 2], 7, replacement=False))
+    [2, 6, 7, 0, 5, 8]
     """
 
     def __init__(

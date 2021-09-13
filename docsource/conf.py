@@ -25,7 +25,8 @@ author = "PAL"
 
 # -- General configuration ---------------------------------------------------
 
-autoclass_content = "class"  # include both class docstring and __init__
+autoclass_content = "both"  # include both class docstring and __init__
+autodoc_class_signature = "mixed"
 autodoc_default_options = {
     # Make sure that any autodoc declarations show the right members
     "members": True,
@@ -36,6 +37,10 @@ autodoc_default_options = {
     "autosummary-nosignatures": True,
 }
 autodoc_typehints = "description"
+autodoc_type_aliases = {
+    "pl.Trainer": "pytorch_lightning.Trainer",
+    "pl.LightningModule": "pytorch_lightning.LightningModule",
+}
 add_module_names = False
 
 # Add any Sphinx extension module names here, as strings. They can be
