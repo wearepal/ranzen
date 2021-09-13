@@ -45,7 +45,9 @@ jobs:
       run: poetry install -E all --no-interaction --no-root
 
     - name: Install sphinx
-      run: poetry add sphinx autodocsumm
+      run: |
+        source .venv/bin/activate
+        pip install sphinx autodocsumm
 
     - name: Build docs
       run: |
