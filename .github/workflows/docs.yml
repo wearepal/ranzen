@@ -28,6 +28,7 @@ jobs:
       uses: snok/install-poetry@v1.2
       with:
         virtualenvs-create: true
+        virtualenvs-in-project: true
         installer-parallel: true
 
     #----------------------------------------------
@@ -38,7 +39,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: .venv
-        key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+        key: venv2-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
     #----------------------------------------------
     # install dependencies if cache does not exist
     #----------------------------------------------
@@ -47,10 +48,11 @@ jobs:
       run: poetry install -E all --no-interaction --no-root
 
     - name: Install sphinx
-      run: pip install sphinx autodocsumm
+      run: poetry add sphinx autodocsumm
 
     - name: Build docs
       run: |
+        source .venv/bin/activate
         cd docsource
         bash generate_docs.sh
 
