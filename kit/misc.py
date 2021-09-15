@@ -75,8 +75,8 @@ def gcopy(
 E = TypeVar("E", covariant=False, bound=Enum)
 
 
-def str_to_enum(str_: str, *, enum: type[E]) -> E:
-    """Convert a string to a target enum.
+def str_to_enum(str_: str | E, *, enum: type[E]) -> E:
+    """Convert a string to an enum based on name instead of value.
     If the string is not a valid name of a member of the target enum,
     an error will be raised.
 
@@ -85,6 +85,8 @@ def str_to_enum(str_: str, *, enum: type[E]) -> E:
 
     :returns: The enum member of type ``enum`` with name ``str_``.
     """
+    if isinstance(str_, enum):
+        return str_
     try:
         return enum[str_]  # type: ignore
     except KeyError:
