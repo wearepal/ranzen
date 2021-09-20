@@ -290,10 +290,10 @@ class Relay:
         cls: Type,
         base_config_dir: Union[Path, str],
         use_cached_confs: bool = True,
-        **schemas: Option,
+        **options: Option,
     ) -> None:
         """Run the relay with hydra."""
-        cls._launch(base_config_dir=base_config_dir, use_cached_confs=use_cached_confs, **schemas)
+        cls._launch(base_config_dir=base_config_dir, use_cached_confs=use_cached_confs, **options)
 
     @abstractmethod
     def run(self, raw_config: Optional[Dict[str, Any]] = None) -> None:
