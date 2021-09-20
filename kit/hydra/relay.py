@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from collections import defaultdict
-from dataclasses import is_dataclass
+from dataclasses import dataclass, field, is_dataclass
 from functools import lru_cache
 import importlib
 import logging
@@ -23,7 +23,6 @@ from typing import (
     cast,
 )
 
-import attr
 import hydra
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
@@ -43,10 +42,11 @@ def _camel_to_snake(name: str) -> str:
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
 
 
-@attr.define(frozen=True)
+@dataclass
 class Option:
     class_: Type[Any]
-    _name: Optional[str] = None
+    name: Optional[str] = None  # type: ignore
+    _name: Optional[str] = field(init=False, repr=False)
 
     @property
     def name(self) -> str:
@@ -57,8 +57,12 @@ class Option:
             return _camel_to_snake(cls_name)
         return self._name
 
+    @name.setter
+    def name(self, name: Optional[str]) -> None:  # type: ignore
+        self._name = name
 
-@attr.define(frozen=True)
+
+@dataclass
 class _SchemaImportInfo:
     schema_name: str
     name: str
@@ -67,7 +71,6 @@ class _SchemaImportInfo:
 R = TypeVar("R", bound="Relay")
 
 
-@attr.define(kw_only=True)
 class Relay:
     """
     Abstract class for orchestrating hydra runs.
