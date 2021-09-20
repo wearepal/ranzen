@@ -42,11 +42,11 @@ def _camel_to_snake(name: str) -> str:
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
 
 
-@dataclass
+@dataclass(init=False)
 class Option:
-    class_: Type[Any]
-    name: Optional[str] = None  # type: ignore
-    _name: Optional[str] = field(init=False, repr=False)
+    def __init__(self, class_: Type[Any], name: Optional[str] = None) -> None:
+        self.class_ = class_
+        self._name = name
 
     @property
     def name(self) -> str:
