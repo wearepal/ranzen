@@ -42,7 +42,12 @@ def reconstruct_cmd() -> str:
     internal_config = HydraConfig.get()
     program = internal_config.job.name + ".py"
     args = internal_config.overrides.task
-    return shlex.join([program] + OmegaConf.to_container(args))  # type: ignore[operator]
+    return _join([program] + OmegaConf.to_container(args))  # type: ignore[operator]
+
+
+def _join(split_command: List[str]) -> str:
+    """Concatenate the tokens of the list split_command and return a string."""
+    return " ".join(shlex.quote(arg) for arg in split_command)
 
 
 def recursively_instantiate(
