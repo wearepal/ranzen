@@ -45,7 +45,7 @@ def reconstruct_cmd() -> str:
     return _join([program] + OmegaConf.to_container(args))  # type: ignore[operator]
 
 
-def _join(split_command: List[str]) -> str:
+def _join(split_command: list[str]) -> str:
     """Concatenate the tokens of the list split_command and return a string."""
     return " ".join(shlex.quote(arg) for arg in split_command)
 
