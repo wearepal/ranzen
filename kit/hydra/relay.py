@@ -321,6 +321,7 @@ class Relay:
     def with_hydra(
         cls: type[R],
         base_config_dir: Path | str,
+        *,
         use_cached_confs: bool = True,
         **options: list[type[Any]],
     ) -> None:
