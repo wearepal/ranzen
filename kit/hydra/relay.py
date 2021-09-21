@@ -1,6 +1,7 @@
+from __future__ import annotations
 from abc import abstractmethod
 from collections import defaultdict
-from dataclasses import dataclass, is_dataclass
+from dataclasses import dataclass, is_dataclass, replace
 from functools import lru_cache
 import importlib
 import logging
@@ -14,12 +15,10 @@ from typing import (
     DefaultDict,
     Dict,
     List,
+    NamedTuple,
     Optional,
-    Sequence,
     Tuple,
-    Type,
     TypeVar,
-    Union,
     cast,
 )
 
@@ -44,7 +43,7 @@ def _camel_to_snake(name: str) -> str:
 
 @dataclass(init=False)
 class Option:
-    def __init__(self, class_: Type[Any], name: Optional[str] = None) -> None:
+    def __init__(self, class_: type[Any], name: str | None = None) -> None:
         self.class_ = class_
         self._name = name
 
@@ -58,12 +57,11 @@ class Option:
         return self._name
 
     @name.setter
-    def name(self, name: Optional[str]) -> None:  # type: ignore
+    def name(self, name: str | None) -> None:  # type: ignore
         self._name = name
 
 
-@dataclass
-class _SchemaImportInfo:
+class _SchemaImportInfo(NamedTuple):
     schema_name: str
     name: str
 
@@ -90,8 +88,8 @@ class Relay:
     >>>
     Relay.with_hydra(
         base_config_dir="conf",
-        model_confs=[Option(MoCoV2), Option(DINO)],
-        datamodule_confs=[Option(ColoredMNISTDataModule, "cmnist")],
+        model=[Option(MoCoV2), Option(DINO)],
+        datamodule=[Option(ColoredMNISTDataModule, "cmnist")],
     )
 
     """
@@ -102,7 +100,7 @@ class Relay:
     _logger: ClassVar[Optional[logging.Logger]] = None
 
     @classmethod
-    def _get_logger(cls: Type[R]) -> logging.Logger:
+    def _get_logger(cls: type[R]) -> logging.Logger:
         if cls._logger is None:
             logger = logging.getLogger(__name__)
             logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -111,17 +109,17 @@ class Relay:
         return cls._logger
 
     @classmethod
-    def log(cls: Type[R], msg: str) -> None:
+    def log(cls: type[R], msg: str) -> None:
         cls._get_logger().info(msg)
 
     @classmethod
-    def _config_dir_name(cls: Type[R]) -> str:
+    def _config_dir_name(cls: type[R]) -> str:
         return _camel_to_snake(cls.__name__)
 
     @final
     @classmethod
     def _init_yaml_files(
-        cls: Type[R], *, config_dir: Path, config_dict: Dict[str, List[Any]]
+        cls: type[R], *, config_dir: Path, config_dict: dict[str, list[Any]]
     ) -> None:
         indent = "  "
         primary_conf_fp = (config_dir / cls._CONFIG_NAME).with_suffix(".yaml")
@@ -153,7 +151,7 @@ class Relay:
 
     @classmethod
     def _generate_conf(
-        cls: Type[R], output_dir: Path, *, module_class_dict: Dict[str, List[str]]
+        cls: type[R], output_dir: Path, *, module_class_dict: dict[str, List[str]]
     ) -> None:
         from configen.config import ConfigenConf, ModuleConf  # type: ignore
         from configen.configen import generate_module  # type: ignore
@@ -173,7 +171,7 @@ class Relay:
                 file.write(code)
 
     @classmethod
-    def _load_module_from_path(cls: Type[R], filepath: Path) -> ModuleType:
+    def _load_module_from_path(cls: type[R], filepath: Path) -> ModuleType:
         spec = importlib.util.spec_from_file_location(  # type: ignore
             name=filepath.name, location=str(filepath)
         )
@@ -184,12 +182,12 @@ class Relay:
 
     @classmethod
     def _load_schemas(
-        cls: Type[R],
+        cls: type[R],
         config_dir: Path,
         *,
         use_cached_confs: bool = True,
-        **options: Sequence[Option],
-    ) -> Tuple[Type[Any], DefaultDict[str, List[Option]], DefaultDict[str, List[Option]]]:
+        **options: list[Any],
+    ) -> Tuple[type[Any], DefaultDict[str, List[Option]], DefaultDict[str, List[Option]]]:
         configen_dir = config_dir / "configen"
         schema_filepath = configen_dir / cls._CONFIGEN_FILENAME
         schemas_to_generate = defaultdict(list)
@@ -200,16 +198,18 @@ class Relay:
         else:
             schemas_to_generate[cls.__module__].append(cls.__name__)
             module = None
-        imported_schemas: DefaultDict[str, List[Option]] = defaultdict(list)
-        schemas_to_import: DefaultDict[str, List[_SchemaImportInfo]] = defaultdict(list)
-        schemas_to_init: DefaultDict[str, List[Option]] = defaultdict(list)
+        imported_schemas: DefaultDict[str, list[Option]] = defaultdict(list)
+        schemas_to_import: DefaultDict[str, list[_SchemaImportInfo]] = defaultdict(list)
+        schemas_to_init: DefaultDict[str, list[Option]] = defaultdict(list)
 
-        for group, classes in options.items():
-            for info in classes:
-                if not (config_dir / group / info.name).with_suffix(".yaml").exists():
-                    schemas_to_init[group].append(info)
-                cls_name = info.class_.__name__
-                if (not is_dataclass(info.class_)) or (not cls_name.endswith("Conf")):
+        for group, group_options in options.items():
+            for option in group_options:
+                if not isinstance(option, Option):
+                    option = Option(class_=option)
+                if not (config_dir / group / option.name).with_suffix(".yaml").exists():
+                    schemas_to_init[group].append(option)
+                cls_name = option.class_.__name__
+                if (not is_dataclass(option.class_)) or (not cls_name.endswith("Conf")):
                     schema_name = f"{cls_name}Conf"
                     schema_missing = False
                     if module is None:
@@ -220,14 +220,14 @@ class Relay:
                             schema_missing = True
                         else:
                             imported_schemas[group].append(
-                                Option(name=info.name, class_=schema)  # type: ignore
+                                replace(option, class_=schema)  # type: ignore
                             )
                     if schema_missing:
-                        schemas_to_generate[info.class_.__module__].append(cls_name)
-                    import_info = _SchemaImportInfo(schema_name=schema_name, name=info.name)
+                        schemas_to_generate[option.class_.__module__].append(cls_name)
+                    import_info = _SchemaImportInfo(schema_name=schema_name, name=option.name)
                     schemas_to_import[group].append(import_info)
                 else:
-                    imported_schemas[group].append(info)
+                    imported_schemas[group].append(option)
 
         # Generate any confs with configen that have yet to be generated
         if schemas_to_generate:
@@ -239,7 +239,7 @@ class Relay:
         for group, info_ls in schemas_to_import.items():
             for info in info_ls:
                 imported_schemas[group].append(
-                    Option(name=info.name, conf=getattr(module, info.schema_name))  # type: ignore
+                    Option(class_=getattr(module, info.schema_name), name=info.name)  # type: ignore
                 )
 
         return primary_schema, imported_schemas, schemas_to_init
@@ -247,11 +247,11 @@ class Relay:
     @final
     @classmethod
     def _launch(
-        cls: Type[R],
+        cls: type[R],
         *,
-        base_config_dir: Union[Path, str],
+        base_config_dir: Path | str,
         use_cached_confs: bool = True,
-        **options: Sequence[Option],
+        **options: list[type[Any]],
     ) -> None:
         base_config_dir = Path(base_config_dir)
         config_dir_name = cls._config_dir_name()
@@ -292,14 +292,14 @@ class Relay:
 
     @classmethod
     def with_hydra(
-        cls: Type,
-        base_config_dir: Union[Path, str],
+        cls: type[R],
+        base_config_dir: Path | str,
         use_cached_confs: bool = True,
-        **options: Option,
+        **options: list[type[Any]],
     ) -> None:
         """Run the relay with hydra."""
         cls._launch(base_config_dir=base_config_dir, use_cached_confs=use_cached_confs, **options)
 
     @abstractmethod
-    def run(self, raw_config: Optional[Dict[str, Any]] = None) -> None:
+    def run(self, raw_config: dict[str, Any] | None = None) -> None:
         ...
