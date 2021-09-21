@@ -43,6 +43,6 @@ def test_relay(tmpdir: Path) -> None:
             DummyRelay.with_hydra(base_config_dir=tmpdir, **options)
         conf_dir = tmpdir / DummyRelay._config_dir_name()
         assert conf_dir.exists()
-        assert (conf_dir / "configen" / DummyRelay._CONFIGEN_FILENAME).exists()
+        assert (conf_dir / "configen" / "relay_test" / DummyRelay._CONFIGEN_FILENAME).exists()
         for key in options.keys():
             assert (conf_dir / key).exists()

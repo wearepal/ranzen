@@ -64,6 +64,7 @@ class Option:
 class _SchemaImportInfo(NamedTuple):
     schema_name: str
     name: str
+    module: ModuleType | Path
 
 
 R = TypeVar("R", bound="Relay")
@@ -150,6 +151,12 @@ class Relay:
         cls.log(f"Finished initialising config directory initialised at '{config_dir}'")
 
     @classmethod
+    def _module_to_fp(cls: type[R], module: ModuleType | str):
+        if isinstance(module, ModuleType):
+            module = module.__name__
+        return module.replace(".", "/")
+
+    @classmethod
     def _generate_conf(
         cls: type[R], output_dir: Path, *, module_class_dict: dict[str, List[str]]
     ) -> None:
@@ -166,7 +173,9 @@ class Relay:
             module_conf = ModuleConf(name=module, classes=classes)
             code = generate_module(cfg=cfg, module=module_conf)
             output_dir.mkdir(parents=True, exist_ok=True)
-            conf_file = output_dir / cls._CONFIGEN_FILENAME
+            conf_dir = output_dir / cls._module_to_fp(module)
+            conf_dir.mkdir(parents=True)
+            conf_file = conf_dir / cls._CONFIGEN_FILENAME
             with conf_file.open("a+") as file:
                 file.write(code)
 
@@ -189,15 +198,14 @@ class Relay:
         **options: list[Any],
     ) -> Tuple[type[Any], DefaultDict[str, List[Option]], DefaultDict[str, List[Option]]]:
         configen_dir = config_dir / "configen"
-        schema_filepath = configen_dir / cls._CONFIGEN_FILENAME
+        primary_schema_fp = (
+            configen_dir / cls._module_to_fp(cls.__module__) / cls._CONFIGEN_FILENAME
+        )
         schemas_to_generate = defaultdict(list)
-        if not use_cached_confs:
-            schema_filepath.unlink(missing_ok=True)  # type: ignore
-        if schema_filepath.exists():
-            module = cls._load_module_from_path(schema_filepath)
-        else:
+        if not use_cached_confs and configen_dir.exists():
+            configen_dir.rmdir()
+        if not primary_schema_fp.exists():
             schemas_to_generate[cls.__module__].append(cls.__name__)
-            module = None
         imported_schemas: DefaultDict[str, list[Option]] = defaultdict(list)
         schemas_to_import: DefaultDict[str, list[_SchemaImportInfo]] = defaultdict(list)
         schemas_to_init: DefaultDict[str, list[Option]] = defaultdict(list)
@@ -212,6 +220,17 @@ class Relay:
                 if (not is_dataclass(option.class_)) or (not cls_name.endswith("Conf")):
                     schema_name = f"{cls_name}Conf"
                     schema_missing = False
+                    # Load the primary schema
+                    secondary_schema_fp = (
+                        configen_dir
+                        / cls._module_to_fp(option.class_.__module__)
+                        / cls._CONFIGEN_FILENAME
+                    )
+                    module = (
+                        cls._load_module_from_path(secondary_schema_fp)
+                        if secondary_schema_fp.exists()
+                        else None
+                    )
                     if module is None:
                         schema_missing = True
                     else:
@@ -224,7 +243,11 @@ class Relay:
                             )
                     if schema_missing:
                         schemas_to_generate[option.class_.__module__].append(cls_name)
-                    import_info = _SchemaImportInfo(schema_name=schema_name, name=option.name)
+                    import_info = _SchemaImportInfo(
+                        schema_name=schema_name,
+                        name=option.name,
+                        module=secondary_schema_fp if module is None else module,
+                    )
                     schemas_to_import[group].append(import_info)
                 else:
                     imported_schemas[group].append(option)
@@ -233,11 +256,15 @@ class Relay:
         if schemas_to_generate:
             cls._generate_conf(output_dir=configen_dir, module_class_dict=schemas_to_generate)
         # Load the primary schema
-        module = cls._load_module_from_path(schema_filepath)
+        module = cls._load_module_from_path(primary_schema_fp)
         primary_schema = getattr(module, cls.__name__ + "Conf")
         # Load the sub-schemas
         for group, info_ls in schemas_to_import.items():
             for info in info_ls:
+                module = info.module
+                if isinstance(module, Path):
+                    module = cls._load_module_from_path(module)
+
                 imported_schemas[group].append(
                     Option(class_=getattr(module, info.schema_name), name=info.name)  # type: ignore
                 )
