@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from collections import defaultdict
-from dataclasses import dataclass, field, is_dataclass
+from dataclasses import dataclass, is_dataclass
 from functools import lru_cache
 import importlib
 import logging
@@ -76,12 +76,14 @@ class Relay:
     Abstract class for orchestrating hydra runs.
 
     This class does away with the hassle of needing to define config-stores, initialise
-    config directories, and manually run configen on classes to convert them into schemas.
+    config directories, and manually run configen on classes to convert them into valid schemas.
     Regular non-hydra compatible, classes can be passed to the `with_hydra` method and
-    configen will be run on them automatically, with the resulting conf classes being
-    cached in the config directory.
+    configen will be run on them automatically (if use_cached_confs=False or a cached version
+    of the schemas can't be found), with the resulting schemas cached in the config directory.
 
-    Subclasses must implement a 'run' method.
+    Subclasses must implement a 'run' method and will themselves be converted into the
+    primary config classes used to initialise and validate hydra. With the launching of hydra,
+    the subclasses will be instantiated and the run method called on the raw config.
 
     :example:
 
