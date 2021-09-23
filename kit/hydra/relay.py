@@ -242,7 +242,7 @@ class Relay:
         config_dir: Path,
         *,
         use_cached_confs: bool = True,
-        **options: list[Any],
+        **options: list[type[Any] | Option],
     ) -> Tuple[type[Any], DefaultDict[str, List[Option]], DefaultDict[str, List[Option]]]:
         configen_dir = config_dir / "configen"
         primary_schema_fp = (
@@ -325,7 +325,7 @@ class Relay:
         *,
         base_config_dir: Path | str,
         use_cached_confs: bool = True,
-        **options: list[type[Any]],
+        **options: list[type[Any] | Option],
     ) -> None:
         base_config_dir = Path(base_config_dir)
         config_dir_name = cls._config_dir_name()
@@ -370,7 +370,7 @@ class Relay:
         base_config_dir: Path | str,
         *,
         use_cached_confs: bool = True,
-        **options: list[type[Any]],
+        **options: list[type[Any] | Option],
     ) -> None:
         """Run the relay with hydra."""
         cls._launch(base_config_dir=base_config_dir, use_cached_confs=use_cached_confs, **options)
