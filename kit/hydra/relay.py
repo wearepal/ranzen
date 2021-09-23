@@ -2,8 +2,10 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, is_dataclass, replace
+from enum import Enum
 from functools import lru_cache
 import importlib
+import inspect
 import logging
 from pathlib import Path
 import re
@@ -39,6 +41,37 @@ __all__ = [
 def _camel_to_snake(name: str) -> str:
     name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
+
+
+def _to_yaml_value(default: Any, *, indent_level: int = 0) -> str | None:
+    str_ = None
+    if default is None:
+        str_ = "null"
+    elif isinstance(default, str):
+        str_ = default
+    elif isinstance(default, bool):
+        str_ = str(default).lower()
+    elif isinstance(default, Enum):
+        str_ = default.name
+    elif isinstance(default, (float, int)):
+        str_ = str(default)
+    elif isinstance(default, (tuple, list)):
+        str_ = ""
+        indent_level += 1
+        for elem in default:
+            elem_str = _to_yaml_value(elem, indent_level=indent_level)
+            if elem_str is None:
+                return None
+            str_ += f"\n{'  ' * indent_level}- {elem_str}"
+    elif isinstance(default, dict):
+        str_ = ""
+        indent_level += 1
+        for key, value in default.items():
+            value_str = _to_yaml_value(value, indent_level=indent_level)
+            if value_str is None:
+                return None
+            str_ += f"\n{'  ' * indent_level} {key}: {value_str}"
+    return str_
 
 
 @dataclass(init=False)
@@ -132,20 +165,34 @@ class Relay:
                 primary_conf.write(f"defaults:")
                 primary_conf.write(f"\n{indent}- {cls._PRIMARY_SCHEMA_NAME}")
 
-            for group, schema_ls in config_dict.items():
+            for group, group_options in config_dict.items():
                 group_dir = config_dir / group
                 if not group_dir.exists():
                     group_dir.mkdir()
-                    default = "null" if len(schema_ls) > 1 else schema_ls[0].name
+                    default = "null" if len(group_options) > 1 else group_options[0].name
                     primary_conf.write(f"\n{indent}- {group}: {default}")
 
                 cls.log(f"Initialising group '{group}'")
-                for info in schema_ls:
+                for option in group_options:
                     open((group_dir / "defaults").with_suffix(".yaml"), "a").close()
-                    with (group_dir / info.name).with_suffix(".yaml").open("w") as schema_config:
+                    with (group_dir / option.name).with_suffix(".yaml").open("w") as schema_config:
                         schema_config.write(f"defaults:")
-                        schema_config.write(f"\n{indent}- /schema/{group}: {info.name}")
+                        schema_config.write(f"\n{indent}- /schema/{group}: {option.name}")
                         schema_config.write(f"\n{indent}- defaults")
+
+                        sig = inspect.signature(option.class_)
+                        for name, param in sig.parameters.items():
+                            entry = f"{name}"
+                            default = param.default
+                            if not default is param.empty:
+                                default_str = _to_yaml_value(default)
+                                if default_str is None:
+                                    entry = (
+                                        f"# {entry}: {default.__class__.__name__}(*args, **kwargs)"
+                                    )
+                                else:
+                                    entry += f": {default_str}"
+                            schema_config.write(f"\n{entry}")
                         cls.log(f"- Initialising config file '{schema_config.name}'.")
 
         cls.log(f"Finished initialising config directory initialised at '{config_dir}'")
