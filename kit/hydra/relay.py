@@ -48,7 +48,7 @@ def _to_yaml_value(default: Any, *, indent_level: int = 0) -> str | None:
     if default is None:
         str_ = "null"
     elif isinstance(default, str):
-        str_ = default
+        str_ = f"'{default}'"
     elif isinstance(default, bool):
         str_ = str(default).lower()
     elif isinstance(default, Enum):
