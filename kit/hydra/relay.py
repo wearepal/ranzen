@@ -27,7 +27,7 @@ from typing import (
 import hydra
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
-from typing_extensions import final
+from typing_extensions import Final, final
 
 from .utils import SchemaRegistration
 
@@ -35,6 +35,8 @@ __all__ = [
     "Relay",
     "Option",
 ]
+
+YAML_INDENT: Final[str] = "  "
 
 
 @lru_cache(maxsize=32)
@@ -62,7 +64,7 @@ def _to_yaml_value(default: Any, *, indent_level: int = 0) -> str | None:
             elem_str = _to_yaml_value(elem, indent_level=indent_level)
             if elem_str is None:
                 return None
-            str_ += f"\n{'  ' * indent_level}- {elem_str}"
+            str_ += f"\n{YAML_INDENT * indent_level}- {elem_str}"
     elif isinstance(default, dict):
         str_ = ""
         indent_level += 1
@@ -70,7 +72,7 @@ def _to_yaml_value(default: Any, *, indent_level: int = 0) -> str | None:
             value_str = _to_yaml_value(value, indent_level=indent_level)
             if value_str is None:
                 return None
-            str_ += f"\n{'  ' * indent_level} {key}: {value_str}"
+            str_ += f"\n{YAML_INDENT * indent_level} {key}: {value_str}"
     return str_
 
 
@@ -155,7 +157,6 @@ class Relay:
     def _init_yaml_files(
         cls: type[R], *, config_dir: Path, config_dict: dict[str, list[Any]]
     ) -> None:
-        indent = "  "
         primary_conf_fp = (config_dir / cls._CONFIG_NAME).with_suffix(".yaml")
         primary_conf_exists = primary_conf_fp.exists()
         with primary_conf_fp.open("a+") as primary_conf:
@@ -163,35 +164,45 @@ class Relay:
                 cls.log(f"Initialising primary config file '{primary_conf.name}'.")
 
                 primary_conf.write(f"defaults:")
-                primary_conf.write(f"\n{indent}- {cls._PRIMARY_SCHEMA_NAME}")
+                primary_conf.write(f"\n{YAML_INDENT}- {cls._PRIMARY_SCHEMA_NAME}")
 
             for group, group_options in config_dict.items():
                 group_dir = config_dir / group
                 if not group_dir.exists():
                     group_dir.mkdir()
-                    default = "null" if len(group_options) > 1 else group_options[0].name
-                    primary_conf.write(f"\n{indent}- {group}: {default}")
+                    default = "" if len(group_options) > 1 else group_options[0].name
+                    primary_conf.write(f"\n{YAML_INDENT}- {group}: {default}")
 
                 cls.log(f"Initialising group '{group}'")
                 for option in group_options:
                     open((group_dir / "defaults").with_suffix(".yaml"), "a").close()
                     with (group_dir / option.name).with_suffix(".yaml").open("w") as schema_config:
                         schema_config.write(f"defaults:")
-                        schema_config.write(f"\n{indent}- /schema/{group}: {option.name}")
-                        schema_config.write(f"\n{indent}- defaults")
+                        schema_config.write(f"\n{YAML_INDENT}- /schema/{group}: {option.name}")
+                        schema_config.write(f"\n{YAML_INDENT}- defaults")
 
-                        sig = inspect.signature(option.class_)
+                        sig = inspect.signature(option.class_.__init__)
                         for name, param in sig.parameters.items():
-                            entry = f"{name}"
+                            if name in ("self", "args", "kwargs"):
+                                continue
+                            entry = f"{name}: "
                             default = param.default
                             if not default is param.empty:
                                 default_str = _to_yaml_value(default)
                                 if default_str is None:
-                                    entry = (
-                                        f"# {entry}: {default.__class__.__name__}(*args, **kwargs)"
-                                    )
+                                    if isinstance(default, type):
+                                        default_str = f"{default.__module__}.{default.__name__}"
+                                    else:
+                                        class_path = f"{default.__class__.__module__}.{default.__class__.__name__}"
+                                        default_str = f"\n{YAML_INDENT}# _target_: {class_path}"
+                                        default_sig = inspect.signature(default.__class__.__init__)
+                                        for key in default_sig.parameters.keys():
+                                            if key in ("self", "args", "kwargs"):
+                                                continue
+                                            default_str += f"\n{YAML_INDENT}# {key}:"
+                                    entry = f"# {entry}{default_str}"
                                 else:
-                                    entry += f": {default_str}"
+                                    entry += f"{default_str}"
                             schema_config.write(f"\n{entry}")
                         cls.log(f"- Initialising config file '{schema_config.name}'.")
 
