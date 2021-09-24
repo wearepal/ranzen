@@ -42,7 +42,12 @@ def reconstruct_cmd() -> str:
     internal_config = HydraConfig.get()
     program = internal_config.job.name + ".py"
     args = internal_config.overrides.task
-    return shlex.join([program] + OmegaConf.to_container(args))  # type: ignore[operator]
+    return _join([program] + OmegaConf.to_container(args))  # type: ignore[operator]
+
+
+def _join(split_command: list[str]) -> str:
+    """Concatenate the tokens of the list split_command and return a string."""
+    return " ".join(shlex.quote(arg) for arg in split_command)
 
 
 def recursively_instantiate(
@@ -58,20 +63,22 @@ def recursively_instantiate(
 class SchemaRegistration:
     """Register hydra schemas.
 
-    Example:
-        >>> sr = SchemaRegistration()
-        >>> sr.register(Config, path="experiment_schema")
-        >>> sr.register(TrainerConf, path="trainer/trainer_schema")
-        >>>
-        >>> with sr.new_group("schema/data", target_path="data") as group:
-        >>>    group.add_option(CelebaDataConf, name="celeba")
-        >>>    group.add_option(WaterbirdsDataConf, name="waterbirds")
+    :example:
+
+    >>> sr = SchemaRegistration()
+    >>> sr.register(Config, path="experiment_schema")
+    >>> sr.register(TrainerConf, path="trainer/trainer_schema")
+    >>>
+    >>> with sr.new_group("schema/data", target_path="data") as group:
+    >>>    group.add_option(CelebaDataConf, name="celeba")
+    >>>    group.add_option(WaterbirdsDataConf, name="waterbirds")
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         self._cs = ConfigStore.instance()
 
     def register(self, config_class: type, *, path: str) -> None:
+        """Register a schema."""
         if "." in path:
             raise ValueError(f"Separate path with '/' and not '.': {path}")
 
@@ -82,6 +89,7 @@ class SchemaRegistration:
 
     @contextmanager
     def new_group(self, group_name: str, *, target_path: str) -> Iterator[GroupRegistration]:
+        """Return a context manager for a new group."""
         package = target_path.replace("/", ".")
         yield GroupRegistration(self._cs, group_name=group_name, package=package)
 
@@ -95,4 +103,5 @@ class GroupRegistration:
         self._package = package
 
     def add_option(self, config_class: type, *, name: str) -> None:
+        """Register a schema as an option for this group."""
         self._cs.store(group=self._group_name, name=name, node=config_class, package=self._package)

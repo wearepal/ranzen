@@ -14,8 +14,7 @@ class implements:  # pylint: disable=invalid-name
     def __init__(self, interface: type):
         """Instantiate the decorator.
 
-        Args:
-            interface: the interface that is implemented
+        :param interface: the interface that is implemented
         """
         self.interface = interface
 

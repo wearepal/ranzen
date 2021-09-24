@@ -72,9 +72,14 @@ def test_parsable_invalid_list() -> None:
 
 @enum_name_str
 class Stage(Enum):
+    """An enum for the stage of model-development."""
+
     fit = auto()
+    """fitting stage"""
     validate = auto()
+    """validation stage"""
     test = auto()
+    """testing stage"""
 
 
 def test_enum_str() -> None:
