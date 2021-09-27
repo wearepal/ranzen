@@ -9,6 +9,7 @@ import inspect
 import logging
 from pathlib import Path
 import re
+import shutil
 import sys
 from types import ModuleType
 from typing import (
@@ -60,11 +61,13 @@ def _to_yaml_value(default: Any, *, indent_level: int = 0) -> str | None:
     elif isinstance(default, (tuple, list)):
         str_ = ""
         indent_level += 1
+        str_ls = []
         for elem in default:
             elem_str = _to_yaml_value(elem, indent_level=indent_level)
             if elem_str is None:
                 return None
             str_ += f"\n{YAML_INDENT * indent_level}- {elem_str}"
+        str_ = str(str_ls)
     elif isinstance(default, dict):
         str_ = ""
         indent_level += 1
@@ -110,9 +113,9 @@ class Relay:
     Abstract class for orchestrating hydra runs.
 
     This class does away with the hassle of needing to define config-stores, initialise
-    config directories, and manually run configen on classes to convert them into valid schemas.
+    config directories, and manually run neoconfigen on classes to convert them into valid schemas.
     Regular non-hydra compatible, classes can be passed to the `with_hydra` method and
-    configen will be run on them automatically (if use_cached_confs=False or a cached version
+    neoconfigen will be run on them automatically (if clear_cache=True or a cached version
     of the schemas can't be found), with the resulting schemas cached in the config directory.
 
     Subclasses must implement a 'run' method and will themselves be converted into the
@@ -123,7 +126,7 @@ class Relay:
 
     >>>
     Relay.with_hydra(
-        base_config_dir="conf",
+        root="conf",
         model=[Option(MoCoV2), Option(DINO)],
         datamodule=[Option(ColoredMNISTDataModule, "cmnist")],
     )
@@ -190,17 +193,7 @@ class Relay:
                             if not default is param.empty:
                                 default_str = _to_yaml_value(default)
                                 if default_str is None:
-                                    if isinstance(default, type):
-                                        default_str = f"{default.__module__}.{default.__name__}"
-                                    else:
-                                        class_path = f"{default.__class__.__module__}.{default.__class__.__name__}"
-                                        default_str = f"\n{YAML_INDENT}# _target_: {class_path}"
-                                        default_sig = inspect.signature(default.__class__.__init__)
-                                        for key in default_sig.parameters.keys():
-                                            if key in ("self", "args", "kwargs"):
-                                                continue
-                                            default_str += f"\n{YAML_INDENT}# {key}:"
-                                    entry = f"# {entry}{default_str}"
+                                    entry = f"# {entry}???"
                                 else:
                                     entry += f"{default_str}"
                             schema_config.write(f"\n{entry}")
@@ -252,7 +245,7 @@ class Relay:
         cls: type[R],
         config_dir: Path,
         *,
-        use_cached_confs: bool = True,
+        clear_cache: bool = False,
         **options: list[type[Any] | Option],
     ) -> Tuple[type[Any], DefaultDict[str, List[Option]], DefaultDict[str, List[Option]]]:
         configen_dir = config_dir / "configen"
@@ -260,8 +253,9 @@ class Relay:
             configen_dir / cls._module_to_fp(cls.__module__) / cls._CONFIGEN_FILENAME
         )
         schemas_to_generate = defaultdict(list)
-        if not use_cached_confs and configen_dir.exists():
-            configen_dir.rmdir()
+        # Clear any cached schemas by deleting the configen directory
+        if clear_cache and configen_dir.exists():
+            shutil.rmtree(configen_dir)
         if not primary_schema_fp.exists():
             schemas_to_generate[cls.__module__].append(cls.__name__)
         imported_schemas: DefaultDict[str, list[Option]] = defaultdict(list)
@@ -334,17 +328,17 @@ class Relay:
     def _launch(
         cls: type[R],
         *,
-        base_config_dir: Path | str,
-        use_cached_confs: bool = True,
+        root: Path | str,
+        clear_cache: bool = False,
         **options: list[type[Any] | Option],
     ) -> None:
-        base_config_dir = Path(base_config_dir)
+        root = Path(root)
         config_dir_name = cls._config_dir_name()
-        config_dir = (base_config_dir / config_dir_name).expanduser().resolve()
+        config_dir = (root / config_dir_name).expanduser().resolve()
         config_dir.mkdir(exist_ok=True, parents=True)
 
         primary_schema, schemas, schemas_to_init = cls._load_schemas(
-            config_dir=config_dir, use_cached_confs=use_cached_confs, **options
+            config_dir=config_dir, clear_cache=clear_cache, **options
         )
         # Initialise any missing yaml files
         if schemas_to_init:
@@ -369,23 +363,38 @@ class Relay:
 
         @hydra.main(config_path=None, config_name=cls._CONFIG_NAME)
         def launcher(cfg: Any) -> None:
-            exp: R = instantiate(cfg, _recursive_=True)
-            config_dict = cast(Dict[str, Any], OmegaConf.to_container(cfg, enum_to_str=True))
-            exp.run(config_dict)
+            relay: R = instantiate(cfg, _recursive_=True)
+            config_dict = cast(
+                Dict[str, Any],
+                OmegaConf.to_container(cfg, throw_on_missing=True, enum_to_str=False),
+            )
+            relay.run(config_dict)
 
-        launcher()
+        return launcher()
 
     @classmethod
     def with_hydra(
         cls: type[R],
-        base_config_dir: Path | str,
+        root: Path | str,
         *,
-        use_cached_confs: bool = True,
+        clear_cache: bool = False,
         **options: list[type[Any] | Option],
     ) -> None:
-        """Run the relay with hydra."""
-        cls._launch(base_config_dir=base_config_dir, use_cached_confs=use_cached_confs, **options)
+        """Run the relay with hydra.
+        :param root: Root directory to look for the config directory in.
+        :param clear_cache: Whether to clear the cached schemas and generate
+        the schemas anew with neoconfigen.
+
+        :param options: List (value) of options to register for each group (key). If an option is a naked
+        class or is an 'Option' without a 'name' specified, then a name will be generated based on the class name
+        and used to register the option, else, the specified 'name' will be used.
+
+        """
+        return cls._launch(root=root, clear_cache=clear_cache, **options)
 
     @abstractmethod
     def run(self, raw_config: dict[str, Any] | None = None) -> None:
+        """Run the relay.
+        :param raw_config: Dictionary containing the configuration used to instantiate the relay.
+        """
         ...
