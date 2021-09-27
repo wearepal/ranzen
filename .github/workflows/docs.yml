@@ -21,7 +21,8 @@ jobs:
 
     - name: Install sphinx
       run: |
-        pip install sphinx autodocsumm
+        pip install wheel
+        pip install sphinx autodocsumm typing_extensions
 
     - name: Build docs
       run: |
