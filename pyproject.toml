@@ -64,7 +64,7 @@ wandb = {version= "^0.12.0", optional = true}
 tqdm = {version = "^4.62.0", optional = true}
 
 [tool.poetry.extras]
-all = ["hydra-core", "pandas", "pytorch-lightning",  "wandb"]
+all = ["hydra-core", "neoconfigen", "pandas", "pytorch-lightning", "wandb"]
 torch = ["torch", "numpy"]
 pl = ["pytorch-lightning", "tqdm"]
 hydra = ["hydra-core", "neoconfigen"]
