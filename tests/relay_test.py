@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional, Union
 from unittest.mock import patch
 
 from attr import dataclass
+import pytest
 
 from kit.hydra import Option
 from kit.hydra.relay import Relay
@@ -32,7 +33,8 @@ class DummyRelay(Relay):
         print("running")
 
 
-def test_relay(tmpdir: Path) -> None:
+@pytest.mark.parametrize("clear_cache", [True, False])
+def test_relay(tmpdir: Path, clear_cache: bool) -> None:
     args = ["", "A=foo", "B=bar"]
     with patch("sys.argv", args):
         options = dict(
@@ -40,7 +42,7 @@ def test_relay(tmpdir: Path) -> None:
             B=[DummyOptionA, Option(DummyOptionB, "bar")],
         )
         for _ in range(2):
-            DummyRelay.with_hydra(base_config_dir=tmpdir, **options)
+            DummyRelay.with_hydra(root=tmpdir, clear_cache=clear_cache, **options)
         conf_dir = tmpdir / DummyRelay._config_dir_name()
         assert conf_dir.exists()
         assert (conf_dir / "configen" / "relay_test" / DummyRelay._CONFIGEN_FILENAME).exists()
