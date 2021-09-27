@@ -124,12 +124,11 @@ class Relay:
 
     :example:
 
-    >>>
-    Relay.with_hydra(
-        root="conf",
-        model=[Option(MoCoV2), Option(DINO)],
-        datamodule=[Option(ColoredMNISTDataModule, "cmnist")],
-    )
+    >>> Relay.with_hydra(
+    >>>     root="conf",
+    >>>     model=[Option(MoCoV2), DINO],
+    >>>     datamodule=[Option(ColoredMNISTDataModule, "cmnist")],
+    >>> )
 
     """
 
@@ -382,13 +381,12 @@ class Relay:
     ) -> None:
         """Run the relay with hydra.
         :param root: Root directory to look for the config directory in.
-        :param clear_cache: Whether to clear the cached schemas and generate
-        the schemas anew with neoconfigen.
+        :param clear_cache: Whether to clear the cached schemas and generate the schemas anew with
+        neoconfigen.
 
-        :param options: List (value) of options to register for each group (key). If an option is a naked
-        class or is an 'Option' without a 'name' specified, then a name will be generated based on the class name
-        and used to register the option, else, the specified 'name' will be used.
-
+        :param options: List (value) of options to register for each group (key). If an option is a
+        type or is an 'Option' without a 'name' specified, then a name will be generated based on
+        the class name and used to register the option, else, the specified 'name' will be used.
         """
         return cls._launch(root=root, clear_cache=clear_cache, **options)
 
