@@ -363,7 +363,6 @@ class Relay:
 
         @hydra.main(config_path=None, config_name=cls._CONFIG_NAME)
         def launcher(cfg: Any) -> None:
-            breakpoint()
             relay: R = instantiate(cfg, _recursive_=True)
             config_dict = cast(
                 Dict[str, Any],
