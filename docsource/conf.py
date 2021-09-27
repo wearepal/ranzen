@@ -43,6 +43,7 @@ autodoc_type_aliases = {
 }
 autodoc_mock_imports = [
     "hydra",
+    "numpy",
     "omegaconf",
     "pandas",
     "pytorch_lightning",
