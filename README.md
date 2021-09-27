@@ -1,6 +1,8 @@
 # PAL kit
 
-This is a collection of useful functions for code that we write in our group.
+This is a collection of useful functions written by the folks at PAL.
+
+[Documentation](https://wearepal.ai/palkit/)
 
 ## Install
 
