@@ -41,6 +41,16 @@ autodoc_type_aliases = {
     "pl.Trainer": "pytorch_lightning.Trainer",
     "pl.LightningModule": "pytorch_lightning.LightningModule",
 }
+autodoc_mock_imports = [
+    "hydra",
+    "numpy",
+    "omegaconf",
+    "pandas",
+    "pytorch_lightning",
+    "torch",
+    "tqdm",
+    "wandb",
+]
 add_module_names = False
 
 # Add any Sphinx extension module names here, as strings. They can be

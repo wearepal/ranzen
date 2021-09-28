@@ -110,26 +110,25 @@ R = TypeVar("R", bound="Relay")
 
 class Relay:
     """
-    Abstract class for orchestrating hydra runs.
+    Abstract class for orchestrating runs with :mod:`hydra`.
 
     This class does away with the hassle of needing to define config-stores, initialise
     config directories, and manually run neoconfigen on classes to convert them into valid schemas.
-    Regular non-hydra compatible, classes can be passed to the `with_hydra` method and
-    neoconfigen will be run on them automatically (if clear_cache=True or a cached version
-    of the schemas can't be found), with the resulting schemas cached in the config directory.
+    Regular non-hydra compatible, classes can be passed to  :meth:`with_hydra` and neoconfigen
+    will be run on them automatically (if ``clear_cache=True`` or a cached version of the schemas
+    can't be found), with the resulting schemas cached in the config directory.
 
-    Subclasses must implement a 'run' method and will themselves be converted into the
+    Subclasses must implement a :meth:`run` method and will themselves be converted into the
     primary config classes used to initialise and validate hydra. With the launching of hydra,
     the subclasses will be instantiated and the run method called on the raw config.
 
     :example:
 
-    >>>
-    Relay.with_hydra(
-        root="conf",
-        model=[Option(MoCoV2), Option(DINO)],
-        datamodule=[Option(ColoredMNISTDataModule, "cmnist")],
-    )
+    >>> Relay.with_hydra(
+    >>>     root="conf",
+    >>>     model=[Option(MoCoV2), DINO],
+    >>>     datamodule=[Option(ColoredMNISTDataModule, "cmnist")],
+    >>> )
 
     """
 
@@ -381,14 +380,15 @@ class Relay:
         **options: list[type[Any] | Option],
     ) -> None:
         """Run the relay with hydra.
+
         :param root: Root directory to look for the config directory in.
-        :param clear_cache: Whether to clear the cached schemas and generate
-        the schemas anew with neoconfigen.
+        :param clear_cache: Whether to clear the cached schemas and generate the schemas anew with
+            neoconfigen.
 
-        :param options: List (value) of options to register for each group (key). If an option is a naked
-        class or is an 'Option' without a 'name' specified, then a name will be generated based on the class name
-        and used to register the option, else, the specified 'name' will be used.
-
+        :param options: List (value) of options to register for each group (key). If an option is a
+            type or is an :class:`Option` with attr:`Option.name` as ``None``, then a name will be
+            generated based on the class name and used to register the option, else, the specified
+            value for :attr:`Option.name` will be used.
         """
         return cls._launch(root=root, clear_cache=clear_cache, **options)
 
