@@ -1,6 +1,6 @@
-mantra.pl
+ranzen.pl
 =========
 
-.. automodule:: mantra.pl
+.. automodule:: ranzen.pl
    :imported-members:
    :no-inherited-members:

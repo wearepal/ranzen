@@ -1,6 +1,6 @@
-mantra.torch
+ranzen.torch
 ============
 
-.. automodule:: mantra.torch
+.. automodule:: ranzen.torch
    :imported-members:
    :no-inherited-members:

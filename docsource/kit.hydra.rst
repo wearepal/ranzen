@@ -1,5 +1,5 @@
-mantra.hydra
+ranzen.hydra
 ============
 
-.. automodule:: mantra.hydra
+.. automodule:: ranzen.hydra
    :imported-members:

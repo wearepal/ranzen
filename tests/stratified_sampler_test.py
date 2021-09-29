@@ -4,7 +4,7 @@ import pytest
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
-from mantra.torch.data import BaseSampler, StratifiedBatchSampler, TrainingMode
+from ranzen.torch.data import BaseSampler, StratifiedBatchSampler, TrainingMode
 
 
 @pytest.fixture

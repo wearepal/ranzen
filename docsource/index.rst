@@ -3,19 +3,19 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to mantra's documentation!
+Welcome to ranzen's documentation!
 ==================================
 
 .. toctree::
    :maxdepth: 1
    :caption: Modules:
 
-   mantra
-   mantra.hydra
-   mantra.pl
-   mantra.torch
-   mantra.torch.transforms
-   mantra.wandb
+   ranzen
+   ranzen.hydra
+   ranzen.pl
+   ranzen.torch
+   ranzen.torch.transforms
+   ranzen.wandb
 
 
 

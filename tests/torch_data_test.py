@@ -4,7 +4,7 @@ import pytest
 import torch
 from torch.utils.data import TensorDataset
 
-from mantra.torch import prop_random_split
+from ranzen.torch import prop_random_split
 
 
 @pytest.fixture(scope="module")

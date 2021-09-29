@@ -6,8 +6,8 @@ from unittest.mock import patch
 from attr import dataclass
 import pytest
 
-from mantra.hydra import Option
-from mantra.hydra.relay import Relay
+from ranzen.hydra import Option
+from ranzen.hydra.relay import Relay
 
 
 class DummyOptionA:
