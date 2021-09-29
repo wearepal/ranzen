@@ -98,7 +98,7 @@ d = ["aiohttp (>=3.3.2)", "aiohttp-cors"]
 
 [[package]]
 name = "cachetools"
-version = "4.2.2"
+version = "4.2.3"
 description = "Extensible memoizing collections and decorators"
 category = "main"
 optional = true
@@ -1104,8 +1104,8 @@ black = [
     {file = "black-20.8b1.tar.gz", hash = "sha256:1c02557aa099101b9d21496f8a914e9ed2222ef70336404eeeac8edba836fbea"},
 ]
 cachetools = [
-    {file = "cachetools-4.2.2-py3-none-any.whl", hash = "sha256:2cc0b89715337ab6dbba85b5b50effe2b0c74e035d83ee8ed637cf52f12ae001"},
-    {file = "cachetools-4.2.2.tar.gz", hash = "sha256:61b5ed1e22a0924aed1d23b478f37e8d52549ff8a961de2909c69bf950020cff"},
+    {file = "cachetools-4.2.3-py3-none-any.whl", hash = "sha256:6a6fa6802188ab7e77bab2db001d676e854499552b0037d999d5b9f211db5250"},
+    {file = "cachetools-4.2.3.tar.gz", hash = "sha256:0a3d3556c2c3befdbba2f93b78792c199c66201c999e97947ea0b7437758246b"},
 ]
 certifi = [
     {file = "certifi-2021.5.30-py2.py3-none-any.whl", hash = "sha256:50b1e4f8446b06f41be7dd6338db18e0990601dce795c2b1686458aa7e8fa7d8"},

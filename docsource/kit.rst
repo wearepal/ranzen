@@ -1,5 +1,5 @@
-mantra
+ranzen
 ======
 
-.. automodule:: mantra
+.. automodule:: ranzen
    :imported-members:

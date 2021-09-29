@@ -7,7 +7,7 @@ import torch
 from torch import Tensor, nn
 import torch.nn.functional as F
 
-from mantra import parsable, str_to_enum
+from ranzen import parsable, str_to_enum
 
 __all__ = ["CrossEntropyLoss", "ReductionType"]
 

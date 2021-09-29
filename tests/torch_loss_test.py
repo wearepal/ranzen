@@ -2,7 +2,7 @@ import pytest
 import torch
 from typing_extensions import Final
 
-from mantra.torch import CrossEntropyLoss, ReductionType
+from ranzen.torch import CrossEntropyLoss, ReductionType
 
 BATCH_SIZE: Final[int] = 3
 

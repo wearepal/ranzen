@@ -10,8 +10,8 @@ from torch import Tensor
 from torch.utils.data import Dataset, Sampler
 from torch.utils.data.dataset import Subset, random_split
 
-from mantra import implements
-from mantra.misc import str_to_enum
+from ranzen import implements
+from ranzen.misc import str_to_enum
 
 __all__ = [
     "GreedyCoreSetSampler",

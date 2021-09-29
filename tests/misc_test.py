@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-from mantra import flatten_dict, gcopy
+from ranzen import flatten_dict, gcopy
 
 
 def test_flatten_dict() -> None:

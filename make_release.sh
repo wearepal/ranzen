@@ -97,8 +97,8 @@ bump_build_publish "."
 # commit changes
 git commit -m "Bump version"
 
-# get the version from mantra
-# pushd mantra
+# get the version from ranzen
+# pushd ranzen
 new_tag=v$(poetry version -s)
 # popd
 
@@ -117,6 +117,6 @@ git checkout main
 
 echo "#####################################################"
 echo "#               all done! now go to                 #"
-echo "# https://github.com/predictive-analytics-lab/mantra/releases/tag/$new_tag"
+echo "# https://github.com/predictive-analytics-lab/ranzen/releases/tag/$new_tag"
 echo "# and click on \"Edit Tag\" to write release notes  #"
 echo "#####################################################"

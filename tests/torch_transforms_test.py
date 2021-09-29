@@ -7,7 +7,7 @@ from torch import Tensor
 import torch.nn.functional as F
 from typing_extensions import Final, Literal
 
-from mantra.torch.transforms import MixUpMode, RandomMixUp
+from ranzen.torch.transforms import MixUpMode, RandomMixUp
 
 BATCH_SIZE: Final[int] = 20
 NUM_CLASSES: Final[int] = 5

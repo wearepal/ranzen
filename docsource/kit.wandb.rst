@@ -1,4 +1,4 @@
-mantra.wandb
+ranzen.wandb
 ============
 
-.. automodule:: mantra.wandb
+.. automodule:: ranzen.wandb

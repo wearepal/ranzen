@@ -5,7 +5,7 @@ from typing import List, Union
 
 import pytest
 
-from mantra import enum_name_str, implements, parsable
+from ranzen import enum_name_str, implements, parsable
 
 
 def test_implements() -> None:
