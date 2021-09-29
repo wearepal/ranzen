@@ -33,7 +33,7 @@ classes = ["MISSING"]
 [tool.poetry]
 name = "mantra"
 version = "1.0.0.dev0"
-description = "Useful functions."
+description = "A toolkit facilitating machine-learning experimentation."
 authors = ["PAL <info@predictive-analytics-lab.com>"]
 license = "Apache License 2.0"
 packages = [

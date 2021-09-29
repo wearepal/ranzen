@@ -1,6 +1,6 @@
 # mantra
 
-A python toolkit facilitating machine learning experimentation.
+A python toolkit facilitating machine-learning experimentation.
 
 [Documentation](https://wearepal.ai/mantra/)
 
