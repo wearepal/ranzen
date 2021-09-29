@@ -1,5 +1,5 @@
 mantra.torch
-=========
+============
 
 .. automodule:: mantra.torch
    :imported-members:
