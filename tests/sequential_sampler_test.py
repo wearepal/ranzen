@@ -2,8 +2,8 @@ import pytest
 import torch
 from torch import Tensor
 
-from kit.torch import SequentialBatchSampler
-from kit.torch.data import TrainingMode
+from mantra.torch import SequentialBatchSampler
+from mantra.torch.data import TrainingMode
 
 
 @pytest.fixture(scope="module")

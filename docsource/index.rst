@@ -10,12 +10,12 @@ Welcome to mantra's documentation!
    :maxdepth: 1
    :caption: Modules:
 
-   kit
-   kit.hydra
-   kit.pl
-   kit.torch
-   kit.torch.transforms
-   kit.wandb
+   mantra
+   mantra.hydra
+   mantra.pl
+   mantra.torch
+   mantra.torch.transforms
+   mantra.wandb
 
 
 

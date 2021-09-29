@@ -1,6 +1,6 @@
-kit.pl
+mantra.pl
 =========
 
-.. automodule:: kit.pl
+.. automodule:: mantra.pl
    :imported-members:
    :no-inherited-members:

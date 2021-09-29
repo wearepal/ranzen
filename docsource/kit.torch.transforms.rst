@@ -1,6 +1,6 @@
-kit.torch.transforms
-====================
+mantra.torch.transforms
+=======================
 
-.. automodule:: kit.torch.transforms
+.. automodule:: mantra.torch.transforms
    :imported-members:
    :no-inherited-members:

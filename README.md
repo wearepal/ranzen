@@ -1,17 +1,17 @@
-# PAL kit
+# mantra
 
-This is a collection of useful functions written by the folks at PAL.
+A python toolkit facilitating machine-learning experimentation.
 
-[Documentation](https://wearepal.ai/palkit/)
+[Documentation](https://wearepal.ai/mantra/)
 
 ## Install
 
 Run
 ```
-pip install palkit
+pip install mantra
 ```
 
 or install directly from GitHub:
 ```
-pip install git+https://github.com/predictive-analytics-lab/palkit.git@main
+pip install git+https://github.com/predictive-analytics-lab/mantra.git@main
 ```

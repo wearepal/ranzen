@@ -1,4 +1,4 @@
-name: Palkit CI
+name: mantra CI
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
     - main
 
 jobs:
-  palkit_ci:
+  mantra_ci:
     runs-on: ubuntu-latest
     env:
       POETRY_VIRTUALENVS_CREATE: false
