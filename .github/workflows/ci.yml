@@ -1,4 +1,4 @@
-name: Palkit CI
+name: mantra CI
 
 on:
   pull_request:
