@@ -1,4 +1,4 @@
-kit.wandb
+mantra.wandb
 =========
 
-.. automodule:: kit.wandb
+.. automodule:: mantra.wandb

@@ -1,5 +1,5 @@
-kit
+mantra
 ===
 
-.. automodule:: kit
+.. automodule:: mantra
    :imported-members:

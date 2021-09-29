@@ -3,19 +3,19 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to palkit's documentation!
+Welcome to palmantra's documentation!
 ==================================
 
 .. toctree::
    :maxdepth: 1
    :caption: Modules:
 
-   kit
-   kit.hydra
-   kit.pl
-   kit.torch
-   kit.torch.transforms
-   kit.wandb
+   mantra
+   mantra.hydra
+   mantra.pl
+   mantra.torch
+   mantra.torch.transforms
+   mantra.wandb
 
 
 
