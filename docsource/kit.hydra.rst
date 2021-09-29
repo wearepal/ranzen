@@ -1,5 +1,5 @@
-kit.hydra
-=========
+mantra.hydra
+============
 
-.. automodule:: kit.hydra
+.. automodule:: mantra.hydra
    :imported-members:

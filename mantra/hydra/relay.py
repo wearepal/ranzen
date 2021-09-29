@@ -81,12 +81,15 @@ def _to_yaml_value(default: Any, *, indent_level: int = 0) -> str | None:
 
 @dataclass(init=False)
 class Option:
+    """Configuration option."""
+
     def __init__(self, class_: type[Any], name: str | None = None) -> None:
         self.class_ = class_
         self._name = name
 
     @property
     def name(self) -> str:
+        """Name of the option."""
         if self._name is None:
             cls_name = self.class_.__name__
             if cls_name.endswith("Conf"):
@@ -386,7 +389,7 @@ class Relay:
             neoconfigen.
 
         :param options: List (value) of options to register for each group (key). If an option is a
-            type or is an :class:`Option` with attr:`Option.name` as ``None``, then a name will be
+            type or is an :class:`Option` with :attr:`Option.name` as ``None``, then a name will be
             generated based on the class name and used to register the option, else, the specified
             value for :attr:`Option.name` will be used.
         """
