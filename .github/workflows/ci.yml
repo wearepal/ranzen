@@ -1,4 +1,4 @@
-name: mantra CI
+name: ranzen CI
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
     - main
 
 jobs:
-  mantra_ci:
+  ranzen_ci:
     runs-on: ubuntu-latest
     env:
       POETRY_VIRTUALENVS_CREATE: false

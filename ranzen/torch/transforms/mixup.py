@@ -7,7 +7,7 @@ from torch import Tensor
 import torch.distributions as td
 import torch.nn.functional as F
 
-from mantra.misc import str_to_enum
+from ranzen.misc import str_to_enum
 
 __all__ = [
     "MixUpMode",

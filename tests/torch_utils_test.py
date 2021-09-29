@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from mantra.torch.utils import Event
+from ranzen.torch.utils import Event
 
 
 def test_event() -> None:

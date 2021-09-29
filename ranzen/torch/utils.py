@@ -54,7 +54,7 @@ class Event:
 
     :example:
 
-    >>> from mantra.torch import Event
+    >>> from ranzen.torch import Event
     >>> with Event() as event:
     >>>     y = some_nn_module(x)
     >>> print(event.time)
