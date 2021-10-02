@@ -58,7 +58,7 @@ jobs:
 
     - name: Run type checking
       run: |
-        pyright kit
+        pyright ranzen
         pyright tests
 
     - name: Test with pytest
