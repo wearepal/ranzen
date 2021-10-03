@@ -372,7 +372,7 @@ class Relay:
             )
             relay.run(config_dict)
 
-        return launcher()
+        launcher()
 
     @classmethod
     def with_hydra(
@@ -393,7 +393,7 @@ class Relay:
             generated based on the class name and used to register the option, else, the specified
             value for :attr:`Option.name` will be used.
         """
-        return cls._launch(root=root, clear_cache=clear_cache, **options)
+        cls._launch(root=root, clear_cache=clear_cache, **options)
 
     @abstractmethod
     def run(self, raw_config: dict[str, Any] | None = None) -> None:

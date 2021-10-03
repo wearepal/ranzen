@@ -60,6 +60,8 @@ class RandomMixUp:
             wanting to mix up targets that are label-enoded. Passing label-encoded targets without
             specifying 'num_classes'
         :param inplace: Whether the transform should be performed in-place.
+
+        :raises ValueError: if ``p`` is not in the range [0, 1].
         """
         super().__init__()
         self.lambda_sampler = lambda_sampler
