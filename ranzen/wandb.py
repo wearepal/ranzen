@@ -24,6 +24,8 @@ class RunsDownloader:
         """Download runs given the run IDs (e.g., "qvlp96vk").
 
         :param run_ids: IDs for the runs to download.
+
+        :returns: the downloaded runs as a pandas DataFrame
         """
         runs = []
         for run_id in run_ids:

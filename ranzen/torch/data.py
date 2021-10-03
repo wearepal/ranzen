@@ -9,6 +9,7 @@ import torch
 from torch import Tensor
 from torch.utils.data import Dataset, Sampler
 from torch.utils.data.dataset import Subset, random_split
+from typing_extensions import Final
 
 from ranzen import implements
 from ranzen.misc import str_to_enum
@@ -54,7 +55,7 @@ class TrainingMode(Enum):
 
 class BatchSamplerBase(Sampler[Sequence[int]]):
     def __init__(self, epoch_length: int | None = None) -> None:
-        self.epoch_length = epoch_length
+        self.epoch_length: Final[int | None] = epoch_length
 
     @implements(Sampler)
     @abstractmethod

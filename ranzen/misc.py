@@ -58,6 +58,8 @@ def gcopy(
         new value to set it to in the copies.
 
     :returns: A copy or list of copies (if num_copies > 1) of the object 'obj'.
+
+    :raises AttributeError: If an attribute specified in ``kwargs`` doesn't exist.
     """
     if num_copies is not None:
         return [gcopy(obj=obj, deep=deep, num_copies=None, **kwargs) for _ in range(num_copies)]
@@ -72,7 +74,7 @@ def gcopy(
     return obj_cp
 
 
-E = TypeVar("E", covariant=False, bound=Enum)
+E = TypeVar("E", bound=Enum)
 
 
 def str_to_enum(str_: str | E, *, enum: type[E]) -> E:
@@ -84,6 +86,8 @@ def str_to_enum(str_: str | E, *, enum: type[E]) -> E:
     :param enum: Enum class to convert ``str_`` to.
 
     :returns: The enum member of type ``enum`` with name ``str_``.
+
+    :raises TypeError: if the given string is not a valid name of a member of the target enum
     """
     if isinstance(str_, enum):
         return str_

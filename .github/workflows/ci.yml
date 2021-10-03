@@ -64,3 +64,7 @@ jobs:
     - name: Test with pytest
       run: |
         python -m pytest -vv tests/
+
+    - name: Check docstrings
+      run: |
+        darglint --docstring-style sphinx -v 2 -z long ranzen
