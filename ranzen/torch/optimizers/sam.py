@@ -4,6 +4,8 @@ import torch
 from torch import Tensor
 from torch.optim.optimizer import Optimizer
 
+from ranzen.decorators import implements
+
 __all__ = ["SAM"]
 
 
@@ -83,10 +85,11 @@ class SAM(Optimizer):
             self.zero_grad()
 
     @torch.no_grad()
+    @implements(Optimizer)
     def step(self, closure: Callable[[], Tensor]) -> Tensor:
         r"""Performs a single optimization step.
 
-        :closure: A closure that reevaluates the model and returns the loss.
+        :param closure: A closure that reevaluates the model and returns the loss.
         """
         self._first_step(zero_grad=True)
         with torch.enable_grad():
@@ -114,6 +117,7 @@ class SAM(Optimizer):
         )
         return norm
 
+    @implements(Optimizer)
     def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
         super().load_state_dict(state_dict)
         self.base_optimizer.param_groups = self.param_groups

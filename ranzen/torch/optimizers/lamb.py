@@ -5,6 +5,8 @@ import torch
 from torch import Tensor
 from torch.optim.optimizer import Optimizer
 
+from ranzen.decorators import implements
+
 __all__ = ["LAMB"]
 
 
@@ -61,10 +63,11 @@ class LAMB(Optimizer):
 
         super().__init__(params=params, defaults=defaults)  # type: ignore
 
+    @implements(Optimizer)
     def step(self, closure: Optional[Callable[[], Tensor]] = None) -> Optional[Tensor]:
         r"""Performs a single optimization step.
 
-        :closure: A closure that reevaluates the model and returns the loss.
+        :param closure: A closure that reevaluates the model and returns the loss.
         """
         loss = None
         if closure is not None:
