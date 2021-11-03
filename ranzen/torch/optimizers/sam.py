@@ -42,7 +42,10 @@ class SAM(Optimizer):
         :example:
 
         .. code-block:: python
-            # Wrap a base optimizer in SAM.
+
+            # Use AdamW as the base optimizer.
+            base_optimizer = AdamW(model.parameters())
+            # Wrap the base optimizer in SAM.
             optimizer = SAM(base_optimizer)
 
             # Closure required for recomputing the loss after computing epsilon(w).
