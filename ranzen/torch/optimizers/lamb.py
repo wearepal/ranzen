@@ -43,6 +43,10 @@ class LAMB(Optimizer):
         :param weight_decay: weight decay coefficient.
         :param clamp_value: value to clamp the norm of the weights to.
         :param debias: whether to include the bias-correction term (1 - beta**step) from Adam.
+
+        :raises:
+            :ValueError: if any one of ``lr``, ``betas``, ``eps``, or ``weight_decay`` is not in the
+            permitted range.
         """
         if lr <= 0.0:
             raise ValueError(f"Invalid learning rate: {lr}")
@@ -69,6 +73,9 @@ class LAMB(Optimizer):
 
         :param closure: A closure that reevaluates the model and returns the loss.
         :returns: loss returned by the closure if ``closure`` is not ``None`` else ``None``.
+
+        :raises:
+            RuntimeError: if gradients are sparse.
         """
         loss = None
         if closure is not None:
