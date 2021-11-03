@@ -39,7 +39,11 @@ class RAdam(Optimizer):
             raise ValueError(f"Invalid weight_decay value: {weight_decay}")
 
         buffer = [[None, None, None]] * 10
-        if isinstance(params, (list, tuple)) and len(params) > 0 and isinstance(params[0], dict):
+        if (
+            isinstance(params, (list, tuple))
+            and (len(params) > 0)
+            and (isinstance(params[0], dict))
+        ):
             for param in params:
                 if "betas" in param and (
                     param["betas"][0] != betas[0] or param["betas"][1] != betas[1]
