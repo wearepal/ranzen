@@ -24,16 +24,6 @@ class SAM(Optimizer):
         https://arxiv.org/abs/2010.01412
     .. _ASAM:
          https://arxiv.org/abs/2102.11600
-
-    :example:
-      .. code-block:: python
-          def _closure():
-            return loss_function(output, model(input))
-
-          loss = _closure()
-          loss.backward()
-          optimizer.step(closure=_closure)
-          optimizer.zero_grad()
     """
 
     def __init__(
@@ -48,6 +38,18 @@ class SAM(Optimizer):
         :param adaptive: Whether to use the adaptive variant of the algorithm.
 
         :raises ValueError: if ``rho`` is negative.
+
+        :example:
+
+        .. code-block:: python
+
+            def _closure():
+              return loss_function(output, model(input))
+
+            loss = _closure()
+            loss.backward()
+            optimizer.step(closure=_closure)
+            optimizer.zero_grad()
         """
         if rho < 0.0:
             raise ValueError(f"Invalid rho value: {rho}. (Should be non-negative)")
