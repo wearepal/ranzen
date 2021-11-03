@@ -42,12 +42,18 @@ class SAM(Optimizer):
         :example:
 
         .. code-block:: python
+            # Use AdamW as the base optimizer.
+            base_optimizer = AdamW(model.parameters())
+            # Wrap the base optimizer in SAM.
+            optimizer = SAM(base_optimizer)
 
+            # Closure required for recomputing the loss after computing epsilon(w).
             def _closure():
               return loss_function(output, model(input))
 
             loss = _closure()
             loss.backward()
+
             optimizer.step(closure=_closure)
             optimizer.zero_grad()
         """
