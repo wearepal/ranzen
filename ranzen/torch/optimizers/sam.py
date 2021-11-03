@@ -1,4 +1,5 @@
-from typing import Any, Callable, Dict
+from __future__ import annotations
+from typing import Any, Callable
 
 import torch
 from torch import Tensor
@@ -90,6 +91,7 @@ class SAM(Optimizer):
         r"""Performs a single optimization step.
 
         :param closure: A closure that reevaluates the model and returns the loss.
+        :returns: loss returned by the closure if ``closure`` is not ``None`` else ``None``.
         """
         self._first_step(zero_grad=True)
         with torch.enable_grad():
@@ -118,6 +120,11 @@ class SAM(Optimizer):
         return norm
 
     @implements(Optimizer)
-    def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
+    def load_state_dict(self, state_dict: dict[str, Any]) -> None:
+        r"""Loads the optimizer state.
+
+        :param state_dict: optimizer state. Should be an object returned
+            from a call to :meth:`state_dict`.
+        """
         super().load_state_dict(state_dict)
         self.base_optimizer.param_groups = self.param_groups

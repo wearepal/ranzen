@@ -1,5 +1,6 @@
+from __future__ import annotations
 import math
-from typing import Callable, Iterable, Optional, Tuple
+from typing import Callable, Iterable
 
 import torch
 from torch import Tensor
@@ -28,11 +29,10 @@ class LAMB(Optimizer):
         self,
         params: Iterable[Tensor],
         lr: float = 1e-3,
-        betas: Tuple[float, float] = (0.9, 0.999),
+        betas: tuple[float, float] = (0.9, 0.999),
         eps: float = 1e-6,
         weight_decay: float = 0.0,
         clamp_value: float = 10.0,
-        adam: bool = False,
         debias: bool = False,
     ) -> None:
         """
@@ -41,6 +41,7 @@ class LAMB(Optimizer):
         :param betas: coefficients used for computing running averages of gradient and its square.
         :param eps: term added to the denominator to improve numerical stability.
         :param weight_decay: weight decay coefficient.
+        :param clamp_value: value to clamp the norm of the weights to.
         :param debias: whether to include the bias-correction term (1 - beta**step) from Adam.
         """
         if lr <= 0.0:
@@ -58,16 +59,16 @@ class LAMB(Optimizer):
 
         defaults = dict(lr=lr, betas=betas, eps=eps, weight_decay=weight_decay)
         self.clamp_value = clamp_value
-        self.adam = adam
         self.debias = debias
 
         super().__init__(params=params, defaults=defaults)  # type: ignore
 
     @implements(Optimizer)
-    def step(self, closure: Optional[Callable[[], Tensor]] = None) -> Optional[Tensor]:
+    def step(self, closure: Callable[[], Tensor] | None = None) -> Tensor | None:
         r"""Performs a single optimization step.
 
         :param closure: A closure that reevaluates the model and returns the loss.
+        :returns: loss returned by the closure if ``closure`` is not ``None`` else ``None``.
         """
         loss = None
         if closure is not None:
@@ -130,8 +131,6 @@ class LAMB(Optimizer):
                 state["weight_norm"] = weight_norm
                 state["adam_norm"] = adam_norm
                 state["trust_ratio"] = trust_ratio
-                if self.adam:
-                    trust_ratio = 1
 
                 p.data.add_(adam_step, alpha=-step_size * trust_ratio)
 
