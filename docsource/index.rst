@@ -14,6 +14,7 @@ Welcome to ranzen's documentation!
    ranzen.hydra
    ranzen.pl
    ranzen.torch
+   ranzen.torch.optimizers
    ranzen.torch.transforms
    ranzen.wandb
 
