@@ -8,9 +8,11 @@ from torch.optim.optimizer import Optimizer
 
 from ranzen.decorators import implements
 
+__all__ = ["RAdam"]
+
 
 class RAdam(Optimizer):
-    """Rectified Adam optimizer"""
+    """Implements the Rectified Adam (RAdam) algorithm."""
 
     def __init__(
         self,

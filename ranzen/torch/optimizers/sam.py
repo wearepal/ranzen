@@ -20,8 +20,12 @@ class SAM(Optimizer):
     algorithm addresses the original algorithm's sensitivity to parameter re-scaling
     that can lead to weakening of the connection between sharpness and generalization gap.
 
+    .. _Sharpness Aware Minimization:
+        https://arxiv.org/abs/2010.01412
+    .. _ASAM:
+         https://arxiv.org/abs/2102.11600
 
-    .. example-code::
+    :example:
       .. code-block:: python
           def _closure():
             return loss_function(output, model(input))
@@ -30,11 +34,6 @@ class SAM(Optimizer):
           loss.backward()
           optimizer.step(closure=_closure)
           optimizer.zero_grad()
-
-    .. _Sharpness Aware Minimization:
-        https://arxiv.org/abs/2010.01412
-    .. _ASAM:
-         https://arxiv.org/abs/2102.11600
     """
 
     def __init__(
