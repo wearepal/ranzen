@@ -47,6 +47,8 @@ class SAM(Optimizer):
         :param base_optimizer: Base optimizer for SAM.
         :param rho: Neighborhood size.
         :param adaptive: Whether to use the adaptive variant of the algorithm.
+
+        :raises ValueError: if ``rho`` is negative.
         """
         if rho < 0.0:
             raise ValueError(f"Invalid rho value: {rho}. (Should be non-negative)")

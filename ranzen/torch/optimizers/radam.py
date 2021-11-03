@@ -27,10 +27,8 @@ class RAdam(Optimizer):
         :param eps: term added to the denominator to improve numerical stability.
         :param weight_decay: weight decay coefficient.
 
-        :Raises:
-            :exec:`ValueError`: if any one of ``lr``, ``betas``, ``eps``, or ``weight_decay`` is not in the
-                permitted range.
-
+        :raises ValueError: if any one of ``lr``, ``betas``, ``eps``, or ``weight_decay`` is not in
+            its permitted range.
         """
         if lr <= 0.0:
             raise ValueError(f"Invalid learning rate: {lr}")
@@ -61,7 +59,8 @@ class RAdam(Optimizer):
 
         :param closure: A closure that reevaluates the model and returns the loss.
         :returns: loss returned by the closure if ``closure`` is not ``None`` else ``None``.
-        :raises: RuntimeError if gradients are sparse.
+
+        :raises RuntimeError: if gradients are sparse.
         """
         loss = None
         if closure is not None:
