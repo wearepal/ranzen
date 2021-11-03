@@ -1,6 +1,6 @@
 from __future__ import annotations
 import math
-from typing import Callable, Iterable
+from typing import Any, Callable, Iterable
 
 import torch
 from torch import Tensor
@@ -14,7 +14,7 @@ class RAdam(Optimizer):
 
     def __init__(
         self,
-        params: Iterable[Tensor],
+        params: Iterable[Tensor | dict[str, Any]],
         lr: float = 1e-3,
         betas: tuple[float, float] = (0.9, 0.999),
         eps: float = 1e-6,
@@ -39,16 +39,13 @@ class RAdam(Optimizer):
             raise ValueError(f"Invalid weight_decay value: {weight_decay}")
 
         buffer = [[None, None, None]] * 10
-        if (
-            isinstance(params, (list, tuple))
-            and (len(params) > 0)
-            and (isinstance(params[0], dict))
-        ):
+        if isinstance(params, (list, tuple)) and (len(params) > 0):
             for param in params:
-                if "betas" in param and (
-                    param["betas"][0] != betas[0] or param["betas"][1] != betas[1]
-                ):
-                    param["buffer"] = buffer
+                if isinstance(param, dict):
+                    if "betas" in param and (
+                        (param["betas"][0] != betas[0]) or (param["betas"][1] != betas[1])
+                    ):
+                        param["buffer"] = buffer
 
         defaults = dict(lr=lr, betas=betas, eps=eps, weight_decay=weight_decay, buffer=buffer)
         super().__init__(params=params, defaults=defaults)  # type: ignore
