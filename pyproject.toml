@@ -32,7 +32,7 @@ classes = ["MISSING"]
 
 [tool.poetry]
 name = "ranzen"
-version = "1.0.0"
+version = "1.1.0"
 description = "A toolkit facilitating machine-learning experimentation."
 authors = ["PAL <info@predictive-analytics-lab.com>"]
 license = "Apache License 2.0"
