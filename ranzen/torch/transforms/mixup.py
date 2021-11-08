@@ -61,18 +61,20 @@ class RandomMixUp:
         :param lambda_sampler: The distribution from which to sample lambda (the mixup interpolation
             parameter).
         :param mode: Which mode to use to mix up samples: geometric or linear.
+
         .. note::
-            The (weighted) geometric mean enabled by ``mode=geometric`` is only valid for positive
+            The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for positive
             inputs.
 
         :param p: The probability with which the transform will be applied to a given sample.
         :param num_classes: The total number of classes in the dataset that needs to be specified if
             wanting to mix up targets that are label-enoded. Passing label-encoded targets without
-            specifying 'num_classes'
+            specifying ``num_classes`` will result in a RuntimeError.
         :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
+
         .. note::
-            If the lambdas sampler is a BernoulliDistribution then featurewise sampling will always
-            be enabled.
+            If the ``lambda_sampler`` is a BernoulliDistribution, then featurewise sampling will 
+            always be enabled.
 
         :param inplace: Whether the transform should be performed in-place.
 
@@ -112,22 +114,19 @@ class RandomMixUp:
             If ``None``, then the parameter will be set to ``alpha``.
 
         :param mode: Which mode to use to mix up samples: geometric or linear.
+
         .. note::
-            The (weighted) geometric mean enabled by ``mode=geometric`` is only valid for positive
+            The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for positive
             inputs.
 
         :param p: The probability with which the transform will be applied to a given sample.
         :param num_classes: The total number of classes in the dataset that needs to be specified if
             wanting to mix up targets that are label-enoded. Passing label-encoded targets without
-            specifying 'num_classes'
+            specifying ``num_classes`` will result in a RuntimeError.
         :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
-        .. note::
-            If the lambdas sampler is a BernoulliDistribution then featurewise sampling will always
-            be enabled.
-
         :param inplace: Whether the transform should be performed in-place.
-
-        :raises ValueError: if ``p`` is not in the range [0, 1] or ``num_classes < 1``.
+        :return: A :class:`RandomMixUp` instance with ``lambda_sampler`` set to a  Beta-distribution
+            with ``concentration1=alpha`` and ``concentration0=beta``.
         """
         beta = alpha if beta is None else beta
         lambda_sampler = td.Beta(concentration0=alpha, concentration1=beta)
@@ -158,22 +157,20 @@ class RandomMixUp:
         :param low: Lower range (inclusive).
         :param high: Upper range (inclusive).
         :param mode: Which mode to use to mix up samples: geometric or linear.
+
         .. note::
-            The (weighted) geometric mean enabled by ``mode=geometric`` is only valid for positive
+            The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for positive
             inputs.
 
         :param p: The probability with which the transform will be applied to a given sample.
         :param num_classes: The total number of classes in the dataset that needs to be specified if
             wanting to mix up targets that are label-enoded. Passing label-encoded targets without
-            specifying 'num_classes'
+            specifying ``num_classes`` will result in a RuntimeError.
         :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
-        .. note::
-            If the lambdas sampler is a BernoulliDistribution then featurewise sampling will always
-            be enabled.
-
         :param inplace: Whether the transform should be performed in-place.
 
-        :raises ValueError: if ``p`` is not in the range [0, 1] or ``num_classes < 1``.
+        :return: A :class:`RandomMixUp` instance with ``lambda_sampler`` set to a
+            Uniform-distribution with ``low=low`` and ``high=high``.
         """
         lambda_sampler = td.Uniform(low=low, high=high)
         return cls(
@@ -200,22 +197,19 @@ class RandomMixUp:
 
         :param prob_1: The probability of sampling 1.
         :param mode: Which mode to use to mix up samples: geometric or linear.
+
         .. note::
-            The (weighted) geometric mean enabled by ``mode=geometric`` is only valid for positive
+            The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for positive
             inputs.
 
         :param p: The probability with which the transform will be applied to a given sample.
         :param num_classes: The total number of classes in the dataset that needs to be specified if
             wanting to mix up targets that are label-enoded. Passing label-encoded targets without
-            specifying 'num_classes'
-        :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
-        .. note::
-            If the lambdas sampler is a BernoulliDistribution then featurewise sampling will always
-            be enabled.
+            specifying ``num_classes`` will result in a RuntimeError.
 
         :param inplace: Whether the transform should be performed in-place.
-
-        :raises ValueError: if ``p`` is not in the range [0, 1] or ``num_classes < 1``.
+        :return: A :class:`RandomMixUp` instance with ``lambda_sampler`` set to a
+            Bernoulli-distribution with ``probs=prob_1``.
         """
         lambda_sampler = td.Bernoulli(probs=prob_1)
         return cls(
@@ -321,7 +315,7 @@ class RandomMixUp:
         # Targets are label-encoded and need to be one-hot encoded prior to mixup.
         if torch.atleast_1d(targets.squeeze()).ndim == 1:
             if self.num_classes is None:
-                raise ValueError(
+                raise RuntimeError(
                     f"{self.__class__.__name__} can only be applied to label-encoded targets if "
                     "'num_classes' is specified."
                 )
