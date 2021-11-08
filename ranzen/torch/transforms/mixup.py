@@ -62,7 +62,7 @@ class RandomMixUp:
             parameter).
         :param mode: Which mode to use to mix up samples: geometric or linear.
         .. note::
-            The (weighted) geometric mean enabled by ``mode=geometric`` is only valid for positive 
+            The (weighted) geometric mean enabled by ``mode=geometric`` is only valid for positive
             inputs.
 
         :param p: The probability with which the transform will be applied to a given sample.
@@ -96,6 +96,7 @@ class RandomMixUp:
     def with_beta(
         cls: type[RandomMixUp],
         alpha: float = 0.2,
+        *,
         beta: float | None = None,
         mode: MixUpMode | str = MixUpMode.linear,
         p: float = 1.0,
@@ -103,6 +104,31 @@ class RandomMixUp:
         inplace: bool = False,
         featurewise: bool = False,
     ) -> RandomMixUp:
+        """
+        Instantiate a :class:`RandomMixUp` with a Beta-distribution sampler.
+
+        :param alpha: 1st concentration parameter of the distribution. Must be positive
+        :param beta:  2nd concentration parameter of the distribution. Must be positive.
+            If ``None``, then the parameter will be set to ``alpha``.
+
+        :param mode: Which mode to use to mix up samples: geometric or linear.
+        .. note::
+            The (weighted) geometric mean enabled by ``mode=geometric`` is only valid for positive
+            inputs.
+
+        :param p: The probability with which the transform will be applied to a given sample.
+        :param num_classes: The total number of classes in the dataset that needs to be specified if
+            wanting to mix up targets that are label-enoded. Passing label-encoded targets without
+            specifying 'num_classes'
+        :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
+        .. note::
+            If the lambdas sampler is a BernoulliDistribution then featurewise sampling will always
+            be enabled.
+
+        :param inplace: Whether the transform should be performed in-place.
+
+        :raises ValueError: if ``p`` is not in the range [0, 1] or ``num_classes < 1``.
+        """
         beta = alpha if beta is None else beta
         lambda_sampler = td.Beta(concentration0=alpha, concentration1=beta)
         return cls(
@@ -118,6 +144,7 @@ class RandomMixUp:
     def with_uniform(
         cls: type[RandomMixUp],
         low: float = 0.0,
+        *,
         high: float = 1.0,
         mode: MixUpMode | str = MixUpMode.linear,
         p: float = 1.0,
@@ -125,6 +152,29 @@ class RandomMixUp:
         inplace: bool = False,
         featurewise: bool = False,
     ) -> RandomMixUp:
+        """
+        Instantiate a :class:`RandomMixUp` with a uniform-distribution sampler.
+
+        :param low: Lower range (inclusive).
+        :param high: Upper range (inclusive).
+        :param mode: Which mode to use to mix up samples: geometric or linear.
+        .. note::
+            The (weighted) geometric mean enabled by ``mode=geometric`` is only valid for positive
+            inputs.
+
+        :param p: The probability with which the transform will be applied to a given sample.
+        :param num_classes: The total number of classes in the dataset that needs to be specified if
+            wanting to mix up targets that are label-enoded. Passing label-encoded targets without
+            specifying 'num_classes'
+        :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
+        .. note::
+            If the lambdas sampler is a BernoulliDistribution then featurewise sampling will always
+            be enabled.
+
+        :param inplace: Whether the transform should be performed in-place.
+
+        :raises ValueError: if ``p`` is not in the range [0, 1] or ``num_classes < 1``.
+        """
         lambda_sampler = td.Uniform(low=low, high=high)
         return cls(
             lambda_sampler=lambda_sampler,
@@ -139,11 +189,34 @@ class RandomMixUp:
     def with_bernoulli(
         cls: type[RandomMixUp],
         prob_1: float = 0.5,
+        *,
         mode: MixUpMode | str = MixUpMode.linear,
         p: float = 1.0,
         num_classes: int | None = None,
         inplace: bool = False,
     ) -> RandomMixUp:
+        """
+        Instantiate a :class:`RandomMixUp` with a Bernoulli-distribution sampler.
+
+        :param prob_1: The probability of sampling 1.
+        :param mode: Which mode to use to mix up samples: geometric or linear.
+        .. note::
+            The (weighted) geometric mean enabled by ``mode=geometric`` is only valid for positive
+            inputs.
+
+        :param p: The probability with which the transform will be applied to a given sample.
+        :param num_classes: The total number of classes in the dataset that needs to be specified if
+            wanting to mix up targets that are label-enoded. Passing label-encoded targets without
+            specifying 'num_classes'
+        :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
+        .. note::
+            If the lambdas sampler is a BernoulliDistribution then featurewise sampling will always
+            be enabled.
+
+        :param inplace: Whether the transform should be performed in-place.
+
+        :raises ValueError: if ``p`` is not in the range [0, 1] or ``num_classes < 1``.
+        """
         lambda_sampler = td.Bernoulli(probs=prob_1)
         return cls(
             lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes, inplace=inplace
