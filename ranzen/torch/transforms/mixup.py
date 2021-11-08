@@ -73,7 +73,7 @@ class RandomMixUp:
         :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
 
         .. note::
-            If the ``lambda_sampler`` is a BernoulliDistribution, then featurewise sampling will 
+            If the ``lambda_sampler`` is a BernoulliDistribution, then featurewise sampling will
             always be enabled.
 
         :param inplace: Whether the transform should be performed in-place.
@@ -95,7 +95,7 @@ class RandomMixUp:
         self.inplace = inplace
 
     @classmethod
-    def with_beta(
+    def with_beta_dist(
         cls: type[RandomMixUp],
         alpha: float = 0.2,
         *,
@@ -140,7 +140,7 @@ class RandomMixUp:
         )
 
     @classmethod
-    def with_uniform(
+    def with_uniform_dist(
         cls: type[RandomMixUp],
         low: float = 0.0,
         *,
@@ -183,7 +183,7 @@ class RandomMixUp:
         )
 
     @classmethod
-    def with_bernoulli(
+    def with_bernoulli_dist(
         cls: type[RandomMixUp],
         prob_1: float = 0.5,
         *,

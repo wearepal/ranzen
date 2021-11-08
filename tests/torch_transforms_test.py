@@ -48,7 +48,7 @@ def test_mixup(
         kwargs["featurewise"] = featurewise
     transform = cast(
         RandomMixUp,
-        getattr(RandomMixUp, f"with_{lambda_dist}")(**kwargs),
+        getattr(RandomMixUp, f"with_{lambda_dist}_dist")(**kwargs),
     )
     res = transform(inputs=inputs, targets=targets, group_labels=group_labels)
     if isinstance(res, tuple):
@@ -60,7 +60,7 @@ def test_mixup(
         assert mixed_targets.size(1) == num_classes
 
         if not one_hot:
-            with pytest.raises(ValueError):
+            with pytest.raises(RuntimeError):
                 transform.num_classes = None
                 transform(inputs=inputs, targets=targets, group_labels=group_labels)
     else:
