@@ -32,36 +32,53 @@ class InputsTargetsPair(NamedTuple):
 class RandomMixUp:
     r"""Apply mixup to a batch of tensors.
 
-    Implemention of `mixup: Beyond Empirical Risk Minimization` (https://arxiv.org/abs/1710.09412).
+    PyTorch implemention of `mixup`_.
     This implementation allows for transformation of the the input in the absence
     of labels (this is relevant, for instance,to contrastive methods that use mixup to generate
-    different views of samples to enable instance-discrimination) and additionally
-    allows for different lambda-samplers, different methods for mixing up samples
-    (linear vs. geometric) based on lambda, and cross-group pair-sampling.
+    different views of samples to enable instance-discrimination) and additionally allows for
+    different lambda-samplers, different methods for mixing up samples (linear vs. geometric)
+    based on lambda, and cross-group pair-sampling. Furthermore, unlike the official implementation,
+    samples are guaranteed not to be paired with themselves.
 
-    Note:
+    .. _mixup:
+        https://arxiv.org/abs/1904.00962v5
+
+    .. note::
         This implementation randomly mixes images within a batch.
     """
 
     def __init__(
         self,
         lambda_sampler: td.Beta | td.Uniform | td.Bernoulli,
+        *,
         mode: MixUpMode | str = MixUpMode.linear,
         p: float = 1.0,
         num_classes: int | None = None,
+        featurewise: bool = False,
         inplace: bool = False,
     ) -> None:
         """
         :param lambda_sampler: The distribution from which to sample lambda (the mixup interpolation
             parameter).
-        :param mode: Which mode to use to mix up samples: geomtric or linear.
+        :param mode: Which mode to use to mix up samples: geometric or linear.
+
+        .. note::
+            The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for positive
+            inputs.
+
         :param p: The probability with which the transform will be applied to a given sample.
         :param num_classes: The total number of classes in the dataset that needs to be specified if
             wanting to mix up targets that are label-enoded. Passing label-encoded targets without
-            specifying 'num_classes'
+            specifying ``num_classes`` will result in a RuntimeError.
+        :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
+
+        .. note::
+            If the ``lambda_sampler`` is a BernoulliDistribution, then featurewise sampling will
+            always be enabled.
+
         :param inplace: Whether the transform should be performed in-place.
 
-        :raises ValueError: if ``p`` is not in the range [0, 1].
+        :raises ValueError: if ``p`` is not in the range [0, 1] or ``num_classes < 1``.
         """
         super().__init__()
         self.lambda_sampler = lambda_sampler
@@ -74,48 +91,126 @@ class RandomMixUp:
         if (num_classes is not None) and num_classes < 1:
             raise ValueError(f"{ num_classes } must be greater than 1.")
         self.num_classes = num_classes
+        self.featurewise = featurewise or isinstance(lambda_sampler, td.Bernoulli)
         self.inplace = inplace
 
     @classmethod
-    def with_beta_distribution(
+    def with_beta_dist(
         cls: type[RandomMixUp],
         alpha: float = 0.2,
+        *,
         beta: float | None = None,
         mode: MixUpMode | str = MixUpMode.linear,
         p: float = 1.0,
         num_classes: int | None = None,
         inplace: bool = False,
+        featurewise: bool = False,
     ) -> RandomMixUp:
+        """
+        Instantiate a :class:`RandomMixUp` with a Beta-distribution sampler.
+
+        :param alpha: 1st concentration parameter of the distribution. Must be positive
+        :param beta:  2nd concentration parameter of the distribution. Must be positive.
+            If ``None``, then the parameter will be set to ``alpha``.
+
+        :param mode: Which mode to use to mix up samples: geometric or linear.
+
+        .. note::
+            The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for positive
+            inputs.
+
+        :param p: The probability with which the transform will be applied to a given sample.
+        :param num_classes: The total number of classes in the dataset that needs to be specified if
+            wanting to mix up targets that are label-enoded. Passing label-encoded targets without
+            specifying ``num_classes`` will result in a RuntimeError.
+        :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
+        :param inplace: Whether the transform should be performed in-place.
+        :return: A :class:`RandomMixUp` instance with ``lambda_sampler`` set to a  Beta-distribution
+            with ``concentration1=alpha`` and ``concentration0=beta``.
+        """
         beta = alpha if beta is None else beta
         lambda_sampler = td.Beta(concentration0=alpha, concentration1=beta)
         return cls(
-            lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes, inplace=inplace
+            lambda_sampler=lambda_sampler,
+            mode=mode,
+            p=p,
+            num_classes=num_classes,
+            inplace=inplace,
+            featurewise=featurewise,
         )
 
     @classmethod
-    def with_uniform_distribution(
+    def with_uniform_dist(
         cls: type[RandomMixUp],
         low: float = 0.0,
+        *,
         high: float = 1.0,
         mode: MixUpMode | str = MixUpMode.linear,
         p: float = 1.0,
         num_classes: int | None = None,
         inplace: bool = False,
+        featurewise: bool = False,
     ) -> RandomMixUp:
+        """
+        Instantiate a :class:`RandomMixUp` with a uniform-distribution sampler.
+
+        :param low: Lower range (inclusive).
+        :param high: Upper range (inclusive).
+        :param mode: Which mode to use to mix up samples: geometric or linear.
+
+        .. note::
+            The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for positive
+            inputs.
+
+        :param p: The probability with which the transform will be applied to a given sample.
+        :param num_classes: The total number of classes in the dataset that needs to be specified if
+            wanting to mix up targets that are label-enoded. Passing label-encoded targets without
+            specifying ``num_classes`` will result in a RuntimeError.
+        :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
+        :param inplace: Whether the transform should be performed in-place.
+
+        :return: A :class:`RandomMixUp` instance with ``lambda_sampler`` set to a
+            Uniform-distribution with ``low=low`` and ``high=high``.
+        """
         lambda_sampler = td.Uniform(low=low, high=high)
         return cls(
-            lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes, inplace=inplace
+            lambda_sampler=lambda_sampler,
+            mode=mode,
+            p=p,
+            num_classes=num_classes,
+            inplace=inplace,
+            featurewise=featurewise,
         )
 
     @classmethod
-    def with_bernoulli_distribution(
+    def with_bernoulli_dist(
         cls: type[RandomMixUp],
         prob_1: float = 0.5,
+        *,
         mode: MixUpMode | str = MixUpMode.linear,
         p: float = 1.0,
         num_classes: int | None = None,
         inplace: bool = False,
     ) -> RandomMixUp:
+        """
+        Instantiate a :class:`RandomMixUp` with a Bernoulli-distribution sampler.
+
+        :param prob_1: The probability of sampling 1.
+        :param mode: Which mode to use to mix up samples: geometric or linear.
+
+        .. note::
+            The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for positive
+            inputs.
+
+        :param p: The probability with which the transform will be applied to a given sample.
+        :param num_classes: The total number of classes in the dataset that needs to be specified if
+            wanting to mix up targets that are label-enoded. Passing label-encoded targets without
+            specifying ``num_classes`` will result in a RuntimeError.
+
+        :param inplace: Whether the transform should be performed in-place.
+        :return: A :class:`RandomMixUp` instance with ``lambda_sampler`` set to a
+            Bernoulli-distribution with ``probs=prob_1``.
+        """
         lambda_sampler = td.Bernoulli(probs=prob_1)
         return cls(
             lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes, inplace=inplace
@@ -202,9 +297,11 @@ class RandomMixUp:
             pair_indices = abs_pos_inds[rel_pair_indices]
 
         # Sample the mixing weights
-        lambdas = self.lambda_sampler.sample(
-            sample_shape=(num_selected, *((1,) * (inputs.ndim - 1)))
-        ).to(inputs.device)
+        if self.featurewise:
+            sample_shape = (num_selected, *inputs.shape[1:])
+        else:
+            sample_shape = (num_selected, *((1,) * (inputs.ndim - 1)))
+        lambdas = self.lambda_sampler.sample(sample_shape=sample_shape).to(inputs.device)
 
         if not self.inplace:
             inputs = inputs.clone()
@@ -218,7 +315,7 @@ class RandomMixUp:
         # Targets are label-encoded and need to be one-hot encoded prior to mixup.
         if torch.atleast_1d(targets.squeeze()).ndim == 1:
             if self.num_classes is None:
-                raise ValueError(
+                raise RuntimeError(
                     f"{self.__class__.__name__} can only be applied to label-encoded targets if "
                     "'num_classes' is specified."
                 )
@@ -227,11 +324,16 @@ class RandomMixUp:
             targets = targets.clone()
         # Targets need to be floats to be mixed up
         targets = targets.float()
+        # Use the empirical mean of the lambdas for interpolating the targets if the lambdas
+        # were sampled feasture-wise, else just use the lambdas as is.
+        target_lambdas = lambdas = (
+            lambdas.flatten(start_dim=1).mean(1) if self.featurewise else lambdas
+        )
         # Add singular dimensions to lambdas for broadcasting
-        lambdas = lambdas.view(num_selected, *((1,) * (targets.ndim - 1)))
+        target_lambdas = lambdas.view(num_selected, *((1,) * (targets.ndim - 1)))
         # Apply mixup to the targets
         targets[indices] = self._mix(
-            tensor_a=targets[indices], tensor_b=targets[pair_indices], lambda_=lambdas
+            tensor_a=targets[indices], tensor_b=targets[pair_indices], lambda_=target_lambdas
         )
         return InputsTargetsPair(inputs, targets)
 
