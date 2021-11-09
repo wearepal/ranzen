@@ -13,7 +13,7 @@ __all__ = ["SAM"]
 class SAM(Optimizer):
     """
     Implements the 'Sharpness Aware Minimization' (SAM) algorithm introducued in
-    `_Sharpness Aware Minimization`_) and the adaptive variant of it introduced in `ASAM`_.
+    `Sharpness Aware Minimization`_) and the adaptive variant of it introduced in `ASAM`_.
 
     SAM seeks parameters that lie in neighborhoods having uniformly low loss (rather than
     parameters that only themselves have low loss value). The adaptive variant of the
@@ -23,7 +23,7 @@ class SAM(Optimizer):
     .. _Sharpness Aware Minimization:
         https://arxiv.org/abs/2010.01412
     .. _ASAM:
-         https://arxiv.org/abs/2102.11600
+        https://arxiv.org/abs/2102.11600
     """
 
     def __init__(
