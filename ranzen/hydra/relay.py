@@ -410,4 +410,3 @@ class Relay:
         :param raw_config: Dictionary containing the configuration used to instantiate the relay.
         """
         ...
-
