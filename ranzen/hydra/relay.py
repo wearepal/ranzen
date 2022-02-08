@@ -315,9 +315,7 @@ class Relay:
             cls._generate_conf(output_dir=configen_dir, module_class_dict=schemas_to_generate)
         # Load the primary schema
         module = cls._load_module_from_path(primary_schema_fp)
-
         primary_schema = getattr(module, cls.__name__ + "Conf")
-
         # Load the sub-schemas
         for group, info_ls in schemas_to_import.items():
             for info in info_ls:
@@ -411,4 +409,5 @@ class Relay:
         """Run the relay.
         :param raw_config: Dictionary containing the configuration used to instantiate the relay.
         """
+        ...
 
