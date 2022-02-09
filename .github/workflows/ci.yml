@@ -104,8 +104,8 @@ jobs:
       - name: Run pyright
         continue-on-error: true
         run: |
-          poetry shell pyright ranzen
-          poetry shell pyright tests
+          pyright ranzen
+          pyright tests
 
       # ----------------------------------------------
       #  -----           Run Tests            -----
