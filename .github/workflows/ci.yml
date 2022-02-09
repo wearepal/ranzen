@@ -23,8 +23,9 @@ jobs:
         pip install pylint
     - name: Lint with pylint
       run: |
-        pylint --fail-under=8.5 ethicml/
+        pylint --fail-under=8.5 ranzen/
         pylint --fail-under=8.5 tests/
+
   format_with_black_and_isort:
 
     runs-on: ubuntu-latest
@@ -46,6 +47,7 @@ jobs:
     - name: Format with isort
       run: |
         isort . --check --diff
+
   check_docstrings:
 
     runs-on: ubuntu-latest
@@ -63,6 +65,7 @@ jobs:
     - name: Check docstrings with darglint
       run: |
         darglint --docstring-style sphinx -v 2 -z long ranzen
+
   test_with_pytest:
     needs: [lint_with_pylint, format_with_black_and_isort, check_docstrings]
     runs-on: ubuntu-latest
