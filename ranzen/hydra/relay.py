@@ -326,7 +326,7 @@ class Relay:
                 schema = getattr(module, info.schema_name)
                 # TODO: figure out why the below kludge (ostensibly) solves the issue of failed
                 # attribute-retrieval during unpickling when using a paralllielising hydra
-                # launcher and implement a more elegant solution.
+                # launcher and implement a more graceful solution.
                 schema.__module__ = "__main__"
                 imported_schemas[group].append(
                     Option(class_=schema, name=info.name)
