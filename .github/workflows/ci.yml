@@ -109,7 +109,6 @@ jobs:
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install -E all --no-interaction --no-root
 
-
       # ----------------------------------------------
       #  -----  Install and Run pyright  -----
       # ----------------------------------------------
@@ -117,8 +116,9 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: "14"
-        - name: Install pyright
-          run: npm install -g pyright
+
+      - name: Install pyright
+        run: npm install -g pyright
 
       - name: Run pyright
         run: |
