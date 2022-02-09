@@ -102,6 +102,7 @@ jobs:
         run: npm install -g pyright
 
       - name: Run pyright
+        continue-on-error: true
         run: |
           pyright ranzen
           pyright tests
