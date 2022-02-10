@@ -1,3 +1,4 @@
+---
 name: ranzen CI
 
 on:
@@ -6,65 +7,109 @@ on:
     - main
 
 jobs:
-  ranzen_ci:
+  format_with_black_and_isort:
+
     runs-on: ubuntu-latest
-    env:
-      POETRY_VIRTUALENVS_CREATE: false
 
     steps:
     - uses: actions/checkout@v2
-
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
       with:
         python-version: 3.7
-
-    - name: Set up Poetry cache for Python dependencies
-      uses: actions/cache@v2
-      if: startsWith(runner.os, 'Linux')
-      with:
-        path: ~/.cache/pypoetry
-        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-        restore-keys: ${{ runner.os }}-poetry-
-
-    - name: Install Poetry
+    - name: Install black
       run: |
-        curl -fsS -o get-poetry.py https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-        python get-poetry.py -y
-        echo "$HOME/.poetry/bin" >> $GITHUB_PATH
-        rm get-poetry.py
-
-    - name: Install dependencies
-      run: poetry install --no-interaction
-
+        python -m pip install --upgrade pip
+        pip install black isort
     - name: Format with black
       run: |
-        python -m black --check .
-
+        python -m black --check -l 100 -t py37 -S ranzen/
+        python -m black --check -l 100 -t py37 -S tests/
     - name: Format with isort
       run: |
-        isort --check --diff .
+        isort . --check --diff
 
-    - name: Install Additional Dependencies for Type-Checking/Tests
-      run: poetry install -E all --no-interaction
+  check_docstrings:
 
-    - name: Setup node.js (for pyright)
-      uses: actions/setup-node@v1
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
       with:
-        node-version: "14"
-
-    - name: Install pyright
-      run: npm install -g pyright
-
-    - name: Run type checking
+        python-version: 3.7
+    - name: Install darglint
       run: |
-        pyright ranzen
-        pyright tests
-
-    - name: Test with pytest
-      run: |
-        python -m pytest -vv tests/
-
-    - name: Check docstrings
+        python -m pip install --upgrade pip
+        pip install darglint
+    - name: Check docstrings with darglint
       run: |
         darglint --docstring-style sphinx -v 2 -z long ranzen
+
+  run_tests_and_type_checking:
+    needs: [format_with_black_and_isort, check_docstrings]
+    runs-on: ubuntu-latest
+
+    steps:
+      # ----------------------------------------------
+      #  ----  check-out repo and set-up python ----
+      # ----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
+      # ----------------------------------------------
+      #  -----  install & configure poetry  -----
+      # ----------------------------------------------
+      - name: Install Poetry
+        uses: snok/install-poetry@v1.2
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      # ----------------------------------------------
+      #       load cached venv if cache exists
+      # ----------------------------------------------
+      - name: Set up Poetry cache for Python dependencies
+        id: cached-poetry-dependencies
+        # uses: actions/cache@v2
+        uses: pat-s/always-upload-cache@v2
+        with:
+          path: .venv
+          key: venvEM2-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+      # ----------------------------------------------
+      # install dependencies if cache does not exist
+      # ----------------------------------------------
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install -E all --no-interaction --no-root
+
+      # ----------------------------------------------
+      #  -----  install and run pyright  -----
+      # ----------------------------------------------
+      - name: Setup node.js (for pyright)
+        uses: actions/setup-node@v1
+        with:
+          node-version: "14"
+
+      - name: Install pyright
+        run: npm install -g pyright
+
+      - name: Run pyright
+        continue-on-error: true
+        run: |
+          poetry run pyright ranzen
+          poetry run pyright tests
+
+      # ----------------------------------------------
+      #  -----           Run Tests            -----
+      # ----------------------------------------------
+      - name: Test with pytest
+        run: |
+          poetry run python -m pytest -vv tests/

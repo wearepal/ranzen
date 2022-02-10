@@ -85,10 +85,12 @@ def test_with_dataloader(group_ids: list[int], sampler: BaseSampler) -> None:
         multipliers=None,
         base_sampler=sampler,
     )
-    ds = TensorDataset(torch.as_tensor(group_ids))
-    dl = DataLoader(dataset=ds, batch_sampler=batch_sampler, drop_last=False, shuffle=False)  # type: ignore
+    dataset = TensorDataset(torch.as_tensor(group_ids))
+    data_loader = DataLoader(
+        dataset=dataset, batch_sampler=batch_sampler, drop_last=False, shuffle=False
+    )  # type: ignore
     iters = 0
-    for (x,) in dl:
+    for (x,) in data_loader:
         assert x.size(0) == batch_size
         # assert all groups appear in the same quantity
         for i in range(0, 4):
@@ -108,6 +110,6 @@ def test_sized(group_ids: list[int], drop_last: bool) -> None:
         training_mode=TrainingMode.epoch,
         drop_last=drop_last,
     )
-    batches = [batch for batch in sampler]
+    batches = list(sampler)
     assert len(batches) == len(sampler)  # type: ignore
     assert len(batches) == (4 - drop_last)

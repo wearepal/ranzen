@@ -43,8 +43,13 @@ def test_relay(tmpdir: Path, clear_cache: bool) -> None:
         )
         for _ in range(2):
             DummyRelay.with_hydra(root=tmpdir, clear_cache=clear_cache, **options)
-        conf_dir = tmpdir / DummyRelay._config_dir_name()
+        conf_dir = tmpdir / DummyRelay._config_dir_name()  # pylint: disable=protected-access
         assert conf_dir.exists()
-        assert (conf_dir / "configen" / "relay_test" / DummyRelay._CONFIGEN_FILENAME).exists()
+        assert (
+            conf_dir
+            / "configen"
+            / "relay_test"
+            / DummyRelay._CONFIGEN_FILENAME  # pylint: disable=protected-access
+        ).exists()
         for key in options.keys():
             assert (conf_dir / key).exists()
