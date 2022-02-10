@@ -13,10 +13,12 @@ def dummy_ds() -> TensorDataset:  # type: ignore[no-any-unimported]
 
 
 @pytest.mark.parametrize("props", [0.5, [-0.2, 0.5], [0.1, 0.3, 0.4], [0.5, 0.6]])
-def test_prop_random_split(dummy_ds: TensorDataset, props: float | list[float]) -> None:  # type: ignore[no-any-unimported]
+def test_prop_random_split(
+    dummy_ds: TensorDataset, props: float | list[float]
+) -> None:  # type: ignore[no-any-unimported]
     sum_ = props if isinstance(props, float) else sum(props)
     props_ls = [props] if isinstance(props, float) else props
-    if sum_ > 1 or any((not (0 <= prop <= 1)) for prop in props_ls):
+    if sum_ > 1 or any(not (0 <= prop <= 1) for prop in props_ls):
         with pytest.raises(ValueError):
             splits = prop_random_split(dataset=dummy_ds, props=props)
     else:

@@ -36,5 +36,5 @@ def test_epoch_mode(data: Tensor, batch_size: int, drop_last: bool) -> None:  # 
         training_mode=TrainingMode.epoch,
         drop_last=drop_last,
     )
-    batches = [batch for batch in sampler]
+    batches = list(sampler)
     assert len(batches) == len(sampler)  # type: ignore

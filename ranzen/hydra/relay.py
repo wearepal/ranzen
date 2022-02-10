@@ -168,8 +168,9 @@ class Relay:
             if not primary_conf_exists:
                 cls.log(f"Initialising primary config file '{primary_conf.name}'.")
 
-                primary_conf.write(f"defaults:")
+                primary_conf.write("---\ndefaults:")
                 primary_conf.write(f"\n{YAML_INDENT}- {cls._PRIMARY_SCHEMA_NAME}")
+                primary_conf.write(f"\n{YAML_INDENT}- _self_")
 
             for group, group_options in config_dict.items():
                 group_dir = config_dir / group
@@ -182,9 +183,10 @@ class Relay:
                 for option in group_options:
                     open((group_dir / "defaults").with_suffix(".yaml"), "a").close()
                     with (group_dir / option.name).with_suffix(".yaml").open("w") as schema_config:
-                        schema_config.write(f"defaults:")
+                        schema_config.write("---\ndefaults:")
                         schema_config.write(f"\n{YAML_INDENT}- /schema/{group}: {option.name}")
                         schema_config.write(f"\n{YAML_INDENT}- defaults")
+                        schema_config.write(f"\n{YAML_INDENT}- _self_")
 
                         sig = inspect.signature(option.class_.__init__)
                         for name, param in sig.parameters.items():
@@ -234,12 +236,14 @@ class Relay:
 
     @classmethod
     def _load_module_from_path(cls: type[R], filepath: Path) -> ModuleType:
+        import sys
+
         spec = importlib.util.spec_from_file_location(  # type: ignore
-            name=filepath.name, location=str(filepath)
+            name="", location=str(filepath)
         )
         module = importlib.util.module_from_spec(spec)  # type: ignore
         spec.loader.exec_module(module)
-        sys.modules[filepath.name] = module
+        sys.modules[""] = module
         return module
 
     @classmethod
@@ -319,9 +323,14 @@ class Relay:
                 if isinstance(module, Path):
                     module = cls._load_module_from_path(module)
 
+                schema = getattr(module, info.schema_name)
+                # TODO: figure out why the below kludge (ostensibly) solves the issue of failed
+                # attribute-retrieval during unpickling when using a paralllielising hydra
+                # launcher and implement a more graceful solution.
+                schema.__module__ = "__main__"
                 imported_schemas[group].append(
-                    Option(class_=getattr(module, info.schema_name), name=info.name)  # type: ignore
-                )
+                    Option(class_=schema, name=info.name)
+                )  # type: ignore
 
         return primary_schema, imported_schemas, schemas_to_init
 
