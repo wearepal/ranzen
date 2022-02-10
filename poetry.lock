@@ -678,6 +678,21 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 six = ">=1.5"
 
 [[package]]
+name = "python-type-stubs"
+version = "0.1.1.dev0"
+description = "A set of type stubs for popular Python packages."
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+develop = false
+
+[package.source]
+type = "git"
+url = "https://github.com/predictive-analytics-lab/python-type-stubs.git"
+reference = "53dead4"
+resolved_reference = "53dead42521a5c45d1f7c953fe6dec4047173a83"
+
+[[package]]
 name = "pytorch-lightning"
 version = "1.5.9"
 description = "PyTorch Lightning is the lightweight PyTorch wrapper for ML researchers. Scale your models. Write less boilerplate."
@@ -1067,7 +1082,7 @@ wandb = ["wandb", "pandas"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.1"
-content-hash = "1c8e316d65e29e37fed4613ac10786eece9f36b7e1addbc495c7a9fd1a9c540c"
+content-hash = "2098c4067bedf164b4c287c4f86fb126da61a5db282c84e66e6e034e91474e9b"
 
 [metadata.files]
 absl-py = [
@@ -1744,6 +1759,7 @@ python-dateutil = [
     {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
     {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
 ]
+python-type-stubs = []
 pytorch-lightning = [
     {file = "pytorch-lightning-1.5.9.tar.gz", hash = "sha256:ccc544d198530d72af585fdae895cdaefe447ecd33b9663e31435dde2994d4ba"},
     {file = "pytorch_lightning-1.5.9-py3-none-any.whl", hash = "sha256:0d5ca230c12e064c79a2b370bee0c3906773fa1cb4b29c38863ee0fc0f45cd10"},

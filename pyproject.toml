@@ -76,6 +76,7 @@ mypy = "^0.800"
 pytest = "^6.2.2"
 isort = "^5.7.0"
 darglint = "^1.8.0"
+python-type-stubs = {git = "https://github.com/predictive-analytics-lab/python-type-stubs.git", rev = "53dead4" }
 
 [tool.pyright]
 exclude = ["**/node_modules", "**/__pycache__"]
