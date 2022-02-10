@@ -59,7 +59,7 @@ jobs:
         darglint --docstring-style sphinx -v 2 -z long ranzen
 
   run_tests_and_type_checking:
-    needs: [format_with_black_and_isort, check_docstrings]
+    needs: [format_with_black, format_with_isort, check_docstrings]
     runs-on: ubuntu-latest
 
     steps:
