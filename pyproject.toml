@@ -71,7 +71,7 @@ hydra = ["hydra-core", "neoconfigen"]
 wandb = ["wandb", "pandas"]
 
 [tool.poetry.dev-dependencies]
-black = "^20.8b1"
+black = "^22.1"
 mypy = "^0.800"
 pytest = "^6.2.2"
 isort = "^5.7.0"
