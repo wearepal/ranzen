@@ -301,7 +301,9 @@ class RandomMixUp:
             sample_shape = (num_selected, *inputs.shape[1:])
         else:
             sample_shape = (num_selected, *((1,) * (inputs.ndim - 1)))
-        lambdas = self.lambda_sampler.sample(sample_shape=sample_shape).to(inputs.device)
+        lambdas = self.lambda_sampler.sample(sample_shape=torch.Size(sample_shape)).to(
+            inputs.device
+        )
 
         if not self.inplace:
             inputs = inputs.clone()
