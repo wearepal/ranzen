@@ -6,7 +6,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks.progress.progress import ProgressBar
 from pytorch_lightning.callbacks.progress.tqdm_progress import convert_inf, reset
 from torch import Tensor
-from tqdm import tqdm
+from tqdm import tqdm  # type: ignore
 
 __all__ = ["IterationBasedProgBar"]
 
