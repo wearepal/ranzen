@@ -1,5 +1,5 @@
 ---
-name: Poetry lock and export
+name: Update and export lock file
 
 on:
   push:
@@ -11,47 +11,49 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  create-macos-lock-file:
-    runs-on: macos-latest
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        python-version: [3.9]
+  create-lock-file:
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Python ${{ matrix.python-version }}
+      # ----------------------------------------------
+      #  ----  check-out repo and set-up python ----
+      # ----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Set up Python 3.7
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.7
 
-      - name: Create virtualenv
-        run: |
-          which python
-          python -m venv venv
-          source venv/bin/activate
-          python -m pip install \
-            --constraint=.github/workflows/constraints.txt --upgrade pip
-          which python
+      # ----------------------------------------------
+      #  -----  install & configure poetry  -----
+      # ----------------------------------------------
       - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          export PATH="/Users/runner/.local/bin:$PATH"
-          poetry --version
-          poetry config virtualenvs.in-project true
-          poetry config virtualenvs.create false
-          poetry config virtualenvs.path venv
-          source venv/bin/activate
-          which python
+        uses: snok/install-poetry@v1.2
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      # ----------------------------------------------
+      #       load cached venv if cache exists
+      # ----------------------------------------------
+      - name: Set up Poetry cache for Python dependencies
+        id: cached-poetry-dependencies
+        # uses: actions/cache@v2
+        uses: pat-s/always-upload-cache@v2
+        with:
+          path: .venv
+          key: venvEM2-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
       - name: Run Poetry update
         run: |
-          source venv/bin/activate
           export PATH="/Users/runner/.local/bin:$PATH"
           rm poetry.lock
           poetry update
           poetry lock --no-update
           poetry export -f requirements.txt --output requirements.txt
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
