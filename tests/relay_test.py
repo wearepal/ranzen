@@ -34,7 +34,8 @@ class DummyRelay(Relay):
 
 
 @pytest.mark.parametrize("clear_cache", [True, False])
-def test_relay(tmpdir: Path, clear_cache: bool) -> None:
+@pytest.mark.parametrize("instantiate_recursively", [True, False])
+def test_relay(tmpdir: Path, clear_cache: bool, instantiate_recursively: bool) -> None:
     args = ["", "A=foo", "B=bar"]
     with patch("sys.argv", args):
         options = dict(
@@ -42,7 +43,12 @@ def test_relay(tmpdir: Path, clear_cache: bool) -> None:
             B=[DummyOptionA, Option(DummyOptionB, "bar")],
         )
         for _ in range(2):
-            DummyRelay.with_hydra(root=tmpdir, clear_cache=clear_cache, **options)
+            DummyRelay.with_hydra(
+                root=tmpdir,
+                clear_cache=clear_cache,
+                instantiate_recursively=instantiate_recursively,
+                **options,
+            )
         conf_dir = tmpdir / DummyRelay._config_dir_name()  # pylint: disable=protected-access
         assert conf_dir.exists()
         assert (
