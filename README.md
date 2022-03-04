@@ -1,4 +1,4 @@
-# ranzen
+# ranzen 🎒
 
 A python toolkit facilitating machine-learning experimentation.
 
