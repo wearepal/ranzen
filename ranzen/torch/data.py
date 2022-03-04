@@ -314,7 +314,7 @@ class StratifiedBatchSampler(BatchSamplerBase):
             while True:
                 sampled_idxs = []
                 for sampler, group_idxs in samplers_and_idxs:
-                    sampled_idxs.extend(group_idxs[next(sampler)])
+                    sampled_idxs.extend(group_idxs[next(sampler)].tolist())
                 yield sampled_idxs
         # 'epoch' mode is enabled - handling the last batch is quite involved
         # as we need to preserve the ratio between the groups prescribed by the
@@ -345,7 +345,7 @@ class StratifiedBatchSampler(BatchSamplerBase):
                             reduced_sample_count = round(len(idxs_of_idxs) * batch_reduction_factor)
                             idxs_of_idxs = idxs_of_idxs[:reduced_sample_count]
                     # Collate the indexes
-                    sampled_idxs.extend(group_idxs[idxs_of_idxs])
+                    sampled_idxs.extend(group_idxs[idxs_of_idxs].tolist())
 
                 yield sampled_idxs
 

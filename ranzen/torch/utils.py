@@ -80,7 +80,7 @@ class Event:
     def __exit__(self, *args: Any) -> None:
         if self._cuda:
             event_end = torch.cuda.Event(enable_timing=True)  # type: ignore
-            event_end.record()
+            event_end.record(stream=torch.cuda.current_stream())
             torch.cuda.synchronize()  # type: ignore
             assert isinstance(self._event_start, torch.cuda.Event)  # type: ignore
             self.time = self._event_start.elapsed_time(event_end)  # type: ignore

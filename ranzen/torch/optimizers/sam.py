@@ -125,7 +125,7 @@ class SAM(Optimizer):
                     if p.grad is not None
                 ]
             ),
-            p=2,
+            p="fro",
         )
         return norm
 

@@ -3,10 +3,9 @@ import sys
 from typing import Any, Sequence
 
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks.progress.progress import ProgressBar
-from pytorch_lightning.callbacks.progress.tqdm_progress import convert_inf, reset
+from pytorch_lightning.callbacks.progress import ProgressBar, convert_inf, reset
 from torch import Tensor
-from tqdm import tqdm
+from tqdm import tqdm  # type: ignore
 
 __all__ = ["IterationBasedProgBar"]
 
@@ -116,5 +115,5 @@ class IterationBasedProgBar(ProgressBar):
         dataloader_idx: int,
     ) -> None:
         self._test_batch_idx += 1
-        if self._should_update(idx=self.test_batch_idx):
+        if self._should_update(current=self.test_batch_idx, total=convert_inf(trainer.max_steps)):
             self._update_bar(self.test_progress_bar)

@@ -220,7 +220,7 @@ class RandomMixUp:
         lambda_c = 1 - lambda_
         if self.mode is MixUpMode.linear:
             return lambda_ * tensor_a + lambda_c * tensor_b
-        return tensor_a**lambda_ * tensor_b**lambda_c
+        return tensor_a ** lambda_ * tensor_b ** lambda_c
 
     @overload
     def _transform(
@@ -301,7 +301,9 @@ class RandomMixUp:
             sample_shape = (num_selected, *inputs.shape[1:])
         else:
             sample_shape = (num_selected, *((1,) * (inputs.ndim - 1)))
-        lambdas = self.lambda_sampler.sample(sample_shape=sample_shape).to(inputs.device)
+        lambdas = self.lambda_sampler.sample(sample_shape=torch.Size(sample_shape)).to(
+            inputs.device
+        )
 
         if not self.inplace:
             inputs = inputs.clone()
