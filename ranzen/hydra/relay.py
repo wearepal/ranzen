@@ -341,6 +341,7 @@ class Relay:
         *,
         root: Path | str,
         clear_cache: bool = False,
+        instantiate_recursively: bool = True,
         **options: list[type[Any] | Option],
     ) -> None:
         root = Path(root)
@@ -374,7 +375,7 @@ class Relay:
 
         @hydra.main(config_path=None, config_name=cls._CONFIG_NAME)
         def launcher(cfg: Any) -> None:
-            relay: R = instantiate(cfg, _recursive_=True)
+            relay: R = instantiate(cfg, _recursive_=instantiate_recursively)
             config_dict = cast(
                 Dict[str, Any],
                 OmegaConf.to_container(cfg, throw_on_missing=True, enum_to_str=False),
@@ -389,6 +390,7 @@ class Relay:
         root: Path | str,
         *,
         clear_cache: bool = False,
+        instantiate_recursively: bool = True,
         **options: list[type[Any] | Option],
     ) -> None:
         """Run the relay with hydra.
@@ -397,12 +399,18 @@ class Relay:
         :param clear_cache: Whether to clear the cached schemas and generate the schemas anew with
             neoconfigen.
 
+        :param instantiate_recursively: Whether to recursively instantiate the relay instance.
         :param options: List (value) of options to register for each group (key). If an option is a
             type or is an :class:`Option` with :attr:`Option.name` as ``None``, then a name will be
             generated based on the class name and used to register the option, else, the specified
             value for :attr:`Option.name` will be used.
         """
-        cls._launch(root=root, clear_cache=clear_cache, **options)
+        cls._launch(
+            root=root,
+            clear_cache=clear_cache,
+            instantiate_recursively=instantiate_recursively,
+            **options,
+        )
 
     @abstractmethod
     def run(self, raw_config: dict[str, Any] | None = None) -> None:
