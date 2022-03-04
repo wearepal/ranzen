@@ -16,13 +16,13 @@ class ReductionType(Enum):
     """An enum for the type of reduction to apply to a batch of losses."""
 
     mean = auto()
-    """compute the mean of the losses over all dimensions."""
+    """compute the mean over all dimensions."""
     none = auto()
-    """no reduction"""
+    """no reduction."""
     sum = auto()
-    """compute the sum of the losses over all dimensions."""
+    """compute the sum over all dimensions."""
     batch_mean = auto()
-    """compute the mean of the losses over just the batch (first) dimension."""
+    """compute the mean over the batch (first) dimension, the sum over the remaining dimensions."""
 
 
 def _reduce(losses: Tensor, reduction_type: ReductionType | str) -> Tensor:
@@ -31,7 +31,7 @@ def _reduce(losses: Tensor, reduction_type: ReductionType | str) -> Tensor:
     if reduction_type is ReductionType.mean:
         return losses.mean()
     elif reduction_type is ReductionType.batch_mean:
-        return losses.mean(0)
+        return losses.sum() / losses.size(0)
     elif reduction_type is ReductionType.sum:
         return losses.sum()
     elif reduction_type is ReductionType.none:
