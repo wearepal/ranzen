@@ -7,6 +7,7 @@ from functools import lru_cache
 import importlib
 import inspect
 import logging
+import os
 from pathlib import Path
 import re
 import shutil
@@ -26,6 +27,9 @@ from typing import (
 )
 
 import hydra
+from hydra.core.config_search_path import ConfigSearchPath
+from hydra.core.plugins import Plugins
+from hydra.plugins.search_path_plugin import SearchPathPlugin
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
 from typing_extensions import Final, final
@@ -106,6 +110,14 @@ class _SchemaImportInfo(NamedTuple):
     schema_name: str
     name: str
     module: ModuleType | Path
+
+
+class PyttiLocalConfigSearchPathPlugin(SearchPathPlugin):
+    def manipulate_search_path(self, search_path: ConfigSearchPath) -> None:
+
+        local_path = f"{os.getcwd()}/config/"
+        print(local_path)
+        search_path.append(provider="myframework", path=f"file://{local_path}")
 
 
 R = TypeVar("R", bound="Relay")
@@ -369,9 +381,14 @@ class Relay:
                 for info in schema_ls:
                     group.add_option(name=info.name, config_class=info.class_)
 
-        # config_path only allows for relative paths; we need to resort to argv-manipulation
-        # in order to set the config directory with an absolute path
-        sys.argv.extend(["--config-dir", str(config_dir)])
+        # config_path only allows for relative paths; we need to resort to construct a
+        # searchpath plugin on-the-fly in order to set the config directory with an absolute path
+
+        class RelayPlugin(SearchPathPlugin):
+            def manipulate_search_path(self, search_path: ConfigSearchPath) -> None:
+                search_path.prepend(provider=cls.__name__, path=str(config_dir.resolve()))
+
+        Plugins().plugin_type_to_subclass_list[SearchPathPlugin].append(RelayPlugin)
 
         @hydra.main(config_path=None, config_name=cls._CONFIG_NAME)
         def launcher(cfg: Any) -> None:
