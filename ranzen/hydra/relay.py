@@ -7,7 +7,6 @@ from functools import lru_cache
 import importlib
 import inspect
 import logging
-import os
 from pathlib import Path
 import re
 import shutil
@@ -110,14 +109,6 @@ class _SchemaImportInfo(NamedTuple):
     schema_name: str
     name: str
     module: ModuleType | Path
-
-
-class PyttiLocalConfigSearchPathPlugin(SearchPathPlugin):
-    def manipulate_search_path(self, search_path: ConfigSearchPath) -> None:
-
-        local_path = f"{os.getcwd()}/config/"
-        print(local_path)
-        search_path.append(provider="myframework", path=f"file://{local_path}")
 
 
 R = TypeVar("R", bound="Relay")
