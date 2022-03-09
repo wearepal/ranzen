@@ -3,7 +3,7 @@ import torch
 from torch import Tensor
 from torch.optim import AdamW
 
-from ranzen.torch.optimizers import LAMB, SAM, RAdam
+from ranzen.torch.optimizers import LAMB, SAM
 
 
 @pytest.mark.parametrize("debias", [True, False])
@@ -16,21 +16,6 @@ def test_lamb(debias: bool):
         loss.backward()
         optimizer.step()
     assert not torch.allclose(old_params.data, params.data)
-
-
-def test_radam():
-    params = torch.randn(10, requires_grad=True)
-    optimizer = RAdam(params=[params])
-    old_params = params.data.clone()
-    # RAdam has a warmup period of 5 steps.
-    for i in range(6):
-        loss = params.norm()
-        loss.backward()
-        optimizer.step()
-        if i == 5:
-            assert not torch.allclose(old_params.data, params.data)
-        else:
-            assert torch.allclose(old_params.data, params.data)
 
 
 @pytest.mark.parametrize("adaptive", [True, False])
