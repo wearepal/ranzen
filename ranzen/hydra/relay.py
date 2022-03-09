@@ -21,7 +21,6 @@ from typing import (
     NamedTuple,
     Optional,
     Tuple,
-    TypeVar,
     cast,
 )
 
@@ -31,7 +30,7 @@ from hydra.core.plugins import Plugins
 from hydra.plugins.search_path_plugin import SearchPathPlugin
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
-from typing_extensions import Final, final
+from typing_extensions import Final, Self, final
 
 from .utils import SchemaRegistration
 
@@ -111,9 +110,6 @@ class _SchemaImportInfo(NamedTuple):
     module: ModuleType | Path
 
 
-R = TypeVar("R", bound="Relay")
-
-
 class Relay:
     """
     Abstract class for orchestrating runs with :mod:`hydra`.
@@ -144,7 +140,7 @@ class Relay:
     _logger: ClassVar[Optional[logging.Logger]] = None
 
     @classmethod
-    def _get_logger(cls: type[R]) -> logging.Logger:
+    def _get_logger(cls: type[Self]) -> logging.Logger:
         if cls._logger is None:
             logger = logging.getLogger(__name__)
             logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -153,17 +149,17 @@ class Relay:
         return cls._logger
 
     @classmethod
-    def log(cls: type[R], msg: str) -> None:
+    def log(cls: type[Self], msg: str) -> None:
         cls._get_logger().info(msg)
 
     @classmethod
-    def _config_dir_name(cls: type[R]) -> str:
+    def _config_dir_name(cls: type[Self]) -> str:
         return _camel_to_snake(cls.__name__)
 
     @final
     @classmethod
     def _init_yaml_files(
-        cls: type[R], *, config_dir: Path, config_dict: dict[str, list[Any]]
+        cls: type[Self], *, config_dir: Path, config_dict: dict[str, list[Any]]
     ) -> None:
         primary_conf_fp = (config_dir / cls._CONFIG_NAME).with_suffix(".yaml")
         primary_conf_exists = primary_conf_fp.exists()
@@ -209,14 +205,14 @@ class Relay:
         cls.log(f"Finished initialising config directory initialised at '{config_dir}'")
 
     @classmethod
-    def _module_to_fp(cls: type[R], module: ModuleType | str):
+    def _module_to_fp(cls: type[Self], module: ModuleType | str):
         if isinstance(module, ModuleType):
             module = module.__name__
         return module.replace(".", "/")
 
     @classmethod
     def _generate_conf(
-        cls: type[R], output_dir: Path, *, module_class_dict: dict[str, List[str]]
+        cls: type[Self], output_dir: Path, *, module_class_dict: dict[str, List[str]]
     ) -> None:
         from configen.config import ConfigenConf, ModuleConf  # type: ignore
         from configen.configen import generate_module  # type: ignore
@@ -238,7 +234,7 @@ class Relay:
                 file.write(code)
 
     @classmethod
-    def _load_module_from_path(cls: type[R], filepath: Path) -> ModuleType:
+    def _load_module_from_path(cls: type[Self], filepath: Path) -> ModuleType:
         import sys
 
         spec = importlib.util.spec_from_file_location(  # type: ignore
@@ -251,7 +247,7 @@ class Relay:
 
     @classmethod
     def _load_schemas(
-        cls: type[R],
+        cls: type[Self],
         config_dir: Path,
         *,
         clear_cache: bool = False,
@@ -340,7 +336,7 @@ class Relay:
     @final
     @classmethod
     def _launch(
-        cls: type[R],
+        cls: type[Self],
         *,
         root: Path | str,
         clear_cache: bool = False,
@@ -383,7 +379,7 @@ class Relay:
 
         @hydra.main(config_path=None, config_name=cls._CONFIG_NAME)
         def launcher(cfg: Any) -> None:
-            relay: R = instantiate(cfg, _recursive_=instantiate_recursively)
+            relay: cls = instantiate(cfg, _recursive_=instantiate_recursively)
             config_dict = cast(
                 Dict[str, Any],
                 OmegaConf.to_container(cfg, throw_on_missing=True, enum_to_str=False),
@@ -394,7 +390,7 @@ class Relay:
 
     @classmethod
     def with_hydra(
-        cls: type[R],
+        cls: type[Self],
         root: Path | str,
         *,
         clear_cache: bool = False,
