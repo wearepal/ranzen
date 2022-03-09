@@ -36,11 +36,7 @@ jobs:
           installer-parallel: true
 
       # ----------------------------------------------
-<<<<<<< HEAD
-      #       load cached venv if cache exists
-=======
       #  ----  load cached venv if cache exists  ----
->>>>>>> 2735d8ee14e2d4de099847abdaf5059276dd40f5
       # ----------------------------------------------
       - name: Set up Poetry cache for Python dependencies
         id: cached-poetry-dependencies
@@ -50,28 +46,20 @@ jobs:
           path: .venv
           key: venvEM2-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
-<<<<<<< HEAD
-=======
       # ----------------------------------------------
       #  ----  Update dependencies with poetry  ----
       # ----------------------------------------------
->>>>>>> 2735d8ee14e2d4de099847abdaf5059276dd40f5
       - name: Run Poetry update
         run: |
           export PATH="/Users/runner/.local/bin:$PATH"
           rm poetry.lock
           poetry update
           poetry lock --no-update
-<<<<<<< HEAD
-          poetry export -f requirements.txt --output requirements.txt
-
-=======
           poetry export -f requirements.txt --output requirements.txt -E all
 
       # ----------------------------------------------
       #  -  Create a PR to update the dependencies -
       # ----------------------------------------------
->>>>>>> 2735d8ee14e2d4de099847abdaf5059276dd40f5
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
