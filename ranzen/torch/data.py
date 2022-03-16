@@ -53,9 +53,11 @@ class Subset(SizedDataset[T_co]):
         self.dataset = dataset
         self.indices = indices
 
+    @implements(SizedDataset)
     def __getitem__(self, idx: int) -> T_co:
         return self.dataset[self.indices[idx]]
 
+    @implements(SizedDataset)
     def __len__(self) -> int:
         return len(self.indices)
 
