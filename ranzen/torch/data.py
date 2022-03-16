@@ -2,14 +2,14 @@ from __future__ import annotations
 from abc import abstractmethod
 from enum import Enum, auto
 import math
-from typing import Iterator, Sequence, Sized
+from typing import Generic, Iterator, Sequence, Sized, TypeVar, cast, overload
 
+from attr import dataclass
 import numpy as np
 import torch
 from torch import Tensor
-from torch.utils.data import Dataset, Sampler
-from torch.utils.data.dataset import Subset, random_split
-from typing_extensions import Final
+from torch.utils.data import Sampler
+from typing_extensions import Final, Literal, Protocol, runtime_checkable
 
 from ranzen import implements
 from ranzen.misc import str_to_enum
@@ -17,16 +17,99 @@ from ranzen.misc import str_to_enum
 __all__ = [
     "GreedyCoreSetSampler",
     "SequentialBatchSampler",
+    "SizedDataset",
     "StratifiedBatchSampler",
+    "Subset",
+    "TrainTestSplit",
     "TrainingMode",
     "prop_random_split",
+    "prop_stratified_split",
 ]
+
+T_co = TypeVar("T_co", covariant=True)
+
+
+@runtime_checkable
+class SizedDataset(Protocol[T_co]):
+    def __getitem__(self, index: int) -> T_co:
+        ...
+
+    def __len__(self) -> int:
+        ...
+
+
+class Subset(SizedDataset[T_co]):
+    r"""
+    Subset of a dataset at specified indices.
+    """
+    dataset: SizedDataset[T_co]
+    indices: Sequence[int]
+
+    def __init__(self, dataset: SizedDataset[T_co], indices: Sequence[int]) -> None:
+        """
+        :param dataset: The whole Dataset.
+        :param indices: Indices in the whole set selected for subset.
+        """
+        self.dataset = dataset
+        self.indices = indices
+
+    @implements(SizedDataset)
+    def __getitem__(self, idx: int) -> T_co:
+        return self.dataset[self.indices[idx]]
+
+    @implements(SizedDataset)
+    def __len__(self) -> int:
+        return len(self.indices)
+
+
+D = TypeVar("D", bound=SizedDataset)
+
+
+@overload
+def prop_random_split(
+    dataset: D,
+    *,
+    props: Sequence[float] | float,
+    as_indices: Literal[False] = ...,
+    seed: int | None = ...,
+) -> list[Subset[D]]:
+    ...
+
+
+@overload
+def prop_random_split(
+    dataset: SizedDataset,
+    *,
+    props: Sequence[float] | float,
+    as_indices: Literal[True] = ...,
+    seed: int | None = ...,
+) -> list[int]:
+    ...
 
 
 def prop_random_split(
-    dataset: Dataset, *, props: Sequence[float] | float, seed: int | None = None
-) -> list[Subset]:
-    """Splits a dataset based on proportions rather than on absolute sizes."""
+    dataset: D,
+    *,
+    props: Sequence[float] | float,
+    as_indices: bool = False,
+    seed: int | None = None,
+) -> list[Subset[D]] | list[int]:
+    """Splits a dataset based on proportions rather than on absolute sizes
+
+    :param dataset: Dataset to split.
+    :param props: The fractional size of each subset into which to randomly split the data.
+        Elements must be non-negative and sum to 1 or less; if less then the size of the final
+        split will be computed by complement.
+
+    :param as_indices: If ``True`` the raw indices are returned instead of subsets constructed
+        from them.
+
+    :param seed: The PRNG used for determining the random splits.
+
+    :returns: Random subsets of the data of the requested proportions.
+
+    :raises ValueError: If the dataset does not have a ``__len__`` method or sum(props) > 1.
+    """
     if not hasattr(dataset, "__len__"):
         raise ValueError(
             "Split proportions can only be computed for datasets with __len__ defined."
@@ -41,7 +124,84 @@ def prop_random_split(
     if sum_ < 1:
         section_sizes.append(len_ - sum(section_sizes))
     generator = torch.default_generator if seed is None else torch.Generator().manual_seed(seed)
-    return random_split(dataset, section_sizes, generator=generator)
+    indices = torch.randperm(sum(section_sizes), generator=generator).tolist()
+    splits = []
+    for offset, length in zip(np.cumsum(section_sizes), section_sizes):
+        split = indices[offset - length : offset]
+        if not as_indices:
+            split = Subset(dataset, indices=split)
+        splits.append(split)
+    return splits
+
+
+S = TypeVar("S")
+
+
+@dataclass(frozen=True)
+class TrainTestSplit(Generic[S]):
+
+    train: S
+    test: S
+
+    def __iter__(self) -> Iterator[S]:
+        yield from (self.train, self.test)
+
+
+def prop_stratified_split(
+    labels: Tensor,
+    *,
+    default_train_prop: float,
+    train_props: dict[int, float] | None = None,
+    seed: int | None = None,
+) -> TrainTestSplit[list[int]]:
+    """Splits the data into train/test sets conditional on super- and sub-class labels.
+
+    :param labels: Tensor encoding the label associated with each sample.
+    :param default_train_prop: Proportion of samples for a given to sample for
+        the training set for those y-s combinations not specified in ``train_props``.
+
+    :param train_props: Proportion of each group  to sample for the training set.
+        If ``None`` then the function reduces to a simple random split of the data.
+
+    :param seed: PRNG seed to use for sampling.
+
+    :returns: Train-test split.
+
+    :raises ValueError: If a value in ``train_props`` is not in the range [0, 1] or if a key is not
+        present in ``group_ids``.
+    """
+    # Initialise the random-number generator
+    generator = torch.default_generator if seed is None else torch.Generator().manual_seed(seed)
+    groups, label_counts = labels.unique(return_counts=True)
+    train_props_all = dict.fromkeys(groups.tolist(), default_train_prop)
+
+    if train_props is not None:
+        for label, train_prop in train_props.items():
+            if not 0 <= train_prop <= 1:
+                raise ValueError(
+                    "All splitting proportions specified in 'train_props' must be in the "
+                    "range [0, 1]."
+                )
+            if label not in groups:
+                raise ValueError(f"No samples belonging to the group in 'group_ids'.")
+            train_props_all[label] = train_prop
+
+    # Shuffle the samples before sampling
+    perm_inds = torch.randperm(len(labels), generator=generator)
+    labels_perm = labels[perm_inds]
+
+    sort_inds = labels_perm.sort(dim=0, stable=True).indices
+    thresholds = cast(
+        Tensor, (torch.as_tensor(tuple(train_props_all.values())) * label_counts).round().long()
+    )
+    thresholds = torch.stack([thresholds, label_counts], dim=-1)
+    thresholds[1:] += label_counts.cumsum(0)[:-1].unsqueeze(-1)
+
+    train_test_inds = sort_inds.tensor_split(thresholds.flatten()[:-1], dim=0)
+    train_inds = perm_inds[torch.cat(train_test_inds[0::2])].tolist()
+    test_inds = perm_inds[torch.cat(train_test_inds[1::2])].tolist()
+
+    return TrainTestSplit(train=train_inds, test=test_inds)
 
 
 class TrainingMode(Enum):
