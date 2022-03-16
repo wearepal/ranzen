@@ -446,7 +446,7 @@ python-versions = "*"
 
 [[package]]
 name = "neoconfigen"
-version = "2.1.1"
+version = "2.1.2"
 description = "A fork of hydra-core's configen with extended type-compatibility."
 category = "main"
 optional = true
@@ -1574,8 +1574,8 @@ mypy-extensions = [
     {file = "mypy_extensions-0.4.3.tar.gz", hash = "sha256:2d82818f5bb3e369420cb3c4060a7970edba416647068eb4c5343488a6c604a8"},
 ]
 neoconfigen = [
-    {file = "neoconfigen-2.1.1-py3-none-any.whl", hash = "sha256:d1d96217043f1f1a52a64204ff48fe39e423f7b7b31bcaa930c0fa5ad9d3eb94"},
-    {file = "neoconfigen-2.1.1.tar.gz", hash = "sha256:01328803ee6b34859c53bae3e3bdb6c27e5b11dc2ab72f3190502619a368d203"},
+    {file = "neoconfigen-2.1.2-py3-none-any.whl", hash = "sha256:b5fe36a5ec2b1ef6fb88209889ec792dbb8feeff7f0da5afa2d1023e7490a71b"},
+    {file = "neoconfigen-2.1.2.tar.gz", hash = "sha256:6f46d98d680c8ef18ba192b2f731f529425c06977c75d38483a8dabcbd44766f"},
 ]
 numpy = [
     {file = "numpy-1.21.1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:38e8648f9449a549a7dfe8d8755a5979b45b3538520d1e735637ef28e8c2dc50"},
