@@ -120,32 +120,32 @@ class partial(Generic[R]):
 
     __slots__ = "func", "kwargs", "__dict__", "__weakref__"
 
-    def __new__(cls: type[Self], func: Callable[..., R], **kwargs: Any) -> Self:
+    def __new__(cls: type[Self], cbl: Callable[..., R], **kwargs: Any) -> Self:
         """
         :param func: Callable to undergo partial partial application.
 
         :returns: ``func`` with ``kwargs`` partially applied.
         """
-        if not callable(func):
+        if not callable(cbl):
             raise TypeError("the first argument must be callable")
 
-        if isinstance(func, Self):
-            kwargs = {**func.kwargs, **kwargs}
-            func = func.func
+        if isinstance(cbl, Self):
+            kwargs = {**cbl.kwargs, **kwargs}
+            cbl = cbl.cbl
 
         self = super(partial, cls).__new__(cls)
-        self.func = func
+        self.cbl = cbl
         self.kwargs = kwargs
         return self
 
     def __call__(self, *args: Any, **kwargs: Any) -> R:
         kwargs = {**self.kwargs, **kwargs}
-        return self.func(*args, **kwargs)
+        return self.cbl(*args, **kwargs)
 
     @recursive_repr()
     def __repr__(self) -> str:
         qualname = type(self).__qualname__
-        args = [repr(self.func)]
+        args = [repr(self.cbl)]
         args.extend(f"{k}={v!r}" for (k, v) in self.kwargs.items())
         return f"{qualname}({', '.join(args)})"
 
@@ -158,8 +158,8 @@ class partial(Generic[R]):
     ]:
         return (
             type(self),
-            (self.func,),
-            (self.func, self.kwargs or None, self.__dict__ or None),
+            (self.cbl,),
+            (self.cbl, self.kwargs or None, self.__dict__ or None),
         )
 
     def __setstate__(
@@ -167,7 +167,7 @@ class partial(Generic[R]):
         state: tuple[Callable[..., R], Any | None, dict[str, Any] | None],
     ) -> None:
         if not isinstance(state, tuple):
-            raise TypeError("argument to __setstate__ must be a tuple")
+            raise TypeError(f"argument to '{self.__class__.__name__}.__setstate__' must be a tuple")
         if len(state) != 3:
             raise TypeError(f"expected 3 items in state, got {len(state)}")
         func, kwds, namespace = state
@@ -180,11 +180,11 @@ class partial(Generic[R]):
 
         if kwds is None:
             kwds = {}
-        elif type(kwds) is not dict:  # XXX does it need to be *exactly* dict?
+        elif type(kwds) is not dict:
             kwds = dict(kwds)
         if namespace is None:
             namespace = {}
 
         self.__dict__ = namespace
-        self.func = func
+        self.cbl = func
         self.kwargs = kwds
