@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from torch import Tensor
 from torch.utils.data import Sampler
-from typing_extensions import Final, Literal, Protocol
+from typing_extensions import Final, Literal, Protocol, runtime_checkable
 
 from ranzen import implements
 from ranzen.misc import str_to_enum
@@ -28,6 +28,7 @@ __all__ = [
 T_co = TypeVar("T_co", covariant=True)
 
 
+@runtime_checkable
 class SizedDataset(Protocol[T_co]):
     def __getitem__(self, index: int) -> T_co:
         ...
@@ -58,14 +59,17 @@ class Subset(SizedDataset[T_co]):
         return len(self.indices)
 
 
+D = TypeVar("D", bound=SizedDataset)
+
+
 @overload
 def prop_random_split(
-    dataset: SizedDataset[T_co],
+    dataset: D,
     *,
     props: Sequence[float] | float,
     as_indices: Literal[False] = ...,
     seed: int | None = ...,
-) -> list[Subset[SizedDataset[T_co]]]:
+) -> list[Subset[D]]:
     ...
 
 
@@ -81,12 +85,12 @@ def prop_random_split(
 
 
 def prop_random_split(
-    dataset: SizedDataset[T_co],
+    dataset: D,
     *,
     props: Sequence[float] | float,
     as_indices: bool = False,
     seed: int | None = None,
-) -> list[Subset[SizedDataset[T_co]]] | list[int]:
+) -> list[Subset[D]] | list[int]:
     """Splits a dataset based on proportions rather than on absolute sizes
 
     :param dataset: Dataset to split.
