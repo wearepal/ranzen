@@ -17,6 +17,7 @@ from ranzen.misc import str_to_enum
 __all__ = [
     "GreedyCoreSetSampler",
     "SequentialBatchSampler",
+    "SizedDataset",
     "StratifiedBatchSampler",
     "Subset",
     "TrainTestSplit",
