@@ -72,7 +72,6 @@ wandb = ["wandb", "pandas"]
 
 [tool.poetry.dev-dependencies]
 black = "^22.1"
-mypy = "^0.941"
 pytest = "^6.2.2"
 isort = "^5.7.0"
 darglint = "^1.8.0"
