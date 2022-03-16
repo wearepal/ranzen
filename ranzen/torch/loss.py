@@ -9,7 +9,11 @@ import torch.nn.functional as F
 
 from ranzen import parsable, str_to_enum
 
-__all__ = ["CrossEntropyLoss", "ReductionType"]
+__all__ = [
+    "CrossEntropyLoss",
+    "ReductionType",
+    "cross_entropy_loss",
+]
 
 
 class ReductionType(Enum):
@@ -39,6 +43,38 @@ def _reduce(losses: Tensor, reduction_type: ReductionType | str) -> Tensor:
     raise TypeError(
         f"Received invalid type '{type(reduction_type)}' for argument 'reduction_type'."
     )
+
+
+def cross_entropy_loss(
+    input: Tensor,
+    *,
+    target: Tensor,
+    instance_weight: Tensor | None = None,
+    reduction: ReductionType | str = ReductionType.mean,
+    ignore_index: int = -100,
+    weight: Tensor | None,
+) -> Tensor:
+    if isinstance(reduction, str):
+        reduction = str_to_enum(str_=reduction, enum=ReductionType)
+    if input.ndim == 1 or input.size(1) == 1:  # Binary classification
+        target = target.view_as(input)
+        if not target.is_floating_point():
+            target = target.float()
+        loss_fn = F.binary_cross_entropy_with_logits
+    else:  # Multiclass classification
+        target = target.flatten()
+        if target.dtype != torch.long:
+            target = target.long()
+        loss_fn = partial(F.cross_entropy, ignore_index=ignore_index)
+    losses = loss_fn(
+        input=input,
+        target=target,
+        weight=weight,
+        reduction="none",
+    )
+    if instance_weight is not None:
+        losses *= instance_weight.view_as(losses)
+    return _reduce(losses=losses, reduction_type=reduction)
 
 
 class CrossEntropyLoss(nn.Module):
@@ -77,28 +113,11 @@ class CrossEntropyLoss(nn.Module):
         instance_weight: Tensor | None = None,
         reduction: ReductionType | str | None = None,
     ) -> Tensor:
-        if reduction is not None:
-            if isinstance(reduction, str):
-                reduction = str_to_enum(str_=reduction, enum=ReductionType)
-        else:
-            reduction = self.reduction
-
-        if input.ndim == 1 or input.size(1) == 1:  # Binary classification
-            target = target.view_as(input)
-            if not target.is_floating_point():
-                target = target.float()
-            loss_fn = F.binary_cross_entropy_with_logits
-        else:  # Multiclass classification
-            target = target.flatten()
-            if target.dtype != torch.long:
-                target = target.long()
-            loss_fn = partial(F.cross_entropy, ignore_index=self.ignore_index)
-        losses = loss_fn(
+        reduction = self.reduction if reduction is None else reduction
+        return cross_entropy_loss(
             input=input,
             target=target,
+            instance_weight=instance_weight,
+            reduction=reduction,
             weight=self.weight,
-            reduction="none",
         )
-        if instance_weight is not None:
-            losses *= instance_weight.view_as(losses)
-        return _reduce(losses=losses, reduction_type=reduction)
