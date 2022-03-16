@@ -52,7 +52,7 @@ def cross_entropy_loss(
     instance_weight: Tensor | None = None,
     reduction: ReductionType | str = ReductionType.mean,
     ignore_index: int = -100,
-    weight: Tensor | None,
+    weight: Tensor | None = None,
 ) -> Tensor:
     if isinstance(reduction, str):
         reduction = str_to_enum(str_=reduction, enum=ReductionType)
