@@ -2,7 +2,17 @@ from __future__ import annotations
 from abc import abstractmethod
 from enum import Enum, auto
 import math
-from typing import Generic, Iterator, Sequence, Sized, TypeVar, cast, overload
+from typing import (
+    Any,
+    Generic,
+    Iterator,
+    List,
+    Sequence,
+    Sized,
+    TypeVar,
+    cast,
+    overload,
+)
 
 from attr import dataclass
 import numpy as np
@@ -26,6 +36,7 @@ __all__ = [
     "prop_stratified_split",
 ]
 
+
 T_co = TypeVar("T_co", covariant=True)
 
 
@@ -38,14 +49,17 @@ class SizedDataset(Protocol[T_co]):
         ...
 
 
-class Subset(SizedDataset[T_co]):
+D = TypeVar("D", bound=SizedDataset)
+
+
+class Subset(Generic[D]):
     r"""
     Subset of a dataset at specified indices.
     """
-    dataset: SizedDataset[T_co]
+    dataset: D
     indices: Sequence[int]
 
-    def __init__(self, dataset: SizedDataset[T_co], indices: Sequence[int]) -> None:
+    def __init__(self, dataset: D, indices: Sequence[int]) -> None:
         """
         :param dataset: The whole Dataset.
         :param indices: Indices in the whole set selected for subset.
@@ -53,16 +67,11 @@ class Subset(SizedDataset[T_co]):
         self.dataset = dataset
         self.indices = indices
 
-    @implements(SizedDataset)
-    def __getitem__(self, idx: int) -> T_co:
-        return self.dataset[self.indices[idx]]
+    def __getitem__(self, index: int) -> Any:
+        return self.dataset[self.indices[index]]
 
-    @implements(SizedDataset)
     def __len__(self) -> int:
         return len(self.indices)
-
-
-D = TypeVar("D", bound=SizedDataset)
 
 
 @overload
@@ -83,7 +92,7 @@ def prop_random_split(
     props: Sequence[float] | float,
     as_indices: Literal[True] = ...,
     seed: int | None = ...,
-) -> list[int]:
+) -> List[list[int]]:
     ...
 
 
@@ -93,7 +102,7 @@ def prop_random_split(
     props: Sequence[float] | float,
     as_indices: bool = False,
     seed: int | None = None,
-) -> list[Subset[D]] | list[int]:
+) -> list[Subset[D]] | List[List[int]]:
     """Splits a dataset based on proportions rather than on absolute sizes
 
     :param dataset: Dataset to split.
@@ -116,8 +125,8 @@ def prop_random_split(
         )
     if isinstance(props, float):
         props = [props]
-    len_ = len(dataset)  # type: ignore
-    sum_ = np.sum(props)  # type: ignore
+    len_ = len(dataset)
+    sum_ = np.sum(props)
     if (sum_ > 1.0) or any(prop < 0 for prop in props):
         raise ValueError("Values for 'props` must be positive and sum to 1 or less.")
     section_sizes = [round(prop * len_) for prop in props]
