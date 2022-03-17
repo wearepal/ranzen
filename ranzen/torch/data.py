@@ -166,7 +166,7 @@ def stratified_split_indices(
 ) -> TrainTestSplit[list[int]]:
     """Splits the data into train/test sets conditional on super- and sub-class labels.
 
-    :param labels: Tensor or array encoding the label associated with each sample.
+    :param labels: Tensor, array or sequence encoding the label associated with each sample.
     :param default_train_prop: Proportion of samples for a given to sample for
         the training set for those y-s combinations not specified in ``train_props``.
 
