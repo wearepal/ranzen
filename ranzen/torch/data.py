@@ -2,10 +2,21 @@ from __future__ import annotations
 from abc import abstractmethod
 from enum import Enum, auto
 import math
-from typing import Generic, Iterator, Sequence, Sized, TypeVar, cast, overload
+from typing import (
+    Any,
+    Generic,
+    Iterator,
+    List,
+    Sequence,
+    Sized,
+    TypeVar,
+    cast,
+    overload,
+)
 
 from attr import dataclass
 import numpy as np
+import numpy.typing as npt
 import torch
 from torch import Tensor
 from torch.utils.data import Sampler
@@ -23,8 +34,9 @@ __all__ = [
     "TrainTestSplit",
     "TrainingMode",
     "prop_random_split",
-    "prop_stratified_split",
+    "stratified_split_indices",
 ]
+
 
 T_co = TypeVar("T_co", covariant=True)
 
@@ -38,14 +50,17 @@ class SizedDataset(Protocol[T_co]):
         ...
 
 
-class Subset(SizedDataset[T_co]):
+D = TypeVar("D", bound=SizedDataset)
+
+
+class Subset(Generic[D]):
     r"""
     Subset of a dataset at specified indices.
     """
-    dataset: SizedDataset[T_co]
+    dataset: D
     indices: Sequence[int]
 
-    def __init__(self, dataset: SizedDataset[T_co], indices: Sequence[int]) -> None:
+    def __init__(self, dataset: D, indices: Sequence[int]) -> None:
         """
         :param dataset: The whole Dataset.
         :param indices: Indices in the whole set selected for subset.
@@ -53,16 +68,11 @@ class Subset(SizedDataset[T_co]):
         self.dataset = dataset
         self.indices = indices
 
-    @implements(SizedDataset)
-    def __getitem__(self, idx: int) -> T_co:
-        return self.dataset[self.indices[idx]]
+    def __getitem__(self, index: int) -> Any:
+        return self.dataset[self.indices[index]]
 
-    @implements(SizedDataset)
     def __len__(self) -> int:
         return len(self.indices)
-
-
-D = TypeVar("D", bound=SizedDataset)
 
 
 @overload
@@ -83,7 +93,7 @@ def prop_random_split(
     props: Sequence[float] | float,
     as_indices: Literal[True] = ...,
     seed: int | None = ...,
-) -> list[int]:
+) -> List[list[int]]:
     ...
 
 
@@ -93,7 +103,7 @@ def prop_random_split(
     props: Sequence[float] | float,
     as_indices: bool = False,
     seed: int | None = None,
-) -> list[Subset[D]] | list[int]:
+) -> list[Subset[D]] | List[List[int]]:
     """Splits a dataset based on proportions rather than on absolute sizes
 
     :param dataset: Dataset to split.
@@ -116,8 +126,8 @@ def prop_random_split(
         )
     if isinstance(props, float):
         props = [props]
-    len_ = len(dataset)  # type: ignore
-    sum_ = np.sum(props)  # type: ignore
+    len_ = len(dataset)
+    sum_ = np.sum(props)
     if (sum_ > 1.0) or any(prop < 0 for prop in props):
         raise ValueError("Values for 'props` must be positive and sum to 1 or less.")
     section_sizes = [round(prop * len_) for prop in props]
@@ -147,8 +157,8 @@ class TrainTestSplit(Generic[S]):
         yield from (self.train, self.test)
 
 
-def prop_stratified_split(
-    labels: Tensor,
+def stratified_split_indices(
+    labels: Tensor | npt.NDArray[np.int_] | Sequence[int],
     *,
     default_train_prop: float,
     train_props: dict[int, float] | None = None,
@@ -156,7 +166,7 @@ def prop_stratified_split(
 ) -> TrainTestSplit[list[int]]:
     """Splits the data into train/test sets conditional on super- and sub-class labels.
 
-    :param labels: Tensor encoding the label associated with each sample.
+    :param labels: Tensor, array or sequence encoding the label associated with each sample.
     :param default_train_prop: Proportion of samples for a given to sample for
         the training set for those y-s combinations not specified in ``train_props``.
 
@@ -170,6 +180,8 @@ def prop_stratified_split(
     :raises ValueError: If a value in ``train_props`` is not in the range [0, 1] or if a key is not
         present in ``group_ids``.
     """
+    if not isinstance(labels, Tensor):
+        labels = torch.as_tensor(labels, dtype=torch.long)
     # Initialise the random-number generator
     generator = torch.default_generator if seed is None else torch.Generator().manual_seed(seed)
     groups, label_counts = labels.unique(return_counts=True)
