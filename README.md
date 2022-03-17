@@ -2,7 +2,7 @@
 
 A python toolkit facilitating machine-learning experimentation.
 
-[Documentation](https://wearepal.ai/ranzen/)
+[Documentation](https://wearepal.github.io/ranzen/)
 
 ## Install
 
