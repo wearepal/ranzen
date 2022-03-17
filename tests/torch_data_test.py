@@ -33,7 +33,7 @@ def test_prop_random_split(
 
 
 def test_stratified_split_indices():
-    labels = torch.randint(low=0, high=4, size=(50,)).numpy()
+    labels = torch.randint(low=0, high=4, size=(50,))
     train_inds, test_inds = stratified_split_indices(labels=labels, default_train_prop=0.5)
     labels_tr = labels[train_inds]
     labels_te = labels[test_inds]
