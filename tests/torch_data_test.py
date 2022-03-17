@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import TensorDataset
 
 from ranzen.torch import prop_random_split
-from ranzen.torch.data import prop_stratified_split
+from ranzen.torch.data import stratified_split_indices
 
 
 @pytest.fixture(scope="module")
@@ -32,9 +32,9 @@ def test_prop_random_split(
         assert sizes[-1] == (len(dummy_ds) - (round(sum_ * len(dummy_ds))))
 
 
-def test_prop_stratified_split():
+def test_stratified_split_indices():
     labels = torch.randint(low=0, high=4, size=(50,))
-    train_inds, test_inds = prop_stratified_split(labels=labels, default_train_prop=0.5)
+    train_inds, test_inds = stratified_split_indices(labels=labels, default_train_prop=0.5)
     labels_tr = labels[train_inds]
     labels_te = labels[test_inds]
     counts_tr = labels_tr.unique(return_counts=True)[1]
@@ -42,7 +42,7 @@ def test_prop_stratified_split():
     assert torch.isclose(counts_tr, counts_te, atol=1).all()
 
     train_props = {0: 0.25, 1: 0.45}
-    train_inds, test_inds = prop_stratified_split(
+    train_inds, test_inds = stratified_split_indices(
         labels=labels,
         default_train_prop=0.5,
         train_props=train_props,
