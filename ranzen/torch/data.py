@@ -16,6 +16,7 @@ from typing import (
 
 from attr import dataclass
 import numpy as np
+import numpy.typing as npt
 import torch
 from torch import Tensor
 from torch.utils.data import Sampler
@@ -33,7 +34,7 @@ __all__ = [
     "TrainTestSplit",
     "TrainingMode",
     "prop_random_split",
-    "prop_stratified_split",
+    "stratified_split_indices",
 ]
 
 
@@ -156,8 +157,8 @@ class TrainTestSplit(Generic[S]):
         yield from (self.train, self.test)
 
 
-def prop_stratified_split(
-    labels: Tensor,
+def stratified_split_indices(
+    labels: Tensor | npt.NDArray[np.int_] | Sequence[int],
     *,
     default_train_prop: float,
     train_props: dict[int, float] | None = None,
@@ -165,7 +166,7 @@ def prop_stratified_split(
 ) -> TrainTestSplit[list[int]]:
     """Splits the data into train/test sets conditional on super- and sub-class labels.
 
-    :param labels: Tensor encoding the label associated with each sample.
+    :param labels: Tensor or array encoding the label associated with each sample.
     :param default_train_prop: Proportion of samples for a given to sample for
         the training set for those y-s combinations not specified in ``train_props``.
 
@@ -179,6 +180,8 @@ def prop_stratified_split(
     :raises ValueError: If a value in ``train_props`` is not in the range [0, 1] or if a key is not
         present in ``group_ids``.
     """
+    if not isinstance(labels, Tensor):
+        labels = torch.as_tensor(labels, dtype=torch.long)
     # Initialise the random-number generator
     generator = torch.default_generator if seed is None else torch.Generator().manual_seed(seed)
     groups, label_counts = labels.unique(return_counts=True)
