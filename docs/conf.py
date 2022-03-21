@@ -42,6 +42,7 @@ autodoc_type_aliases = {
     "pl.LightningModule": "pytorch_lightning.LightningModule",
 }
 autodoc_mock_imports = [
+    "attr",
     "hydra",
     "numpy",
     "omegaconf",
