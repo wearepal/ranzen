@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import abstractmethod
+from dataclasses import dataclass
 from enum import Enum, auto
 import math
 from typing import (
@@ -14,7 +15,6 @@ from typing import (
     overload,
 )
 
-from attr import dataclass
 import numpy as np
 import numpy.typing as npt
 import torch
