@@ -1,9 +1,9 @@
 from __future__ import annotations
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 from unittest.mock import patch
 
-from attr import dataclass
 import pytest
 
 from ranzen.hydra import Option
