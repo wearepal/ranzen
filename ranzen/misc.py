@@ -20,7 +20,7 @@ def flatten_dict(
         where 'parent_key' is defined recursively, with base value 'parent_key' as specified in the
         function call.
     """
-    items = []
+    items: list[tuple[str, Any]] = []
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
         if isinstance(v, MutableMapping):
@@ -39,7 +39,7 @@ def gcopy(obj: T, *, deep: bool = True, num_copies: None = ..., **kwargs: Any) -
 
 
 @overload
-def gcopy(obj: T, *, deep: bool = True, num_copies: int = ..., **kwargs: Any) -> list[T]:
+def gcopy(obj: T, *, deep: bool = True, num_copies: int, **kwargs: Any) -> list[T]:
     ...
 
 

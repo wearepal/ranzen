@@ -74,7 +74,7 @@ class SchemaRegistration:
     >>>    group.add_option(WaterbirdsDataConf, name="waterbirds")
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._cs = ConfigStore.instance()
 
     def register(self, config_class: type, *, path: str) -> None:
