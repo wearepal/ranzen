@@ -50,7 +50,7 @@ class SAM(Optimizer):
 
             # Closure required for recomputing the loss after computing epsilon(w).
             def _closure():
-              return loss_function(output, model(input))
+              return loss_function(logits=model(input), targets=targets)
 
             loss = _closure()
             loss.backward()
