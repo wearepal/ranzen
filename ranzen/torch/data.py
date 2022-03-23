@@ -267,6 +267,11 @@ class SequentialBatchSampler(BatchSamplerBase):
     this is a BatchSampler, requiring slightly different treatment when used with a DataLoader.
 
     :param data_source: Object of the same size as the data to be sampled from.
+    :param batch size: How many samples per batch to load.
+    :param shuffle: Set to ``True`` to have the data reshuffled at every epoch.
+    :param drop_last: Set to ``True`` to drop the last incomplete batch,
+    :param shuffle: Set to ``True`` to have the data reshuffled
+    :param generator: Pseudo-random-number generator to use for shuffling the dataset.
 
     :example:
 
@@ -353,18 +358,27 @@ class StratifiedBatchSampler(BatchSamplerBase):
 
     To drop certain groups, set their multiplier to 0.
 
-    :param group_ids: a sequence of group IDs, not necessarily contiguous.
-    :param num_samples_per_group: number of samples to draw per group. Note that if a multiplier is > 1
+    :param group_ids: A sequence of group IDs, not necessarily contiguous.
+
+    :param num_samples_per_group: Number of samples to draw per group. Note that if a multiplier is > 1
         then effectively more samples will be drawn for that group.
+
+    :param multipliers: An optional dictionary that maps group IDs to multipliers. If a multiplier is
+        greater than 1, the corresponding group will be sampled at twice the rate as the other
+        groups. If a multiplier is 0, the group will be skipped.
+
+    :param base_sampler: The base sampling strategy to use (sequential vs. random).
+
     :param replacement: if ``True``, samples are drawn with replacement. If not, they are drawn without
         replacement, which means that when a sample index is drawn for a row, it cannot be drawn
         again for that row.
-    :param base_sampler: the base sampling strategy to use (sequential vs. random).
-    :param shuffle: whether to shuffle the subsets of the data after each pass (only applicable when the
+
+
+    :param shuffle: Whether to shuffle the subsets of the data after each pass (only applicable when the
         base_sampler is set to ``sequential``).
-    :param multiplier: an optional dictionary that maps group IDs to multipliers. If a multiplier is
-        greater than 1, the corresponding group will be sampled at twice the rate as the other
-        groups. If a multiplier is 0, the group will be skipped.
+
+    :param drop_last: Set to ``True`` to drop the last (on a per-group basis) incomplete batch.
+    :param generator: Pseudo-random-number generator to use for shuffling the dataset.
 
     :example:
 
@@ -508,7 +522,7 @@ class StratifiedBatchSampler(BatchSamplerBase):
                             batch_reduction_factor = len(idxs_of_idxs) / (
                                 self.num_samples_per_group * self.groupwise_idxs[group_num][1]
                             )
-                            # The batch is incomplete and drop-last is enabled - terminte the iteration
+                            # The batch is incomplete and drop-last is enabled - terminate the iteration
                             if self.drop_last and (not batch_reduction_factor):
                                 return
                     else:
@@ -561,16 +575,21 @@ class GreedyCoreSetSampler(BatchSamplerBase):
     Said approximation takes the form of the furtherst-frist traversal (FFT) algorithm.
 
     :param batch_size: Budget for the core-set,
+
     :param embeddings: Embedded dataset from which to sample the core-sets according;
         the order of the embeddings, v, must match the order of the dataset
         (i.e. f(x_i) = v_i, for embedding function f and inputs x)
+
     :param oversampling_factor: How many times larger than the budget the batch to be sampled from
+
         should be.
+    :param generator: Pseudo-random-number generator to use for shuffling the dataset.
     """
 
     def __init__(
         self,
         embeddings: Tensor,
+        *,
         batch_size: int,
         oversampling_factor: int,
         generator: torch.Generator | None = None,

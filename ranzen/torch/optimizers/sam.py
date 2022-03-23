@@ -29,9 +29,10 @@ class SAM(Optimizer):
     def __init__(
         self,
         base_optimizer: Optimizer,
+        *,
         rho: float = 0.05,
         adaptive: bool = True,
-    ):
+    ) -> None:
         """
         :param base_optimizer: Base optimizer for SAM.
         :param rho: Neighborhood size.
