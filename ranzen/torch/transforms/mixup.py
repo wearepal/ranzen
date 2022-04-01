@@ -1,6 +1,6 @@
 from __future__ import annotations
 from enum import Enum, auto
-from typing import NamedTuple, cast, overload
+from typing import Generic, NamedTuple, TypeVar, cast, overload
 
 import torch
 from torch import Tensor
@@ -29,7 +29,10 @@ class InputsTargetsPair(NamedTuple):
     targets: Tensor
 
 
-class RandomMixUp:
+LS = TypeVar("LS", bound=td.Distribution)
+
+
+class RandomMixUp(Generic[LS]):
     r"""Apply mixup to a batch of tensors.
 
     PyTorch implemention of `mixup`_.
@@ -49,7 +52,7 @@ class RandomMixUp:
 
     def __init__(
         self,
-        lambda_sampler: td.Beta | td.Uniform | td.Bernoulli,
+        lambda_sampler: LS,
         *,
         mode: MixUpMode | str = MixUpMode.linear,
         p: float = 1.0,
@@ -105,7 +108,7 @@ class RandomMixUp:
         num_classes: int | None = None,
         inplace: bool = False,
         featurewise: bool = False,
-    ) -> RandomMixUp:
+    ) -> RandomMixUp[td.Beta]:
         """
         Instantiate a :class:`RandomMixUp` with a Beta-distribution sampler.
 
@@ -150,7 +153,7 @@ class RandomMixUp:
         num_classes: int | None = None,
         inplace: bool = False,
         featurewise: bool = False,
-    ) -> RandomMixUp:
+    ) -> RandomMixUp[td.Uniform]:
         """
         Instantiate a :class:`RandomMixUp` with a uniform-distribution sampler.
 
@@ -191,7 +194,7 @@ class RandomMixUp:
         p: float = 1.0,
         num_classes: int | None = None,
         inplace: bool = False,
-    ) -> RandomMixUp:
+    ) -> RandomMixUp[td.Bernoulli]:
         """
         Instantiate a :class:`RandomMixUp` with a Bernoulli-distribution sampler.
 
@@ -238,7 +241,8 @@ class RandomMixUp:
         self, inputs: Tensor, *, targets: Tensor | None = None, group_labels: Tensor | None = None
     ) -> Tensor | InputsTargetsPair:
         batch_size = len(inputs)
-        if self.p == 0:
+        # If the batch is singular or the sampling probability is 0 there's nothing to do.
+        if (batch_size == 1) or (self.p == 0):
             if targets is None:
                 return inputs
             return InputsTargetsPair(inputs=inputs, targets=targets)
@@ -347,12 +351,12 @@ class RandomMixUp:
 
     @overload
     def __call__(
-        self, inputs: Tensor, *, targets: None = ..., group_labels: Tensor | None = ...
+        self, inputs: Tensor, targets: None = ..., *, group_labels: Tensor | None = ...
     ) -> Tensor:
         ...
 
     def __call__(
-        self, inputs: Tensor, *, targets: Tensor | None = None, group_labels: Tensor | None = None
+        self, inputs: Tensor, targets: Tensor | None = None, *, group_labels: Tensor | None = None
     ) -> Tensor | InputsTargetsPair:
         """
         :param inputs: The samples to apply mixup to.
