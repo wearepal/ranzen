@@ -34,7 +34,7 @@ LS = TypeVar("LS", td.Beta, td.Bernoulli, td.Uniform)
 
 
 class RandomMixUp(Generic[LS]):
-    r"""Apply mixup to a batch of tensors with some probability.
+    r"""Apply mixup to tensors within a batch with some probability.
 
     PyTorch implemention of `mixup`_.
     This implementation allows for transformation of the the input in the absence

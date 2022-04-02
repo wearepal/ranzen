@@ -156,7 +156,7 @@ class RandomCutMix:
         )
         target_lambdas.unsqueeze_(-1)
         targets[indices] *= target_lambdas
-        targets[indices] += targets[pair_indices] * (1.0 - target_lambdas)
+        targets[indices] += (1.0 - target_lambdas) * targets[pair_indices]
 
         return InputsTargetsPair(inputs=inputs, targets=targets)
 
