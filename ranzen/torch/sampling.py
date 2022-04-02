@@ -12,8 +12,8 @@ def batched_randint(high: Tensor, *, generator: torch.Generator | None = None) -
     Randomly samples an integer from the domain :math:`[0, h_i]` for each sample :math:`h_i \in high`.
 
     :function:`torch.randint` requires ``high`` to be an integer and thus  prohibits having
-    different samples within a batch having sampling domains, something which is necessary in order 
-    to vectorise, for example, sampling from groups of different sizes or sampling objects with 
+    different samples within a batch having sampling domains, something which is necessary in order
+    to vectorise, for example, sampling from groups of different sizes or sampling objects with
     different offsets. This function addresses this limitation using inverse transform sampling.
 
     :param high: A batch of tensors encoding the maximum integer value the corresponding random

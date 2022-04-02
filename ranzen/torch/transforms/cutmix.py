@@ -111,9 +111,9 @@ class RandomCutMix:
         )
         lambdas_c = 1.0 - lambdas
         cutmix_rate = lambdas_c.sqrt()
-        width, height = inputs.shape[-2:]
-        extents_h = torch.round(cutmix_rate * width)
-        extents_w = torch.round(cutmix_rate * height)
+        height, width = inputs.shape[-2:]
+        extents_h = torch.round(cutmix_rate * height)
+        extents_w = torch.round(cutmix_rate * width)
 
         start_inds_h = batched_randint(height - extents_h, generator=self.generator)
         start_inds_w = batched_randint(width - extents_w, generator=self.generator)
