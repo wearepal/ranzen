@@ -165,10 +165,12 @@ class RandomCutMix:
         ...
 
     @overload
-    def __call__(self, inputs: Tensor, targets: None = ...) -> Tensor:
+    def __call__(self, inputs: Tensor, *, targets: None = ...) -> Tensor:
         ...
 
-    def __call__(self, inputs: Tensor, targets: Tensor | None = None) -> Tensor | InputsTargetsPair:
+    def __call__(
+        self, inputs: Tensor, *, targets: Tensor | None = None
+    ) -> Tensor | InputsTargetsPair:
         """
         :param inputs: The samples to apply mixup to.
         :param targets: The corresponding targets to apply mixup to. If the targets are

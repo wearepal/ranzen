@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Sequence
 
 import torch
 from torch import Tensor
@@ -6,7 +7,12 @@ from torch import Tensor
 __all__ = ["batched_randint"]
 
 
-def batched_randint(high: Tensor, *, generator: torch.Generator | None = None) -> Tensor:
+def batched_randint(
+    high: Tensor,
+    *,
+    size: int | Sequence[int] | None = None,
+    generator: torch.Generator | None = None,
+) -> Tensor:
     r"""Batched version of :function:`torch.randint`.
 
     Randomly samples an integer from the domain :math:`[0, h_i]` for each sample :math:`h_i \in high`.
@@ -23,9 +29,17 @@ def batched_randint(high: Tensor, *, generator: torch.Generator | None = None) -
 
     :returns: A tensor of randomly of the same shape as ``high``.
     """
+    total_size = high.size()
+    if size is not None:
+        total_size = list(total_size)
+        if isinstance(size, int):
+            total_size.append(size)
+        else:
+            total_size.extend(size)
+
     step_sizes = high.reciprocal()
     u = (
-        torch.rand(size=high.size(), device=high.device, generator=generator) * (1 + step_sizes)
+        torch.rand(size=total_size, device=high.device, generator=generator) * (1 + step_sizes)
         - step_sizes / 2
     )
     return (u.clamp(min=0, max=1) * (high - 1)).round().long()

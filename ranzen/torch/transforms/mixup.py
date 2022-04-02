@@ -352,12 +352,12 @@ class RandomMixUp(Generic[LS]):
 
     @overload
     def __call__(
-        self, inputs: Tensor, targets: None = ..., *, group_labels: Tensor | None = ...
+        self, inputs: Tensor, *, targets: None = ..., group_labels: Tensor | None = ...
     ) -> Tensor:
         ...
 
     def __call__(
-        self, inputs: Tensor, targets: Tensor | None = None, *, group_labels: Tensor | None = None
+        self, inputs: Tensor, *, targets: Tensor | None = None, group_labels: Tensor | None = None
     ) -> Tensor | InputsTargetsPair:
         """
         :param inputs: The samples to apply mixup to.
