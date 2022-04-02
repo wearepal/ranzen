@@ -25,9 +25,13 @@ def batched_randint(
     :param high: A batch of tensors encoding the maximum integer value the corresponding random
         samples may take.
 
+    :param size: An integer or sequence of integers defining the shape of the output tensor for each
+        upper-bound specified in ``high``. The overall size of the sampled tensor will be
+        'size(``high``) + ``size``. If ``None`` then the output size is simply 'size(``high``)'.
+
     :param generator: Pseudo-random-number generator to use for sampling.
 
-    :returns: A tensor of randomly of the same shape as ``high``.
+    :returns: A tensor of random-sampled integers upper-bounded by the values in ``high``.
     """
     total_size = high.size()
     if size is not None:
