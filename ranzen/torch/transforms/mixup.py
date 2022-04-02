@@ -230,7 +230,7 @@ class RandomMixUp(Generic[LS]):
 
     @overload
     def _transform(
-        self, inputs: Tensor, *, targets: Tensor = ..., group_labels: Tensor | None = ...
+        self, inputs: Tensor, *, targets: Tensor, group_labels: Tensor | None = ...
     ) -> InputsTargetsPair:
         ...
 
@@ -346,7 +346,7 @@ class RandomMixUp(Generic[LS]):
 
     @overload
     def __call__(
-        self, inputs: Tensor, *, targets: Tensor = ..., group_labels: Tensor | None
+        self, inputs: Tensor, *, targets: Tensor, group_labels: Tensor | None
     ) -> InputsTargetsPair:
         ...
 

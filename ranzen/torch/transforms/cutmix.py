@@ -71,7 +71,7 @@ class RandomCutMix:
         )
 
     @overload
-    def _transform(self, inputs: Tensor, *, targets: Tensor = ...) -> InputsTargetsPair:
+    def _transform(self, inputs: Tensor, *, targets: Tensor) -> InputsTargetsPair:
         ...
 
     @overload
@@ -161,7 +161,7 @@ class RandomCutMix:
         return InputsTargetsPair(inputs=inputs, targets=targets)
 
     @overload
-    def __call__(self, inputs: Tensor, *, targets: Tensor = ...) -> InputsTargetsPair:
+    def __call__(self, inputs: Tensor, *, targets: Tensor) -> InputsTargetsPair:
         ...
 
     @overload
