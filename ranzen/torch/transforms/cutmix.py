@@ -6,7 +6,7 @@ from torch import Tensor
 import torch.distributions as td
 import torch.nn.functional as F
 
-from ranzen.torch.sampling import batched_randint  # type: ignore
+from ranzen.torch.sampling import batched_randint
 from ranzen.torch.transforms.mixup import InputsTargetsPair
 
 __all__ = ["RandomCutMix"]
@@ -14,7 +14,7 @@ __all__ = ["RandomCutMix"]
 
 class RandomCutMix:
     r"""Randomly apply CutMix to a batch of images.
-    PyTorch implementation of the the `CutMix`_ method for image-augmentation.
+    PyTorch implementation of the the `CutMix`_ image-augmentation strategy.
 
     This implementation samples the bounding-box coordinates independently for each pair of samples
     being mixed, and, unlike other implementations, does so in a way that is fully-vectorised.
@@ -70,6 +70,37 @@ class RandomCutMix:
             torch.default_generator if seed is None else torch.Generator().manual_seed(seed)
         )
 
+    def _sample_masks(self, inputs: Tensor, *, num_samples: int):
+        height, width = inputs.shape[-2:]
+        lambdas = self.lambda_sampler.sample(sample_shape=torch.Size((num_samples,))).to(
+            inputs.device
+        )
+        side_props = (1.0 - lambdas).sqrt()
+        box_heights = (side_props * height).round()
+        box_widths = (side_props * width).round()
+        box_coords_y1 = batched_randint(height - box_heights, generator=self.generator)
+        box_coords_x1 = batched_randint(width - box_widths, generator=self.generator)
+        # Compute the terminal y-coördinates for the bounding boxes
+        box_coords_y2 = box_coords_y1 + box_heights
+        box_coords_x2 = box_coords_x1 + box_widths
+        # Convert the bounding box coordinates into masks.
+        y_indices = torch.arange(height, device=inputs.device).unsqueeze(0).expand(num_samples, -1)
+        y_masks = (box_coords_y2.unsqueeze(-1) > y_indices) & (
+            y_indices >= box_coords_y1.unsqueeze(-1)
+        )
+        x_indices = torch.arange(width, device=inputs.device).unsqueeze(0).expand(num_samples, -1)
+        x_masks = (box_coords_x2.unsqueeze(-1) > x_indices) & (
+            x_indices >= box_coords_x1.unsqueeze(-1)
+        )
+        masks = (
+            (y_masks.unsqueeze(1) * x_masks.unsqueeze(-1))
+            .unsqueeze(1)
+            .expand(-1, inputs.size(1), -1, -1)
+        )
+        cropped_area_ratios = (box_widths * box_widths) / (width * height)
+
+        return masks, cropped_area_ratios
+
     @overload
     def _transform(self, inputs: Tensor, *, targets: Tensor) -> InputsTargetsPair:
         ...
@@ -104,33 +135,9 @@ class RandomCutMix:
             num_selected = batch_size
             indices = torch.arange(batch_size, device=inputs.device, dtype=torch.long)
 
-        # It's faster to roll the batch by one instead of shuffling it to create image pairs
-        pair_indices = indices.roll(1, 0)
-        lambdas = self.lambda_sampler.sample(sample_shape=torch.Size((num_selected,))).to(
-            inputs.device
-        )
-        lambdas_c = 1.0 - lambdas
-        cutmix_rate = lambdas_c.sqrt()
-        height, width = inputs.shape[-2:]
-        extents_h = torch.round(cutmix_rate * height)
-        extents_w = torch.round(cutmix_rate * width)
-
-        start_inds_h = batched_randint(height - extents_h, generator=self.generator)
-        start_inds_w = batched_randint(width - extents_w, generator=self.generator)
-
-        end_inds_h = start_inds_h + extents_h
-        end_inds_w = start_inds_w + extents_w
-
-        # Convert the bounding box coordinates into masks.
-        range_h = torch.arange(height, device=inputs.device).unsqueeze(0).expand(num_selected, -1)
-        masks_h = (end_inds_h.unsqueeze(-1) >= range_h) & (range_h >= start_inds_h.unsqueeze(-1))
-        range_w = torch.arange(width, device=inputs.device).unsqueeze(0).expand(num_selected, -1)
-        masks_w = (end_inds_w.unsqueeze(-1) >= range_w) & (range_w >= start_inds_w.unsqueeze(-1))
-        masks = (
-            (masks_h.unsqueeze(1) * masks_w.unsqueeze(-1))
-            .unsqueeze(1)
-            .expand(-1, inputs.size(1), -1, -1)
-        )
+        # Pair each selected sample with another sample that will serve as the 'patch donor'
+        pair_indices = torch.arange(batch_size).roll(1, 0)
+        masks, cropped_area_ratios = self._sample_masks(inputs=inputs, num_samples=num_selected)
 
         if not self.inplace:
             inputs = inputs.clone()
@@ -151,9 +158,7 @@ class RandomCutMix:
             targets = targets.clone()
         # Targets need to be floats to be mixed up.
         targets = targets.float()
-        target_lambdas = 1.0 - (end_inds_w - start_inds_w) * (end_inds_h - start_inds_h) / (
-            width * height
-        )
+        target_lambdas = 1.0 - cropped_area_ratios
         target_lambdas.unsqueeze_(-1)
         targets[indices] *= target_lambdas
         targets[indices] += (1.0 - target_lambdas) * targets[pair_indices]
