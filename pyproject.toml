@@ -55,7 +55,6 @@ readme="README.md"
 [tool.poetry.dependencies]
 python = "^3.7.1"
 torch = { version = "^1.8", optional = true }
-pytorch-lightning = {version ="^1.4.2", optional= true}
 hydra-core = {version = "^1.1.0", optional = true}
 neoconfigen = {version = "^2.0.0", optional = true}
 numpy = {version = "^1.20.3", optional = true}
@@ -78,7 +77,7 @@ darglint = "^1.8.0"
 python-type-stubs = {git = "https://github.com/predictive-analytics-lab/python-type-stubs.git", rev = "53dead4" }
 
 [tool.pyright]
-exclude = ["**/node_modules", "**/__pycache__"]
+exclude = ["**/node_modules", "**/__pycache__", "**/."]
 typeCheckingMode = "basic"
 pythonVersion = "3.7"
 reportUnusedImport = "error"
