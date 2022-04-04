@@ -13,6 +13,8 @@
 import os
 import sys
 
+import toml
+
 sys.path.insert(0, os.path.abspath(".."))
 
 
@@ -22,6 +24,7 @@ project = "ranzen"
 copyright = "2022, PAL"
 author = "PAL"
 
+release = toml.load("../pyproject.toml")["tool"]["poetry"]["version"]
 
 # -- General configuration ---------------------------------------------------
 
