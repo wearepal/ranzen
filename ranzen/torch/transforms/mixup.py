@@ -1,6 +1,6 @@
 from __future__ import annotations
 from enum import Enum, auto
-from typing import NamedTuple, cast, overload
+from typing import Generic, NamedTuple, TypeVar, cast, overload
 
 import torch
 from torch import Tensor
@@ -8,6 +8,7 @@ import torch.distributions as td
 import torch.nn.functional as F
 
 from ranzen.misc import str_to_enum
+from ranzen.torch.sampling import batched_randint
 
 __all__ = [
     "MixUpMode",
@@ -29,8 +30,11 @@ class InputsTargetsPair(NamedTuple):
     targets: Tensor
 
 
-class RandomMixUp:
-    r"""Apply mixup to a batch of tensors.
+LS = TypeVar("LS", td.Beta, td.Bernoulli, td.Uniform)
+
+
+class RandomMixUp(Generic[LS]):
+    r"""Apply mixup to tensors within a batch with some probability.
 
     PyTorch implemention of `mixup`_.
     This implementation allows for transformation of the the input in the absence
@@ -49,7 +53,7 @@ class RandomMixUp:
 
     def __init__(
         self,
-        lambda_sampler: td.Beta | td.Uniform | td.Bernoulli,
+        lambda_sampler: LS,
         *,
         mode: MixUpMode | str = MixUpMode.linear,
         p: float = 1.0,
@@ -60,6 +64,7 @@ class RandomMixUp:
         """
         :param lambda_sampler: The distribution from which to sample lambda (the mixup interpolation
             parameter).
+
         :param mode: Which mode to use to mix up samples: geometric or linear.
 
         .. note::
@@ -70,6 +75,7 @@ class RandomMixUp:
         :param num_classes: The total number of classes in the dataset that needs to be specified if
             wanting to mix up targets that are label-enoded. Passing label-encoded targets without
             specifying ``num_classes`` will result in a RuntimeError.
+
         :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
 
         .. note::
@@ -105,7 +111,7 @@ class RandomMixUp:
         num_classes: int | None = None,
         inplace: bool = False,
         featurewise: bool = False,
-    ) -> RandomMixUp:
+    ) -> RandomMixUp[td.Beta]:
         """
         Instantiate a :class:`RandomMixUp` with a Beta-distribution sampler.
 
@@ -150,7 +156,7 @@ class RandomMixUp:
         num_classes: int | None = None,
         inplace: bool = False,
         featurewise: bool = False,
-    ) -> RandomMixUp:
+    ) -> RandomMixUp[td.Uniform]:
         """
         Instantiate a :class:`RandomMixUp` with a uniform-distribution sampler.
 
@@ -191,7 +197,7 @@ class RandomMixUp:
         p: float = 1.0,
         num_classes: int | None = None,
         inplace: bool = False,
-    ) -> RandomMixUp:
+    ) -> RandomMixUp[td.Bernoulli]:
         """
         Instantiate a :class:`RandomMixUp` with a Bernoulli-distribution sampler.
 
@@ -224,7 +230,7 @@ class RandomMixUp:
 
     @overload
     def _transform(
-        self, inputs: Tensor, *, targets: Tensor = ..., group_labels: Tensor | None = ...
+        self, inputs: Tensor, *, targets: Tensor, group_labels: Tensor | None = ...
     ) -> InputsTargetsPair:
         ...
 
@@ -238,7 +244,8 @@ class RandomMixUp:
         self, inputs: Tensor, *, targets: Tensor | None = None, group_labels: Tensor | None = None
     ) -> Tensor | InputsTargetsPair:
         batch_size = len(inputs)
-        if self.p == 0:
+        # If the batch is singular or the sampling probability is 0 there's nothing to do.
+        if (batch_size == 1) or (self.p == 0):
             if targets is None:
                 return inputs
             return InputsTargetsPair(inputs=inputs, targets=targets)
@@ -286,9 +293,7 @@ class RandomMixUp:
             # diff_group_counts and rounding. 'randint' is unsuitable here because the groups aren't
             # guaranteed to have equal cardinality (using it to sample from the cyclic group,
             # Z / diff_group_count Z, as above, leads to biased sampling).
-            step_sizes = diff_group_counts.reciprocal()
-            u = torch.rand(num_selected, device=inputs.device) * (1 + step_sizes) - step_sizes / 2
-            rel_pair_indices = (u.clamp(min=0, max=1) * (diff_group_counts - 1)).round().long()
+            rel_pair_indices = batched_randint(diff_group_counts)
             # 2) Convert the row-wise indices into row-major indices, considering only
             # only the postive entries in the rows.
             rel_pair_indices[1:] += diff_group_counts.cumsum(dim=0)[:-1]
@@ -341,7 +346,7 @@ class RandomMixUp:
 
     @overload
     def __call__(
-        self, inputs: Tensor, *, targets: Tensor = ..., group_labels: Tensor | None
+        self, inputs: Tensor, *, targets: Tensor, group_labels: Tensor | None
     ) -> InputsTargetsPair:
         ...
 

@@ -29,9 +29,10 @@ class SAM(Optimizer):
     def __init__(
         self,
         base_optimizer: Optimizer,
+        *,
         rho: float = 0.05,
         adaptive: bool = True,
-    ):
+    ) -> None:
         """
         :param base_optimizer: Base optimizer for SAM.
         :param rho: Neighborhood size.
@@ -50,7 +51,7 @@ class SAM(Optimizer):
 
             # Closure required for recomputing the loss after computing epsilon(w).
             def _closure():
-              return loss_function(output, model(input))
+              return loss_function(logits=model(input), targets=targets)
 
             loss = _closure()
             loss.backward()
