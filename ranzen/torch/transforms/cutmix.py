@@ -150,10 +150,7 @@ class RandomCutMix:
         if not self.inplace:
             inputs = inputs.clone()
         # Trnasplant patches from the paired images to the anchor images as determined by the masks.
-        try:
-            inputs[indices] = ~masks * inputs[indices] + masks * inputs[pair_indices]
-        except:
-            breakpoint()
+        inputs[indices] = ~masks * inputs[indices] + masks * inputs[pair_indices]
         # No targets were recevied so we're done.
         if targets is None:
             return inputs
