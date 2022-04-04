@@ -77,7 +77,7 @@ python-type-stubs = {git = "https://github.com/predictive-analytics-lab/python-t
 
 [tool.pyright]
 exclude = ["**/node_modules", "**/__pycache__", "**/."]
-typeCheckingMode = "strict"
+typeCheckingMode = "basic"
 pythonVersion = "3.7"
 reportUnusedImport = "error"
 reportDuplicateImport  = "error"

@@ -66,20 +66,24 @@ class RandomCutMix:
         self.lambda_sampler = td.Beta(concentration0=alpha, concentration1=alpha)
         self.num_classes = num_classes
         self.inplace = inplace
-        self.generator = (
-            torch.default_generator if seed is None else torch.Generator().manual_seed(seed)
-        )
+        self.seed = seed
 
-    def _sample_masks(self, inputs: Tensor, *, num_samples: int):
+    def _sample_masks(
+        self,
+        inputs: Tensor,
+        *,
+        num_samples: int,
+        generator: torch.Generator | None = None,
+    ) -> tuple[Tensor, Tensor]:
         height, width = inputs.shape[-2:]
-        lambdas = self.lambda_sampler.sample(sample_shape=torch.Size((num_samples,))).to(
+        lambdas: Tensor = self.lambda_sampler.sample(sample_shape=torch.Size((num_samples,))).to(
             inputs.device
         )
-        side_props = (1.0 - lambdas).sqrt()
+        side_props = torch.sqrt(1.0 - lambdas)
         box_heights = (side_props * height).round()
         box_widths = (side_props * width).round()
-        box_coords_y1 = batched_randint(height - box_heights, generator=self.generator)
-        box_coords_x1 = batched_randint(width - box_widths, generator=self.generator)
+        box_coords_y1 = batched_randint(height - box_heights, generator=generator)
+        box_coords_x1 = batched_randint(width - box_widths, generator=generator)
         # Compute the terminal y-coördinates for the bounding boxes
         box_coords_y2 = box_coords_y1 + box_heights
         box_coords_x2 = box_coords_x1 + box_widths
@@ -118,29 +122,34 @@ class RandomCutMix:
         if (targets is not None) and (batch_size != len(targets)):
             raise ValueError(f"'inputs' and 'targets' must match in size at dimension 0.")
 
+        generator = (
+            None if self.seed is None else torch.Generator(inputs.device).manual_seed(self.seed)
+        )
         if (batch_size == 1) or (self.p == 0):
-            if targets is None:
-                return inputs
-            return InputsTargetsPair(inputs=inputs, targets=targets)
+            return inputs if targets is None else InputsTargetsPair(inputs=inputs, targets=targets)
         elif self.p < 1:
             # Sample a mask determining which samples in the batch are to be transformed
-            selected = (
-                torch.rand(batch_size, device=inputs.device, generator=self.generator) < self.p
-            )
+            selected = torch.rand(batch_size, device=inputs.device, generator=generator) < self.p
             num_selected = int(selected.count_nonzero())
+            if num_selected == 0:
+                return (
+                    inputs if targets is None else InputsTargetsPair(inputs=inputs, targets=targets)
+                )
             indices = selected.nonzero(as_tuple=False).long().flatten()
-        # if p >= 1 then the transform is always applied and we can skip
-        # the above step
+        # If p >= 1 then the transform is always applied and we can skip the sampling step above.
         else:
             num_selected = batch_size
             indices = torch.arange(batch_size, device=inputs.device, dtype=torch.long)
 
         # Pair each selected sample with another sample that will serve as the 'patch donor'
-        pair_indices = torch.arange(batch_size).roll(1, 0)
-        masks, cropped_area_ratios = self._sample_masks(inputs=inputs, num_samples=num_selected)
+        pair_indices = torch.arange(num_selected).roll(1, 0)
+        masks, cropped_area_ratios = self._sample_masks(
+            inputs=inputs, num_samples=num_selected, generator=generator
+        )
 
         if not self.inplace:
             inputs = inputs.clone()
+        # Trnasplant patches from the paired images to the anchor images as determined by the masks.
         inputs[indices] = ~masks * inputs[indices] + masks * inputs[pair_indices]
         # No targets were recevied so we're done.
         if targets is None:
