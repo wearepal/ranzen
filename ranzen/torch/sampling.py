@@ -13,14 +13,14 @@ def batched_randint(
     size: int | Sequence[int] | None = None,
     generator: torch.Generator | None = None,
 ) -> Tensor:
-    r"""Batched version of :function:`torch.randint`.
+    r"""Batched version of :func:`torch.randint`.
 
     Randomly samples an integer from the domain :math:`[0, h_i]` for each sample :math:`h_i \in high`.
 
-    :function:`torch.randint` requires ``high`` to be an integer and thus  prohibits having
+    :func:`torch.randint` requires ``high`` to be an integer and thus  prohibits having
     different samples within a batch having sampling domains, something which is necessary in order
     to vectorise, for example, sampling from groups of different sizes or sampling objects with
-    different offsets. This function addresses this limitation using inverse transform sampling.
+    different offsets. This func addresses this limitation using inverse transform sampling.
 
     :param high: A batch of tensors encoding the maximum integer value the corresponding random
         samples may take.
