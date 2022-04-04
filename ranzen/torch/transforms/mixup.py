@@ -8,6 +8,7 @@ import torch.distributions as td
 import torch.nn.functional as F
 
 from ranzen.misc import str_to_enum
+from ranzen.torch.sampling import batched_randint
 
 __all__ = [
     "MixUpMode",
@@ -29,11 +30,11 @@ class InputsTargetsPair(NamedTuple):
     targets: Tensor
 
 
-LS = TypeVar("LS", bound=td.Distribution)
+LS = TypeVar("LS", td.Beta, td.Bernoulli, td.Uniform)
 
 
 class RandomMixUp(Generic[LS]):
-    r"""Apply mixup to a batch of tensors.
+    r"""Apply mixup to tensors within a batch with some probability.
 
     PyTorch implemention of `mixup`_.
     This implementation allows for transformation of the the input in the absence
@@ -63,6 +64,7 @@ class RandomMixUp(Generic[LS]):
         """
         :param lambda_sampler: The distribution from which to sample lambda (the mixup interpolation
             parameter).
+
         :param mode: Which mode to use to mix up samples: geometric or linear.
 
         .. note::
@@ -73,6 +75,7 @@ class RandomMixUp(Generic[LS]):
         :param num_classes: The total number of classes in the dataset that needs to be specified if
             wanting to mix up targets that are label-enoded. Passing label-encoded targets without
             specifying ``num_classes`` will result in a RuntimeError.
+
         :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
 
         .. note::
@@ -227,7 +230,7 @@ class RandomMixUp(Generic[LS]):
 
     @overload
     def _transform(
-        self, inputs: Tensor, *, targets: Tensor = ..., group_labels: Tensor | None = ...
+        self, inputs: Tensor, *, targets: Tensor, group_labels: Tensor | None = ...
     ) -> InputsTargetsPair:
         ...
 
@@ -290,9 +293,7 @@ class RandomMixUp(Generic[LS]):
             # diff_group_counts and rounding. 'randint' is unsuitable here because the groups aren't
             # guaranteed to have equal cardinality (using it to sample from the cyclic group,
             # Z / diff_group_count Z, as above, leads to biased sampling).
-            step_sizes = diff_group_counts.reciprocal()
-            u = torch.rand(num_selected, device=inputs.device) * (1 + step_sizes) - step_sizes / 2
-            rel_pair_indices = (u.clamp(min=0, max=1) * (diff_group_counts - 1)).round().long()
+            rel_pair_indices = batched_randint(diff_group_counts)
             # 2) Convert the row-wise indices into row-major indices, considering only
             # only the postive entries in the rows.
             rel_pair_indices[1:] += diff_group_counts.cumsum(dim=0)[:-1]
@@ -345,18 +346,18 @@ class RandomMixUp(Generic[LS]):
 
     @overload
     def __call__(
-        self, inputs: Tensor, *, targets: Tensor = ..., group_labels: Tensor | None
+        self, inputs: Tensor, *, targets: Tensor, group_labels: Tensor | None
     ) -> InputsTargetsPair:
         ...
 
     @overload
     def __call__(
-        self, inputs: Tensor, targets: None = ..., *, group_labels: Tensor | None = ...
+        self, inputs: Tensor, *, targets: None = ..., group_labels: Tensor | None = ...
     ) -> Tensor:
         ...
 
     def __call__(
-        self, inputs: Tensor, targets: Tensor | None = None, *, group_labels: Tensor | None = None
+        self, inputs: Tensor, *, targets: Tensor | None = None, group_labels: Tensor | None = None
     ) -> Tensor | InputsTargetsPair:
         """
         :param inputs: The samples to apply mixup to.
