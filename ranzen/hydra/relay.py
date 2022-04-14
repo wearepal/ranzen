@@ -7,6 +7,7 @@ from functools import lru_cache
 import importlib
 import inspect
 import logging
+import os
 from pathlib import Path
 import re
 import shutil
@@ -175,18 +176,21 @@ class Relay:
                 group_dir = config_dir / group
                 if not group_dir.exists():
                     group_dir.mkdir()
-                    default = "" if len(group_options) > 1 else group_options[0].name
+                    default = "" if len(group_options) > 1 else f"{group_options[0].name}/default"
                     primary_conf.write(f"\n{YAML_INDENT}- {group}: {default}")
 
-                cls.log(f"Initialising group '{group}'")
+                cls.log(f"Initialising group '{group}'.")
                 for option in group_options:
                     option_dir = group_dir / option.name
-                    if not option_dir.exists():
-                        option_dir.mkdir()
-                    with (option_dir / "default").with_suffix(".yaml").open("w") as schema_config:
-                        schema_config.write("---\ndefaults:")
-                        schema_config.write(f"\n{YAML_INDENT}- /schema/{group}: {option.name}")
-                        schema_config.write(f"\n{YAML_INDENT}- _self_")
+                    option_dir.mkdir(exist_ok=True)
+                    schema_config = (option_dir / "default").with_suffix(".yaml")
+                    with schema_config.open("w") as file:
+                        alias = option_dir.with_suffix(".yaml")
+                        if not alias.exists():
+                            os.symlink(src=schema_config, dst=alias)
+                        file.write("---\ndefaults:")
+                        file.write(f"\n{YAML_INDENT}- /schema/{group}: {option.name}")
+                        file.write(f"\n{YAML_INDENT}- _self_")
 
                         sig = inspect.signature(option.class_.__init__)
                         for name, param in sig.parameters.items():
@@ -207,8 +211,8 @@ class Relay:
                                     entry = f"# {entry}???"
                                 else:
                                     entry += f"{default_str}"
-                            schema_config.write(f"\n{entry}")
-                        cls.log(f"- Initialising config file '{schema_config.name}'.")
+                            file.write(f"\n{entry}")
+                        cls.log(f"- Initialising config file '{file.name}'.")
 
         cls.log(f"Finished initialising config directory initialised at '{config_dir}'")
 
@@ -279,7 +283,8 @@ class Relay:
             for option in group_options:
                 if not isinstance(option, Option):
                     option = Option(class_=option)
-                if not (config_dir / group / option.name).with_suffix(".yaml").exists():
+                option_dir = config_dir / group / option.name
+                if not (option_dir / "default").with_suffix(".yaml").exists():
                     schemas_to_init[group].append(option)
                 cls_name = option.class_.__name__
                 if (not is_dataclass(option.class_)) or (not cls_name.endswith("Conf")):
@@ -362,7 +367,7 @@ class Relay:
         # Initialise any missing yaml files
         if schemas_to_init:
             cls.log(
-                f"One or more config files not found in config directory {config_dir}."
+                f"One or more config files not found in config directory '{config_dir}'."
                 "\nInitialising missing config files."
             )
             cls._init_yaml_files(config_dir=config_dir, config_dict=schemas_to_init)
