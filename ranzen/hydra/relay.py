@@ -196,11 +196,7 @@ class Relay:
                         for name, param in sig.parameters.items():
                             # Skip self/args/kwargs
                             if name == "self" or (
-                                param.kind
-                                in (
-                                    param.VAR_POSITIONAL,
-                                    param.VAR_KEYWORD,
-                                )
+                                param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD)
                             ):
                                 continue
                             entry = f"{name}: "
