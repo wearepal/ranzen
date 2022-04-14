@@ -180,14 +180,13 @@ class Relay:
 
                 cls.log(f"Initialising group '{group}'")
                 for option in group_options:
-                    open((group_dir / "defaults").with_suffix(".yaml"), "a").close()
                     option_dir = group_dir / option.name
                     if not option_dir.exists():
                         option_dir.mkdir()
-                    with (option_dir / "defaults").with_suffix(".yaml").open("w") as schema_config:
+                    with (option_dir / "base").with_suffix(".yaml").open("w") as schema_config:
+                        open((group_dir / "default").with_suffix(".yaml"), "a").close()
                         schema_config.write("---\ndefaults:")
                         schema_config.write(f"\n{YAML_INDENT}- /schema/{group}: {option.name}")
-                        schema_config.write(f"\n{YAML_INDENT}- defaults")
                         schema_config.write(f"\n{YAML_INDENT}- _self_")
 
                         sig = inspect.signature(option.class_.__init__)
