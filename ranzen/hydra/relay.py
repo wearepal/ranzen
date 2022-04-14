@@ -198,8 +198,8 @@ class Relay:
                             if name == "self" or (
                                 param.kind
                                 in (
-                                    inspect._ParameterKind.VAR_POSITIONAL,
-                                    inspect._ParameterKind.VAR_KEYWORD,
+                                    param.VAR_POSITIONAL,
+                                    param.VAR_KEYWORD,
                                 )
                             ):
                                 continue
