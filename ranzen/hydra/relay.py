@@ -183,8 +183,7 @@ class Relay:
                     option_dir = group_dir / option.name
                     if not option_dir.exists():
                         option_dir.mkdir()
-                    with (option_dir / "base").with_suffix(".yaml").open("w") as schema_config:
-                        open((group_dir / "default").with_suffix(".yaml"), "a").close()
+                    with (option_dir / "default").with_suffix(".yaml").open("w") as schema_config:
                         schema_config.write("---\ndefaults:")
                         schema_config.write(f"\n{YAML_INDENT}- /schema/{group}: {option.name}")
                         schema_config.write(f"\n{YAML_INDENT}- _self_")
