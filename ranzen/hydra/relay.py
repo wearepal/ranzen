@@ -181,7 +181,10 @@ class Relay:
                 cls.log(f"Initialising group '{group}'")
                 for option in group_options:
                     open((group_dir / "defaults").with_suffix(".yaml"), "a").close()
-                    with (group_dir / option.name).with_suffix(".yaml").open("w") as schema_config:
+                    option_dir = group_dir / option.name
+                    if not option_dir.exists():
+                        option_dir.mkdir()
+                    with (option_dir / "defaults").with_suffix(".yaml").open("w") as schema_config:
                         schema_config.write("---\ndefaults:")
                         schema_config.write(f"\n{YAML_INDENT}- /schema/{group}: {option.name}")
                         schema_config.write(f"\n{YAML_INDENT}- defaults")
@@ -189,7 +192,14 @@ class Relay:
 
                         sig = inspect.signature(option.class_.__init__)
                         for name, param in sig.parameters.items():
-                            if name in ("self", "args", "kwargs"):
+                            # Skip self/args/kwargs
+                            if name == "self" or (
+                                param.kind
+                                in (
+                                    inspect._ParameterKind.VAR_POSITIONAL,
+                                    inspect._ParameterKind.VAR_KEYWORD,
+                                )
+                            ):
                                 continue
                             entry = f"{name}: "
                             default = param.default
@@ -377,7 +387,7 @@ class Relay:
 
         Plugins().plugin_type_to_subclass_list[SearchPathPlugin].append(RelayPlugin)
 
-        @hydra.main(config_path=None, config_name=cls._CONFIG_NAME)
+        @hydra.main(config_path=None, config_name=cls._CONFIG_NAME, version_base=None)
         def launcher(cfg: Any) -> None:
             relay: cls = instantiate(cfg, _recursive_=instantiate_recursively)
             config_dict = cast(
