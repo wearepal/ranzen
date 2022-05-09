@@ -70,7 +70,7 @@ wandb = ["wandb", "pandas"]
 
 [tool.poetry.dev-dependencies]
 black = "^22.1"
-pytest = "^7.1.1"
+pytest = "^7.1.2"
 isort = "^5.7.0"
 darglint = "^1.8.0"
 python-type-stubs = {git = "https://github.com/predictive-analytics-lab/python-type-stubs.git", rev = "53dead4" }
