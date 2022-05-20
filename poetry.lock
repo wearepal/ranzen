@@ -240,14 +240,14 @@ python-versions = "*"
 
 [[package]]
 name = "neoconfigen"
-version = "2.1.4"
+version = "2.2.0"
 description = "A fork of hydra-core's configen with extended type-compatibility."
 category = "main"
 optional = true
 python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
-hydra-core = ">=1.2.0dev3,<2.0.0"
+hydra-core = ">=1.2.0,<2.0.0"
 jinja2 = ">=2.11.3,<3.0.0"
 markupsafe = "<=2.0.1"
 typing-inspect = ">=0.7.1,<0.8.0"
@@ -678,7 +678,7 @@ wandb = ["wandb", "pandas"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.1,<3.11"
-content-hash = "2b6bb468d4146d643981288dec66d94618455a866bf04d3dd5b6b66d5738b29a"
+content-hash = "cfea1a40672c79fa1e2c5b361b8b47c8b068cfcaf0194520075d892bda7d66e4"
 
 [metadata.files]
 antlr4-python3-runtime = [
@@ -853,8 +853,8 @@ mypy-extensions = [
     {file = "mypy_extensions-0.4.3.tar.gz", hash = "sha256:2d82818f5bb3e369420cb3c4060a7970edba416647068eb4c5343488a6c604a8"},
 ]
 neoconfigen = [
-    {file = "neoconfigen-2.1.4-py3-none-any.whl", hash = "sha256:2acf40675f97ff7fe619263eb439a99d8846dabc2efdc26987eb6e06cffd8d8c"},
-    {file = "neoconfigen-2.1.4.tar.gz", hash = "sha256:423a37f9e4d201f99eaba4ebd48303687bbcc18f0a9616e0596a543ffd2d4c0e"},
+    {file = "neoconfigen-2.2.0-py3-none-any.whl", hash = "sha256:bd5f2f474e519296a0158e1de595608876208238e7e4e542014eec25d0798730"},
+    {file = "neoconfigen-2.2.0.tar.gz", hash = "sha256:a1d0aea9156b16b04767cff0608598c146d4c0924bae36a3184f1f05ea2fea88"},
 ]
 numpy = [
     {file = "numpy-1.21.6-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:8737609c3bbdd48e380d463134a35ffad3b22dc56295eff6f79fd85bd0eeeb25"},
