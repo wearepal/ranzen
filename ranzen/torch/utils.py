@@ -2,13 +2,14 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from datetime import datetime
 import random
-from typing import Any, TypeVar
+from typing import Any, List, TypeVar
 
 import numpy as np
 import torch
 import torch.nn as nn
+from torch import Tensor
 
-__all__ = ["count_parameters", "random_seed", "inf_generator", "Event"]
+__all__ = ["count_parameters", "random_seed", "inf_generator", "Event", "batchwise_pdist"]
 
 
 def count_parameters(model: nn.Module) -> int:
@@ -90,3 +91,38 @@ class Event:
 
     def __repr__(self) -> str:
         return f"Event of duration: {self.time}"
+
+
+def batchwise_pdist(x: Tensor, chunk_size: int = 1000, p_norm: float = 2.0) -> Tensor:
+    """Compute pair-wise distance in batches.
+
+    This is sometimes necessary because if you compute pdist directly, it doesn't fit into memory.
+
+    :param x: Tensor of shape (N, F) where F is the number of features.
+    :param chunk_size: Size of the chunks that are used to compute the pair-wise distance. Larger
+        chunk size is probably faster, but may not fit into memory.
+    :param p_norm: Which norm to use for the distance. Euclidean norm by default.
+    :returns: All pair-wise distances in a tensor of shape (N, N).
+    """
+    chunks = torch.split(x, chunk_size)
+
+    columns: List[Tensor] = []
+    for chunk in chunks:
+        shards = [torch.cdist(chunk, other_chunk, p_norm) for other_chunk in chunks]
+        column = torch.cat(shards, dim=1)
+        # the result has to be moved to the CPU; otherwise we'll run out of GPU memory
+        columns.append(column.cpu())
+
+        # free up memory
+        for shard in shards:
+            del shard
+        del column
+        torch.cuda.empty_cache()
+
+    dist = torch.cat(columns, dim=0)
+
+    # free up memory
+    for column in columns:
+        del column
+    torch.cuda.empty_cache()
+    return dist
