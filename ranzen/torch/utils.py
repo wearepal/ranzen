@@ -6,8 +6,8 @@ from typing import Any, List, TypeVar
 
 import numpy as np
 import torch
-import torch.nn as nn
 from torch import Tensor
+import torch.nn as nn
 
 __all__ = ["count_parameters", "random_seed", "inf_generator", "Event", "batchwise_pdist"]
 
