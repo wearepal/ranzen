@@ -86,3 +86,18 @@ def test_enum_str() -> None:
     for stage in Stage:
         assert f"{stage}" == stage.name
         assert f"{stage!r}" == f"Stage.{stage.name}"
+
+
+@enum_name_str
+class MixedCase(Enum):
+    """An enum with mixed case values."""
+
+    ViT_L14 = auto()
+    all_lower = auto()
+    ALL_UPPER = auto()
+
+
+def test_mixed_case_enum_str() -> None:
+    for el in MixedCase:
+        assert f"{el}" == el.name
+        assert f"{el!r}" == f"MixedCase.{el.name}"

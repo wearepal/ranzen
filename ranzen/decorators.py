@@ -46,7 +46,7 @@ def enum_name_str(enum_class: type[E]) -> type[E]:
     enum_class.__repr__ = enum_class.__str__
 
     def __str__(self: Enum) -> str:
-        return self.name.lower()
+        return self.name
 
     enum_class.__str__ = __str__  # type: ignore
     return enum_class
