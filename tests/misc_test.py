@@ -1,7 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from enum import auto
 
-from ranzen import flatten_dict, gcopy
+from ranzen import StrEnum, flatten_dict, gcopy
 
 
 def test_flatten_dict() -> None:
@@ -31,3 +32,16 @@ def test_gcopy() -> None:
     for obj in obj_dcps:
         assert obj.value != obj_scp.value
         assert obj.ls[0] != obj_scp.ls[0]
+
+
+def test_strenum() -> None:
+    class _Things(StrEnum):
+        POTATO = auto()
+        ORANGE = auto()
+        SPADE = auto()
+
+    for thing in _Things:
+        assert thing.value == thing.name.lower()
+
+        assert f"{thing}" == thing.name.lower()
+        assert f"{thing!r}" == f"<_Things.{thing.name}: '{thing.value}'>"
