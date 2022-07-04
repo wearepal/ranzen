@@ -625,7 +625,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "wandb"
-version = "0.12.19"
+version = "0.12.20"
 description = "A CLI and library for interacting with the Weights and Biases API."
 category = "main"
 optional = true
@@ -1219,8 +1219,8 @@ urllib3 = [
     {file = "urllib3-1.26.9.tar.gz", hash = "sha256:aabaf16477806a5e1dd19aa41f8c2b7950dd3c746362d7e3223dbe6de6ac448e"},
 ]
 wandb = [
-    {file = "wandb-0.12.19-py2.py3-none-any.whl", hash = "sha256:ff344e35a31a0d6ccfccaf0390895e4267392f994e395d16b348d7d2b2f67a18"},
-    {file = "wandb-0.12.19.tar.gz", hash = "sha256:72c54a918e2453ffa661934faf6c3c8b39269423daba0999b9919bcaef3ae320"},
+    {file = "wandb-0.12.20-py2.py3-none-any.whl", hash = "sha256:43108f79c045e163f9dc8a96472bf18ae6b7916ccea2fb2a51dd5f2926ea0eb8"},
+    {file = "wandb-0.12.20.tar.gz", hash = "sha256:a752cf69e7ed142a8386a98ed4e43f754380290c06f01fa32b60fbbeb1ea0d7f"},
 ]
 zipp = [
     {file = "zipp-3.8.0-py3-none-any.whl", hash = "sha256:c4f6e5bbf48e74f7a38e7cc5b0480ff42b0ae5178957d564d18932525d5cf099"},
