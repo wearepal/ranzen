@@ -14,10 +14,6 @@ class Sized(Protocol[T_co]):
         ...
 
 
-_KT = TypeVar("_KT")
-_VT = TypeVar("_VT")
-
-
 @runtime_checkable
 class Addable(Protocol[T_co]):
     def __add__(self, other: Self) -> Self:
