@@ -89,14 +89,16 @@ class CosineLRWithLinearWarmup(_LRScheduler):
         last_epoch: int = -1,
     ) -> None:
         """
-        :param: optimizer (Optimizer): Wrapped optimizer.
-        :param warmup_steps: Maximum number of iterations for linear warmup.
+        :param optimizer: Optimizer whose parameter groups are to be scheduled.
+        :param warmup_iters: Maximum number of iterations for linear warmup.
             Float values are interpreted as a fraction of ``total_iters``.
 
         :param total_iters: Total number of iterations.
-        :param lr_state: Learning rate at the beginning of linear warmup.
+        :param lr_start: Learning rate at the beginning of linear warmup.
         :param lr_min: Minimum learning rate permitted with cosine annealing.
-        :param last_step: The index of the last epoch.
+        :param last_epoch: The index of the last epoch.
+
+        :raises AttributeError: If warmup_iters is a float and not in the range [0, 1].
         """
         self.total_iters = total_iters
         self.lr_start = lr_start
