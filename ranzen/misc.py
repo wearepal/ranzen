@@ -202,7 +202,7 @@ class AddDict(Dict[_KT, _VT], Addable):
         other: int | dict[_KT, _VT],
     ) -> Self | AddDict[_KT, _VT | list[_VT]]:
         # Allow ``other`` to be an integer, but specifying the identity function, for compatibility
-        # with # the 'no-default' version of``sum``.
+        # with th 'no-default' version of``sum``.
         if isinstance(other, int):
             return self
         copy: AddDict[_KT, Union[_VT, list[_VT]]] = AddDict()
