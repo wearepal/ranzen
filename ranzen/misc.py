@@ -1,9 +1,19 @@
 from __future__ import annotations
 import copy
 from enum import Enum
-from typing import Any, MutableMapping, TypeVar, overload
+from typing import Any, Dict, MutableMapping, TypeVar, Union, overload
 
-__all__ = ["StrEnum", "flatten_dict", "gcopy", "str_to_enum"]
+from typing_extensions import Self
+
+from ranzen.types import Addable
+
+__all__ = [
+    "AddDict",
+    "StrEnum",
+    "flatten_dict",
+    "gcopy",
+    "str_to_enum",
+]
 
 
 def flatten_dict(
@@ -147,3 +157,52 @@ except ImportError:
             Return the lower-cased version of the member name.
             """
             return name.lower()
+
+
+_KT = TypeVar("_KT")
+_VT = TypeVar("_VT")
+
+
+class AddDict(Dict[_KT, _VT], Addable):
+    """
+    Extension of the built-in dictionary class that supports use of the ``__add__`` operator for
+    merging its values with those of other dictionaries. Note that, for the sake of simplicity,
+    addition requires both dictionaries to be of the same generic type. Values that do not have an
+    ``__add__`` operator defined, either in general or with respect to the other value, will be
+    merged into a list
+
+    :example:
+
+    .. code-block:: python
+        # Simple case of addition of integers.
+        d1 = AddDict({"foo": 1, "bar": 2})
+        d2 = {"foo": 3, "bar": 4}
+        d1 + d2 # {'foo': 4, 'bar': 6}
+
+        # ... Concatenation of lists
+        d3 = AddDict({"foo": [1], "bar": [2]})
+        d4 = {"foo": [3, 4], "bar": 4}
+        d3 + d4 # {'foo': [1, 3, 4], 'bar': [2, 4]}
+    """
+
+    def __add__(self: Self, other: dict[_KT, _VT]) -> dict[_KT, Union[_VT, list[_VT]]]:
+        copy: AddDict[_KT, Union[_VT, list[_VT]]] = AddDict()
+        copy.update(gcopy(self, deep=False))
+        for key_o, value_o in other.items():
+            if key_o in self:
+                value_s = self[key_o]
+                if isinstance(value_s, Addable) and isinstance(value_o, Addable):
+                    try:
+                        copy[key_o] = value_s + value_o
+                    except TypeError:
+                        copy[key_o] = [value_s, value_o]
+                else:
+                    copy[key_o] = [value_s, value_o]
+            else:
+                copy[key_o] = value_o
+        return copy
+
+    def __radd__(
+        self: Self, other: Union[Self, dict[_KT, _VT]]
+    ) -> dict[_KT, Union[_VT, list[_VT]]]:
+        return self + other
