@@ -1,7 +1,9 @@
 from __future__ import annotations
 import copy
 from enum import Enum
-from typing import Any, Dict, MutableMapping, TypeVar, Union, overload
+import functools
+import operator
+from typing import Any, Dict, Iterable, MutableMapping, TypeVar, Union, overload
 
 from typing_extensions import Self
 
@@ -12,6 +14,7 @@ __all__ = [
     "StrEnum",
     "flatten_dict",
     "gcopy",
+    "reduce_add",
     "str_to_enum",
 ]
 
@@ -227,3 +230,18 @@ class AddDict(Dict[_KT, _VT], Addable):
 
     def __radd__(self: Self, other: int | dict[_KT, _VT]) -> Self | AddDict[_KT, _VT | list[_VT]]:
         return self + other
+
+
+A = TypeVar("A", bound=Addable)
+
+
+def reduce_add(__iterable: Iterable[A]) -> A:
+    """
+    Sum an iterable using functools.reduce and operator.add rather than the built-in sum operator
+    to bypass need to specify an initial value or have the elements ``__add__`` operator be
+    compatible with integers (0 being the default initial value).
+
+    :param __iterable: An iterable of addable instances, all of the same type (invariant).
+    :returns: The sum of all elements in ``__iterable``.
+    """
+    return functools.reduce(operator.add, __iterable)
