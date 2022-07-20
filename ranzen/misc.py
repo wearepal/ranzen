@@ -235,13 +235,13 @@ class AddDict(Dict[_KT, _VT], Addable):
 A = TypeVar("A", bound=Addable)
 
 
-def reduce_add(__iterable: Iterable[A]) -> A:
+def reduce_add(sequence: Iterable[A]) -> A:
     """
     Sum an iterable using functools.reduce and operator.add rather than the built-in sum operator
     to bypass need to specify an initial value or have the elements ``__add__`` operator be
     compatible with integers (0 being the default initial value).
 
-    :param __iterable: An iterable of addable instances, all of the same type (invariant).
+    :param sequence: An iterable of addable instances, all of the same type (invariant).
     :returns: The sum of all elements in ``__iterable``.
     """
-    return functools.reduce(operator.add, __iterable)
+    return functools.reduce(operator.add, sequence)
