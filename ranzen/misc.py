@@ -210,7 +210,7 @@ class AddDict(Dict[_KT, _VT], Addable):
 
         def _fallback(x1: _VT, x2: _VT) -> list[_VT]:
             if isinstance(x1, list):
-                return x1 + [x2] 
+                return x1 + [x2]
             elif isinstance(x2, list):
                 return x2 + [x1]
             return [x1, x2]
@@ -219,10 +219,11 @@ class AddDict(Dict[_KT, _VT], Addable):
             if key_o in self:
                 value_s = self[key_o]
                 if isinstance(value_s, Addable) and isinstance(value_o, Addable):
-                    # Values are mutually addable.
                     try:
+                        # Values are mutually addable (but not necessarily of the same type).
                         copy[key_o] = value_s + value_o
                     except TypeError:
+                        # Values are not mutually addable.
                         copy[key_o] = _fallback(value_s, value_o)
                 else:
                     copy[key_o] = _fallback(value_s, value_o)
