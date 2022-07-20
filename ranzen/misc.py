@@ -176,15 +176,17 @@ class AddDict(Dict[_KT, _VT], Addable):
 
     :example:
 
-    >>> # Simple case of addition of integers.
-    >>> d1 = AddDict({"foo": 1, "bar": 2})
-    >>> d2 = {"foo": 3, "bar": 4}
-    >>> d1 + d2 # {'foo': 4, 'bar': 6}
+    .. code-block:: python
 
-    >>> # Concatenation of lists
-    >>> d3 = AddDict({"foo": [1], "bar": [2]})
-    >>> d4 = {"foo": [3, 4], "bar": [4]}
-    >>> d3 + d4 # {'foo': [1, 3, 4], 'bar': [2, 4]}
+        # Simple case of addition of integers.
+        d1 = AddDict({"foo": 1, "bar": 2})
+        d2 = {"foo": 3, "bar": 4}
+        d1 + d2 # {'foo': 4, 'bar': 6}
+
+        # Concatenation of lists
+        d3 = AddDict({"foo": [1], "bar": [2]})
+        d4 = {"foo": [3, 4], "bar": 4}
+        d3 + d4 # {'foo': [1, 3, 4], 'bar': [2, 4]}
     """
 
     @overload
