@@ -207,16 +207,25 @@ class AddDict(Dict[_KT, _VT], Addable):
             return self
         copy: AddDict[_KT, Union[_VT, list[_VT]]] = AddDict()
         copy.update(gcopy(self, deep=False))
+
+        def _fallback(x1: _VT, x2: _VT) -> list[_VT]:
+            if isinstance(x1, list):
+                return x1 + [x2] 
+            elif isinstance(x2, list):
+                return x2 + [x1]
+            return [x1, x2]
+
         for key_o, value_o in other.items():
             if key_o in self:
                 value_s = self[key_o]
                 if isinstance(value_s, Addable) and isinstance(value_o, Addable):
+                    # Values are mutually addable.
                     try:
                         copy[key_o] = value_s + value_o
                     except TypeError:
-                        copy[key_o] = [value_s, value_o]
+                        copy[key_o] = _fallback(value_s, value_o)
                 else:
-                    copy[key_o] = [value_s, value_o]
+                    copy[key_o] = _fallback(value_s, value_o)
             else:
                 copy[key_o] = value_o
         return copy
