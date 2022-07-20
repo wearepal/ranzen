@@ -119,8 +119,8 @@ class CosineLRWithLinearWarmup(_LRScheduler):
     def scheduler(self) -> Union[LinearWarmupLR, CosineAnnealingLR]:
         """
         The scheduler currently in use, as determined by the curren step. If the current stepe
-        exceeds the number of warmup iterations, then the cosin scheduler will be returned, else
-        the learning-warmup scheduler.
+        exceeds the number of warmup iterations, then the cosine scheduler will be returned, else
+        the learning-warmup scheduler will be.
 
         :returns: The learning-rate scheduler currently in use.
         """
