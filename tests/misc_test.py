@@ -51,6 +51,7 @@ def test_adddict() -> None:
     d1 = AddDict({"foo": 1, "bar": 2})
     d2 = AddDict({"foo": 3, "bar": 4})
     d12 = d1 + d2
+    assert sum([d1, d2]) == d12
     assert d12["foo"] == d1["foo"] + d2["foo"]
     assert d12["bar"] == d1["bar"] + d2["bar"]
 

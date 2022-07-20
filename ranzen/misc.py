@@ -185,7 +185,22 @@ class AddDict(Dict[_KT, _VT], Addable):
         d3 + d4 # {'foo': [1, 3, 4], 'bar': [2, 4]}
     """
 
-    def __add__(self: Self, other: dict[_KT, _VT]) -> dict[_KT, Union[_VT, list[_VT]]]:
+    @overload
+    def __add__(self: Self, other: int) -> Self:
+        ...
+
+    @overload
+    def __add__(self: Self, other: dict[_KT, _VT]) -> AddDict[_KT, _VT | list[_VT]]:
+        ...
+
+    def __add__(
+        self: Self,
+        other: int | dict[_KT, _VT],
+    ) -> Self | AddDict[_KT, _VT | list[_VT]]:
+        # Allow ``other`` to be an integer, but specifying the identity function, for compatibility
+        # with # the 'no-default' version of``sum``.
+        if isinstance(other, int):
+            return self
         copy: AddDict[_KT, Union[_VT, list[_VT]]] = AddDict()
         copy.update(gcopy(self, deep=False))
         for key_o, value_o in other.items():
@@ -202,7 +217,13 @@ class AddDict(Dict[_KT, _VT], Addable):
                 copy[key_o] = value_o
         return copy
 
-    def __radd__(
-        self: Self, other: Union[Self, dict[_KT, _VT]]
-    ) -> dict[_KT, Union[_VT, list[_VT]]]:
+    @overload
+    def __radd__(self: Self, other: int) -> Self:
+        ...
+
+    @overload
+    def __radd__(self: Self, other: dict[_KT, _VT]) -> AddDict[_KT, _VT | list[_VT]]:
+        ...
+
+    def __radd__(self: Self, other: int | dict[_KT, _VT]) -> Self | AddDict[_KT, _VT | list[_VT]]:
         return self + other
