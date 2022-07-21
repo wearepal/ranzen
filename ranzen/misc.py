@@ -169,11 +169,8 @@ _VT2 = TypeVar("_VT2", bound=Addable)
 
 class AddDict(Dict[_KT, _VT], Addable):
     """
-    Extension of the built-in dictionary class that supports use of the ``__add__`` operator for
-    merging its values with those of other dictionaries. Note that, for the sake of simplicity,
-    addition requires both dictionaries to be of the same generic type. Values that do not have an
-    ``__add__`` operator defined, either in general or with respect to the other value, will be
-    merged into a list
+    Extension of the built-in dictionary class that supports the use of the ``__add__`` operator for
+    key-wise addition.
 
     :example:
 
