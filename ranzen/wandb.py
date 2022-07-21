@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Sequence
 
-import pandas as pd  # type: ignore
+import pandas as pd
 import wandb
 
 
