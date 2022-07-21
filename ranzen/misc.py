@@ -3,7 +3,7 @@ import copy
 from enum import Enum
 import functools
 import operator
-from typing import Any, Dict, Iterable, MutableMapping, TypeVar, Union, overload
+from typing import Any, Dict, Iterable, MutableMapping, TypeVar, overload
 
 from typing_extensions import Self
 
@@ -163,7 +163,8 @@ except ImportError:
 
 
 _KT = TypeVar("_KT")
-_VT = TypeVar("_VT")
+_VT = TypeVar("_VT", bound=Addable)
+_VT2 = TypeVar("_VT2", bound=Addable)
 
 
 class AddDict(Dict[_KT, _VT], Addable):
@@ -190,57 +191,67 @@ class AddDict(Dict[_KT, _VT], Addable):
     """
 
     @overload
-    def __add__(self: Self, other: int) -> Self:
+    def __add__(
+        self: Self,
+        other: int,
+    ) -> Self:
         ...
 
     @overload
-    def __add__(self: Self, other: dict[_KT, _VT]) -> AddDict[_KT, _VT | list[_VT]]:
+    def __add__(
+        self: Self,
+        other: dict[_KT, _VT2],
+    ) -> AddDict[_KT, _VT | _VT2]:
         ...
 
     def __add__(
         self: Self,
-        other: int | dict[_KT, _VT],
-    ) -> Self | AddDict[_KT, _VT | list[_VT]]:
+        other: int | Self | dict[_KT, _VT2],
+    ) -> Self | AddDict[_KT, _VT | _VT2]:
         # Allow ``other`` to be an integer, but specifying the identity function, for compatibility
         # with th 'no-default' version of``sum``.
         if isinstance(other, int):
             return self
-        copy: AddDict[_KT, Union[_VT, list[_VT]]] = AddDict()
+        copy: AddDict[_KT, _VT | _VT2] = AddDict()
         copy.update(gcopy(self, deep=False))
 
-        def _fallback(x1: _VT, x2: _VT) -> list[_VT]:
-            if isinstance(x1, list):
-                return x1 + [x2]
-            elif isinstance(x2, list):
-                return x2 + [x1]
-            return [x1, x2]
-
         for key_o, value_o in other.items():
+            if not isinstance(value_o, Addable):
+                raise TypeError(f"Value of type '{type(value_o)}' is not addable.")
             if key_o in self:
                 value_s = self[key_o]
-                if isinstance(value_s, Addable) and isinstance(value_o, Addable):
-                    try:
-                        # Values are mutually addable (but not necessarily of the same type).
-                        copy[key_o] = value_s + value_o
-                    except TypeError:
-                        # Values are not mutually addable.
-                        copy[key_o] = _fallback(value_s, value_o)
-                else:
-                    copy[key_o] = _fallback(value_s, value_o)
+                if not isinstance(value_s, Addable):
+                    raise TypeError(f"Value of type '{type(value_s)}' is not addable.")
+                # if isinstance(value_s, Addable) and isinstance(value_o, Addable):
+                try:
+                    # Values are mutually addable (but not necessarily of the same type).
+                    copy[key_o] = value_s + value_o
+                except TypeError as e:
+                    msg = (
+                        f"Values of type '{type(value_s)}' and '{type(value_o)}' for key "
+                        "'{key_o}' are not mutuablly addable."
+                    )
+                    raise Exception(msg) from e
             else:
                 copy[key_o] = value_o
         return copy
 
     @overload
-    def __radd__(self: Self, other: int) -> Self:
+    def __radd__(
+        self: Self,
+        other: int,
+    ) -> Self:
         ...
 
     @overload
-    def __radd__(self: Self, other: dict[_KT, _VT]) -> AddDict[_KT, _VT | list[_VT]]:
+    def __radd__(
+        self: Self,
+        other: dict[_KT, _VT2],
+    ) -> AddDict[_KT, _VT | _VT2]:
         ...
 
-    def __radd__(self: Self, other: int | dict[_KT, _VT]) -> Self | AddDict[_KT, _VT | list[_VT]]:
-        return self + other
+    def __radd__(self: Self, other: int | dict[_KT, _VT2]) -> Self | AddDict[_KT, _VT | _VT2]:
+        ...
 
 
 A = TypeVar("A", bound=Addable)
