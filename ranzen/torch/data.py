@@ -21,12 +21,12 @@ from typing import (
 
 import numpy as np
 import numpy.typing as npt
-
-from ranzen import implements
-from ranzen.misc import str_to_enum
 import torch
 from torch import Tensor
 from torch.utils.data import Sampler
+
+from ranzen import implements
+from ranzen.misc import str_to_enum
 
 __all__ = [
     "BatchSamplerBase",
