@@ -2,7 +2,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import auto
 
-from ranzen import StrEnum, flatten_dict, gcopy
+import pytest
+
+from ranzen import AddDict, StrEnum, flatten_dict, gcopy
 
 
 def test_flatten_dict() -> None:
@@ -45,3 +47,20 @@ def test_strenum() -> None:
 
         assert f"{thing}" == thing.name.lower()
         assert f"{thing!r}" == f"<_Things.{thing.name}: '{thing.value}'>"
+
+
+def test_adddict() -> None:
+    d1 = AddDict({"foo": 1, "bar": 2})
+    d2 = AddDict({"foo": 3, "bar": 4})
+    d12 = d1 + d2
+    assert sum([d1, d2]) == d12
+    assert d12["foo"] == d1["foo"] + d2["foo"]
+    assert d12["bar"] == d1["bar"] + d2["bar"]
+
+    d3 = AddDict({"foo": [1], "bar": [2]})
+    d4 = {"foo": [3, 4], "bar": [4]}
+    d34 = d3 + d4
+    assert d34["foo"] == d3["foo"] + d4["foo"]
+    assert d34["bar"] == d3["bar"] + d4["bar"]
+    with pytest.raises(TypeError):
+        d1 += d3

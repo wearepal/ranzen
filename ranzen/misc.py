@@ -1,9 +1,22 @@
 from __future__ import annotations
 import copy
 from enum import Enum
-from typing import Any, MutableMapping, TypeVar, overload
+import functools
+import operator
+from typing import Any, Dict, Iterable, MutableMapping, TypeVar, overload
 
-__all__ = ["StrEnum", "flatten_dict", "gcopy", "str_to_enum"]
+from typing_extensions import Self
+
+from ranzen.types import Addable
+
+__all__ = [
+    "AddDict",
+    "StrEnum",
+    "flatten_dict",
+    "gcopy",
+    "reduce_add",
+    "str_to_enum",
+]
 
 
 def flatten_dict(
@@ -147,3 +160,109 @@ except ImportError:
             Return the lower-cased version of the member name.
             """
             return name.lower()
+
+
+_KT = TypeVar("_KT")
+_VT = TypeVar("_VT", bound=Addable)
+_VT2 = TypeVar("_VT2", bound=Addable)
+
+
+class AddDict(Dict[_KT, _VT], Addable):
+    """
+    Extension of the built-in dictionary class that supports use of the ``__add__`` operator for
+    merging its values with those of other dictionaries. Note that, for the sake of simplicity,
+    addition requires both dictionaries to be of the same generic type. Values that do not have an
+    ``__add__`` operator defined, either in general or with respect to the other value, will be
+    merged into a list
+
+    :example:
+
+    .. code-block:: python
+
+        # Simple case of addition of integers.
+        d1 = AddDict({"foo": 1, "bar": 2})
+        d2 = {"foo": 3, "bar": 4}
+        d1 + d2 # {'foo': 4, 'bar': 6}
+
+        # Concatenation of lists
+        d3 = AddDict({"foo": [1], "bar": [2]})
+        d4 = {"foo": [3, 4], "bar": 4}
+        d3 + d4 # {'foo': [1, 3, 4], 'bar': [2, 4]}
+    """
+
+    @overload
+    def __add__(
+        self: Self,
+        other: int,
+    ) -> Self:
+        ...
+
+    @overload
+    def __add__(
+        self: Self,
+        other: dict[_KT, _VT2],
+    ) -> AddDict[_KT, _VT | _VT2]:
+        ...
+
+    def __add__(
+        self: Self,
+        other: int | dict[_KT, _VT2],
+    ) -> Self | AddDict[_KT, _VT | _VT2]:
+        # Allow ``other`` to be an integer, but specifying the identity function, for compatibility
+        # with th 'no-default' version of``sum``.
+        if isinstance(other, int):
+            return self
+        copy = AddDict()
+        copy.update(gcopy(self, deep=False))
+
+        for key_o, value_o in other.items():
+            if not isinstance(value_o, Addable):
+                raise TypeError(f"Value of type '{type(value_o)}' is not addable.")
+            if key_o in self:
+                value_s = self[key_o]
+                if not isinstance(value_s, Addable):
+                    raise TypeError(f"Value of type '{type(value_s)}' is not addable.")
+                try:
+                    # Values are mutually addable (but not necessarily of the same type).
+                    copy[key_o] = value_s + value_o
+                except TypeError as e:
+                    msg = (
+                        f"Values of type '{type(value_s)}' and '{type(value_o)}' for key "
+                        f"'{key_o}' are not mutuablly addable."
+                    )
+                    raise TypeError(msg) from e
+            else:
+                copy[key_o] = value_o
+        return copy
+
+    @overload
+    def __radd__(
+        self: Self,
+        other: int,
+    ) -> Self:
+        ...
+
+    @overload
+    def __radd__(
+        self: Self,
+        other: dict[_KT, _VT2],
+    ) -> AddDict[_KT, _VT | _VT2]:
+        ...
+
+    def __radd__(self: Self, other: int | dict[_KT, _VT2]) -> Self | AddDict[_KT, _VT | _VT2]:
+        return self + other
+
+
+A = TypeVar("A", bound=Addable)
+
+
+def reduce_add(sequence: Iterable[A]) -> A:
+    """
+    Sum an iterable using functools.reduce and operator.add rather than the built-in sum operator
+    to bypass need to specify an initial value or have the elements ``__add__`` operator be
+    compatible with integers (0 being the default initial value).
+
+    :param sequence: An iterable of addable instances, all of the same type (invariant).
+    :returns: The sum of all elements in ``__iterable``.
+    """
+    return functools.reduce(operator.add, sequence)
