@@ -16,5 +16,5 @@ class Sized(Protocol[T_co]):
 
 @runtime_checkable
 class Addable(Protocol[T_co]):
-    def __add__(self, __x: Self) -> Self:
+    def __add__(self, other: Self, /) -> Self:
         ...

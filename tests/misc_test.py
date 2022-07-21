@@ -2,6 +2,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import auto
 
+import pytest
+
 from ranzen import AddDict, StrEnum, flatten_dict, gcopy
 
 
@@ -60,3 +62,5 @@ def test_adddict() -> None:
     d34 = d3 + d4
     assert d34["foo"] == d3["foo"] + d4["foo"]
     assert d34["bar"] == d3["bar"] + d4["bar"]
+    with pytest.raises(TypeError):
+        d1 += d3

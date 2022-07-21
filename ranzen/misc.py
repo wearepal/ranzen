@@ -206,13 +206,13 @@ class AddDict(Dict[_KT, _VT], Addable):
 
     def __add__(
         self: Self,
-        other: int | Self | dict[_KT, _VT2],
+        other: int | dict[_KT, _VT2],
     ) -> Self | AddDict[_KT, _VT | _VT2]:
         # Allow ``other`` to be an integer, but specifying the identity function, for compatibility
         # with th 'no-default' version of``sum``.
         if isinstance(other, int):
             return self
-        copy: AddDict[_KT, _VT | _VT2] = AddDict()
+        copy = AddDict()
         copy.update(gcopy(self, deep=False))
 
         for key_o, value_o in other.items():
@@ -222,16 +222,15 @@ class AddDict(Dict[_KT, _VT], Addable):
                 value_s = self[key_o]
                 if not isinstance(value_s, Addable):
                     raise TypeError(f"Value of type '{type(value_s)}' is not addable.")
-                # if isinstance(value_s, Addable) and isinstance(value_o, Addable):
                 try:
                     # Values are mutually addable (but not necessarily of the same type).
                     copy[key_o] = value_s + value_o
                 except TypeError as e:
                     msg = (
                         f"Values of type '{type(value_s)}' and '{type(value_o)}' for key "
-                        "'{key_o}' are not mutuablly addable."
+                        f"'{key_o}' are not mutuablly addable."
                     )
-                    raise Exception(msg) from e
+                    raise TypeError(msg) from e
             else:
                 copy[key_o] = value_o
         return copy
@@ -251,7 +250,7 @@ class AddDict(Dict[_KT, _VT], Addable):
         ...
 
     def __radd__(self: Self, other: int | dict[_KT, _VT2]) -> Self | AddDict[_KT, _VT | _VT2]:
-        ...
+        return self + other
 
 
 A = TypeVar("A", bound=Addable)
