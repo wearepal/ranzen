@@ -387,13 +387,13 @@ class Relay:
         Plugins().plugin_type_to_subclass_list[SearchPathPlugin].append(RelayPlugin)
 
         @hydra.main(config_path=None, config_name=cls._CONFIG_NAME, version_base=None)
-        def launcher(cfg: Any) -> None:
+        def launcher(cfg: Any) -> Any:
             relay: cls = instantiate(cfg, _recursive_=instantiate_recursively)
             config_dict = cast(
                 Dict[str, Any],
                 OmegaConf.to_container(cfg, throw_on_missing=True, enum_to_str=False),
             )
-            relay.run(config_dict)
+            return relay.run(config_dict)
 
         launcher()
 
@@ -426,7 +426,7 @@ class Relay:
         )
 
     @abstractmethod
-    def run(self, raw_config: dict[str, Any] | None = None) -> None:
+    def run(self, raw_config: dict[str, Any] | None = None) -> Any:
         """Run the relay.
         :param raw_config: Dictionary containing the configuration used to instantiate the relay.
         """

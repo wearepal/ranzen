@@ -26,6 +26,7 @@ from ranzen import implements
 from ranzen.misc import str_to_enum
 
 __all__ = [
+    "BatchSamplerBase",
     "GreedyCoreSetSampler",
     "SequentialBatchSampler",
     "SizedDataset",
