@@ -1,13 +1,12 @@
 from __future__ import annotations
-from typing import cast
+from typing import Final, Literal, cast
 
 import pytest
+
+from ranzen.torch.transforms import MixUpMode, RandomMixUp
 import torch
 from torch import Tensor
 import torch.nn.functional as F
-from typing_extensions import Final, Literal
-
-from ranzen.torch.transforms import MixUpMode, RandomMixUp
 
 BATCH_SIZE: Final[int] = 20
 NUM_CLASSES: Final[int] = 5

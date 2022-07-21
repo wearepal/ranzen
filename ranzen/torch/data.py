@@ -5,25 +5,28 @@ from enum import Enum, auto
 import math
 from typing import (
     Any,
+    Final,
     Generic,
     Iterator,
     List,
+    Literal,
+    Protocol,
     Sequence,
     Sized,
     TypeVar,
     cast,
     overload,
+    runtime_checkable,
 )
 
 import numpy as np
 import numpy.typing as npt
-import torch
-from torch import Tensor
-from torch.utils.data import Sampler
-from typing_extensions import Final, Literal, Protocol, runtime_checkable
 
 from ranzen import implements
 from ranzen.misc import str_to_enum
+import torch
+from torch import Tensor
+from torch.utils.data import Sampler
 
 __all__ = [
     "BatchSamplerBase",
