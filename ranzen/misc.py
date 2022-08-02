@@ -113,10 +113,10 @@ def str_to_enum(str_: str | E, *, enum: type[E]) -> E:
         )
 
 
-try:
+if sys.version_info >= (3, 11):
     # will be available in python 3.11
     from enum import StrEnum  # type: ignore
-except ImportError:
+else:
     #
     # the following is copied straight from https://github.com/python/cpython/blob/3.11/Lib/enum.py
     #
