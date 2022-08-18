@@ -16,7 +16,7 @@ changelog:
     - title: Bug fixes 🐞
       labels:
         - bugfix
-    - title: Documentation improvements ✍️
+    - title: Documentation improvements 🪶
       labels:
         - documentation
     - title: Other Changes ⚔️
