@@ -8,3 +8,4 @@ updates:
     # Check the pypi registry for updates every week
     schedule:
       interval: "weekly"
+    versioning-strategy: lockfile-only
