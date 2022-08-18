@@ -3,6 +3,7 @@ import copy
 from enum import Enum
 import functools
 import operator
+import sys
 from typing import Any, Dict, Iterable, MutableMapping, TypeVar, overload
 
 from typing_extensions import Self
@@ -113,10 +114,10 @@ def str_to_enum(str_: str | E, *, enum: type[E]) -> E:
         )
 
 
-try:
+if sys.version_info >= (3, 11):
     # will be available in python 3.11
     from enum import StrEnum  # type: ignore
-except ImportError:
+else:
     #
     # the following is copied straight from https://github.com/python/cpython/blob/3.11/Lib/enum.py
     #
@@ -169,11 +170,8 @@ _VT2 = TypeVar("_VT2", bound=Addable)
 
 class AddDict(Dict[_KT, _VT], Addable):
     """
-    Extension of the built-in dictionary class that supports use of the ``__add__`` operator for
-    merging its values with those of other dictionaries. Note that, for the sake of simplicity,
-    addition requires both dictionaries to be of the same generic type. Values that do not have an
-    ``__add__`` operator defined, either in general or with respect to the other value, will be
-    merged into a list
+    Extension of the built-in dictionary class that supports the use of the ``__add__`` operator for
+    key-wise addition.
 
     :example:
 

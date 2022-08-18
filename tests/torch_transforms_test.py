@@ -1,11 +1,10 @@
 from __future__ import annotations
-from typing import cast
+from typing import Final, Literal, cast
 
 import pytest
 import torch
 from torch import Tensor
 import torch.nn.functional as F
-from typing_extensions import Final, Literal
 
 from ranzen.torch.transforms import MixUpMode, RandomMixUp
 
