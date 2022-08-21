@@ -4,7 +4,7 @@ from enum import Enum
 import functools
 import operator
 import sys
-from typing import Any, Dict, Iterable, MutableMapping, TypeVar, overload
+from typing import Any, Dict, Iterable, MutableMapping, Type, TypeVar, overload
 
 from typing_extensions import Self
 
@@ -130,12 +130,16 @@ else:
         Only changes the repr(), leaving str() and format() to the mixed-in type.
         """
 
+    _S = TypeVar("_S", bound="StrEnum")
+
     class StrEnum(str, ReprEnum):
         """
         Enum where members are also (and must be) strings
         """
 
-        def __new__(cls, *values):
+        _value_: str
+
+        def __new__(cls: Type[_S], *values: str) -> _S:
             "values must already be of type `str`"
             if len(values) > 3:
                 raise TypeError("too many arguments for str(): %r" % (values,))
@@ -156,7 +160,9 @@ else:
             member._value_ = value
             return member
 
-        def _generate_next_value_(name: str, start: int, count: int, last_values: list[Any]):
+        __str__ = str.__str__  # type: ignore
+
+        def _generate_next_value_(name: str, start: int, count: int, last_values: list[str]) -> str:
             """
             Return the lower-cased version of the member name.
             """

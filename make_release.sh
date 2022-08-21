@@ -115,8 +115,7 @@ echo "#      go back to main branch         #"
 echo "#######################################"
 git checkout main
 
-echo "#####################################################"
-echo "#               all done! now go to                 #"
-echo "# https://github.com/predictive-analytics-lab/ranzen/releases/tag/$new_tag"
-echo "# and click on \"Edit Tag\" to write release notes  #"
-echo "#####################################################"
+echo "#######################################"
+echo "#           create release            #"
+echo "#######################################"
+gh release create $new_tag --generate-notes

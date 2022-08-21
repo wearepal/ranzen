@@ -43,10 +43,25 @@ def test_strenum() -> None:
         SPADE = auto()
 
     for thing in _Things:
+        assert thing == thing.name.lower()
         assert thing.value == thing.name.lower()
 
         assert f"{thing}" == thing.name.lower()
-        assert f"{thing!r}" == f"<_Things.{thing.name}: '{thing.value}'>"
+        assert str(thing) == thing.name.lower()
+        assert repr(thing) == f"<_Things.{thing.name}: '{thing.value}'>"
+
+
+def test_strenum_custom_value() -> None:
+    class _Cols(StrEnum):
+        """These values are not valid variables names."""
+
+        GENDER_MALE = "gender-male"
+        MORE_THAN_50K = ">50K"
+
+    assert _Cols.GENDER_MALE == "gender-male"
+    assert _Cols.MORE_THAN_50K == ">50K"
+    assert str(_Cols.GENDER_MALE) == "gender-male"
+    assert str(_Cols.MORE_THAN_50K) == ">50K"
 
 
 def test_adddict() -> None:
