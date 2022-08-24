@@ -703,7 +703,7 @@ class WeightedBatchSampler(BatchSamplerBase):
         generator: torch.Generator | None = None,
     ) -> Self:
         """
-        Instantiate a :class:`WeightedBatchSampler` from a sequenece or tensor of ints, where
+        Instantiate a :class:`~WeightedBatchSampler` from a sequenece or tensor of ints, where
         ``weights`` is computed using the inverse frequencies of the values in ``labels``.
 
         :param labels: Labels from which to compute the sample weights from; should be of length
@@ -716,10 +716,10 @@ class WeightedBatchSampler(BatchSamplerBase):
 
         :param generator: Pseudo-random-number generator to use for randomly sampling indexes.
 
-        :returns: A :class:`WeightedBatchSampler` instance with ``weights`` computed using the
+        :returns: A :class:`~WeightedBatchSampler` instance with ``weights`` computed using the
             inverse frequencies of the values in ``labels``.
 
-        :raises ValueError: If ``labels`` is a tensor and does not have dtype :class:`torch.long`.
+        :raises ValueError: If ``labels`` is a tensor and does not have dtype :class:`~torch.long`.
         """
         if isinstance(labels, Tensor):
             if labels.dtype is not torch.long:
