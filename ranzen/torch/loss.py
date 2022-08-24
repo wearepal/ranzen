@@ -44,9 +44,6 @@ def _reduce(losses: Tensor, reduction_type: ReductionType | str) -> Tensor:
     )
 
 
-from torch.nn import CrossEntropyLoss
-
-
 def cross_entropy_loss(
     input: Tensor,
     *,
@@ -59,7 +56,7 @@ def cross_entropy_loss(
 ) -> Tensor:
     r"""This criterion computes the cross entropy loss between input and target.
 
-    See :class:`~ranzen.torch.losses.CrossEntropyLoss` for details.
+    See :class:`~CrossEntropyLoss` for details.
 
     :param input: Predicted unnormalized scores (often referred to as logits).
     :param target: Ground truth class indices or class probabilities.
@@ -170,8 +167,8 @@ class CrossEntropyLoss(nn.Module):
                     \text{if reduction} = \text{`sum'.}
                 \end{cases}
 
-          Note that this case is equivalent to the combination of :class:`~torch.nn.LogSoftmax` and
-          :class:`~torch.nn.NLLLoss`.
+          Note that this case is equivalent to the combination of :class:`torch.nn.LogSoftmax` and
+          :class:`torch.nn.NLLLoss`.
 
         - Probabilities for each class; useful when labels beyond a single class per minibatch item
           are required, such as for blended labels, label smoothing, etc. The unreduced (i.e. with
@@ -217,7 +214,7 @@ class CrossEntropyLoss(nn.Module):
         :example:
 
         >>> # Example of target with class indices
-        >>> loss = nn.CrossEntropyLoss()
+        >>> loss = CrossEntropyLoss()
         >>> input = torch.randn(3, 5, requires_grad=True)
         >>> target = torch.empty(3, dtype=torch.long).random_(5)
         >>> output = loss(input, target)
