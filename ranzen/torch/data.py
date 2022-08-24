@@ -655,7 +655,7 @@ class GreedyCoreSetSampler(BatchSamplerBase):
 
 
 class WeightedBatchSampler(BatchSamplerBase):
-    r"""Implements a batch-sampler version of :class:`~torch.utils.data.WeightedRandomSampler`."""
+    r"""Implements a batch-sampler version of :class:`torch.utils.data.WeightedRandomSampler`."""
 
     def __init__(
         self,
@@ -719,7 +719,7 @@ class WeightedBatchSampler(BatchSamplerBase):
         :returns: A :class:`~WeightedBatchSampler` instance with ``weights`` computed using the
             inverse frequencies of the values in ``labels``.
 
-        :raises ValueError: If ``labels`` is a tensor and does not have dtype :class:`~torch.long`.
+        :raises ValueError: If ``labels`` is a tensor and does not have dtype :class:`torch.long`.
         """
         if isinstance(labels, Tensor):
             if labels.dtype is not torch.long:
