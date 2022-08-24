@@ -24,6 +24,7 @@ import numpy.typing as npt
 import torch
 from torch import Tensor
 from torch.utils.data import Sampler
+from typing_extensions import Self
 
 from ranzen import implements
 from ranzen.misc import str_to_enum
@@ -37,6 +38,7 @@ __all__ = [
     "Subset",
     "TrainTestSplit",
     "TrainingMode",
+    "WeightedBatchSampler",
     "prop_random_split",
     "stratified_split_indices",
 ]
@@ -650,3 +652,98 @@ class GreedyCoreSetSampler(BatchSamplerBase):
                 unsampled_m[unsampled_m.nonzero()[rel_idx]] = 0
 
             yield sampled_idxs
+
+
+class WeightedBatchSampler(BatchSamplerBase):
+    r"""Implements a batch-sampler version of :class:`~torch.utils.data.WeightedRandomSampler`.
+    :param batch_size: Number of samples to draw per batch/iteration.
+    :param weights:  A sequence or tensor of weights, not necessarily summing to one.
+    :param replacement: If ``True``, samples are drawn with replacement.
+        If not, they are drawn without replacement, which means that when a
+        sample index is drawn for a row, it cannot be drawn again for that row.
+
+    :param generator: Pseudo-random-number generator to use for randomly sampling indexes.
+
+    :raises ValueError: If ``batch_size`` is non-positive or is greater than the number of weights
+        when ``replacement=False``
+    """
+
+    def __init__(
+        self,
+        weights: Sequence[float] | Tensor,
+        *,
+        batch_size: int,
+        replacement: bool = True,
+        generator: torch.Generator | None = None,
+    ) -> None:
+        if batch_size < 1:
+            raise ValueError(
+                f"batch_size must be a positive integer, but got batch_size={batch_size}."
+            )
+        if (not replacement) and ((len_ := len(weights)) < batch_size):
+            raise ValueError(
+                "batch_size cannot be greater than the number of weights if sampling "
+                f"without replacement, but got batch_size={batch_size} and weights of length {len_}"
+            )
+        self.weights = torch.as_tensor(weights, dtype=torch.float32)
+        self.batch_size = batch_size
+        self.replacement = replacement
+        self.generator = generator
+
+        super().__init__(epoch_length=None)
+
+    @classmethod
+    def from_labels(
+        cls: type[Self],
+        labels: Sequence[int] | Tensor,
+        *,
+        batch_size: int,
+        replacement: bool = True,
+        generator: torch.Generator | None = None,
+    ) -> Self:
+        """
+        Instantiate a :class:`WeightedBatchSampler` from a sequenece or tensor of ints, where
+        ``weights`` is computed using the inverse frequencies of the values in ``labels``.
+
+        :param labels: Labels from which to compute the sample weights from; should be of length
+            equal to the size of the associated dataset being indexed.
+
+        :param batch_size: Number of samples to draw per batch/iteration.
+        :param replacement: If ``True``, samples are drawn with replacement.
+            If not, they are drawn without replacement, which means that when a
+            sample index is drawn for a row, it cannot be drawn again for that row.
+
+        :param generator: Pseudo-random-number generator to use for randomly sampling indexes.
+
+        :return: A :class:`WeightedBatchSampler` instance with ``weights`` computed using the
+            inverse frequencies of the values in ``labels``.
+
+        :raises ValueError: If ``labels`` is a tensor and does not have dtype :class:`torch.long`.
+        """
+        if isinstance(labels, Tensor):
+            if labels.dtype is not torch.long:
+                raise ValueError("labels must have dtype 'long' ('int64').")
+        else:
+            labels = torch.as_tensor(labels, dtype=torch.long)
+        _, inverse, counts = labels.unique(return_inverse=True, return_counts=True)
+        counts_r = counts.reciprocal()
+        sample_weights = counts_r / counts_r.sum()
+        weights = sample_weights[inverse].squeeze()
+        return cls(
+            weights=weights,
+            batch_size=batch_size,
+            replacement=replacement,
+            generator=generator,
+        )
+
+    @implements(BatchSamplerBase)
+    def __iter__(self) -> Iterator[list[int]]:
+        generator = _check_generator(self.generator)
+        # Iterate until some stopping criterion is reached
+        while True:
+            yield torch.multinomial(
+                self.weights,
+                num_samples=self.batch_size,
+                replacement=self.replacement,
+                generator=generator,
+            ).tolist()
