@@ -655,18 +655,7 @@ class GreedyCoreSetSampler(BatchSamplerBase):
 
 
 class WeightedBatchSampler(BatchSamplerBase):
-    r"""Implements a batch-sampler version of :class:`~torch.utils.data.WeightedRandomSampler`.
-    :param batch_size: Number of samples to draw per batch/iteration.
-    :param weights:  A sequence or tensor of weights, not necessarily summing to one.
-    :param replacement: If ``True``, samples are drawn with replacement.
-        If not, they are drawn without replacement, which means that when a
-        sample index is drawn for a row, it cannot be drawn again for that row.
-
-    :param generator: Pseudo-random-number generator to use for randomly sampling indexes.
-
-    :raises ValueError: If ``batch_size`` is non-positive or is greater than the number of weights
-        when ``replacement=False``
-    """
+    r"""Implements a batch-sampler version of :class:`~torch.utils.data.WeightedRandomSampler`."""
 
     def __init__(
         self,
@@ -676,6 +665,18 @@ class WeightedBatchSampler(BatchSamplerBase):
         replacement: bool = True,
         generator: torch.Generator | None = None,
     ) -> None:
+        """
+        :param batch_size: Number of samples to draw per batch/iteration.
+        :param weights:  A sequence or tensor of weights, not necessarily summing to one.
+        :param replacement: If ``True``, samples are drawn with replacement.
+            If not, they are drawn without replacement, which means that when a sample index is drawn
+            for a row, it cannot be drawn again for that row.
+
+        :param generator: Pseudo-random-number generator to use for randomly sampling indexes.
+
+        :raises ValueError: If ``batch_size`` is non-positive or is greater than the number of weights
+            when ``replacement=False``
+        """
         if batch_size < 1:
             raise ValueError(
                 f"batch_size must be a positive integer, but got batch_size={batch_size}."
@@ -715,7 +716,7 @@ class WeightedBatchSampler(BatchSamplerBase):
 
         :param generator: Pseudo-random-number generator to use for randomly sampling indexes.
 
-        :return: A :class:`WeightedBatchSampler` instance with ``weights`` computed using the
+        :returns: A :class:`WeightedBatchSampler` instance with ``weights`` computed using the
             inverse frequencies of the values in ``labels``.
 
         :raises ValueError: If ``labels`` is a tensor and does not have dtype :class:`torch.long`.
