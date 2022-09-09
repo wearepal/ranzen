@@ -122,14 +122,6 @@ python-versions = ">=3.7"
 gitdb = ">=4.0.1,<5"
 
 [[package]]
-name = "Hydra"
-version = "2.5"
-description = "A high performance persistent bloom filter"
-category = "dev"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "hydra-core"
 version = "1.2.0"
 description = "A framework for elegantly configuring complex applications"
@@ -594,7 +586,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.0,<3.11"
-content-hash = "97b2ed408b99d4ccf7aa68ad2c3d74735cc7413ae97e9df3c2fab5eb53ed5cd5"
+content-hash = "0b6d494835137a51cda36e2752f92ccdb74f44d7c3dd74be379468fff8024d66"
 
 [metadata.files]
 antlr4-python3-runtime = [
@@ -660,9 +652,6 @@ gitdb = [
 GitPython = [
     {file = "GitPython-3.1.27-py3-none-any.whl", hash = "sha256:5b68b000463593e05ff2b261acff0ff0972df8ab1b70d3cdbd41b546c8b8fc3d"},
     {file = "GitPython-3.1.27.tar.gz", hash = "sha256:1c885ce809e8ba2d88a29befeb385fcea06338d3640712b59ca623c220bb5704"},
-]
-Hydra = [
-    {file = "Hydra-2.5.tar.gz", hash = "sha256:247091b9c279c77686ea995f0f07070a28870c1942959b1474ad57076074384a"},
 ]
 hydra-core = [
     {file = "hydra-core-1.2.0.tar.gz", hash = "sha256:4990721ce4ac69abafaffee566d6b63a54faa6501ecce65b338d3251446ff634"},

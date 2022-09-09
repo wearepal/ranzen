@@ -66,7 +66,6 @@ wandb = ["wandb", "pandas"]
 torch = { version = ">=1.12.1" }
 
 [tool.poetry.group.hydra.dependencies]
-hydra = ["hydra-core", "neoconfigen"]
 hydra-core = { version = "^1.2.0" }
 neoconfigen = { version = ">=2.3.3" }
 
