@@ -12,6 +12,7 @@ __all__ = [
     "CrossEntropyLoss",
     "ReductionType",
     "cross_entropy_loss",
+    "reduce",
 ]
 
 
@@ -28,7 +29,7 @@ class ReductionType(Enum):
     """compute the mean over the batch (first) dimension, the sum over the remaining dimensions."""
 
 
-def _reduce(losses: Tensor, reduction_type: ReductionType | str) -> Tensor:
+def reduce(losses: Tensor, reduction_type: ReductionType | str) -> Tensor:
     if isinstance(reduction_type, str):
         reduction_type = str_to_enum(str_=reduction_type, enum=ReductionType)
     if reduction_type is ReductionType.mean:
@@ -114,7 +115,7 @@ def cross_entropy_loss(
     )
     if instance_weight is not None:
         losses *= instance_weight.view_as(losses)
-    return _reduce(losses=losses, reduction_type=reduction)
+    return reduce(losses=losses, reduction_type=reduction)
 
 
 class CrossEntropyLoss(nn.Module):
