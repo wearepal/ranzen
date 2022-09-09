@@ -63,10 +63,7 @@ python = ">=3.8.0,<3.11"
 wandb = ["wandb", "pandas"]
 
 [tool.poetry.group.torch.dependencies]
-torch = [
-    {version = ">=1.12.1", source = "cu116", markers = "sys_platform == 'linux'"},
-    {version = ">=1.12.1", source = "pypi"}
-]
+torch = { version = ">=1.12.1" }
 
 [tool.poetry.group.hydra.dependencies]
 hydra = ["hydra-core", "neoconfigen"]
@@ -79,12 +76,6 @@ pytest = "^7.1.2"
 isort = "^5.7.0"
 darglint = "^1.8.0"
 pandas-stubs = ">=1.4.3.220718"
-
-[[tool.poetry.source]]
-name = "cu116"
-url = "https://download.pytorch.org/whl/cu116"
-default = false
-secondary = true
 
 [tool.pyright]
 exclude = ["**/node_modules", "**/__pycache__", "**/."]
