@@ -280,12 +280,11 @@ class SequentialBatchSampler(BatchSamplerBase):
     :param generator: Pseudo-random-number generator to use for shuffling the dataset.
 
     :example:
-
-    >>> batch_sampler = InfSequentialBatchSampler(data_source=train_data, batch_size=100, shuffle=True)
-    >>> train_loader = DataLoader(train_data, batch_sampler=batch_sampler, shuffle=False, drop_last=False) # drop_last and shuffle need to be False
-    >>> train_loader_iter = iter(train_loader)
-    >>> for _ in range(train_iters):
-    >>>     batch = next(train_loader_iter)
+        >>> batch_sampler = InfSequentialBatchSampler(data_source=train_data, batch_size=100, shuffle=True)
+        >>> train_loader = DataLoader(train_data, batch_sampler=batch_sampler, shuffle=False, drop_last=False) # drop_last and shuffle need to be False
+        >>> train_loader_iter = iter(train_loader)
+        >>> for _ in range(train_iters):
+        >>>     batch = next(train_loader_iter)
     """
 
     def __init__(
@@ -387,13 +386,12 @@ class StratifiedBatchSampler(BatchSamplerBase):
     :param generator: Pseudo-random-number generator to use for shuffling the dataset.
 
     :example:
-
-    >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 2], 10, replacement=True))
-    [3, 5, 6, 3, 5, 6, 0, 5, 6]
-    >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 2], 10, replacement=True, multiplier={2: 2}))
-    [3, 4, 6, 6, 3, 5, 6, 6, 1, 5, 6, 6]
-    >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 1, 2, 2], 7, replacement=False))
-    [2, 6, 7, 0, 5, 8]
+        >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 2], 10, replacement=True))
+        [3, 5, 6, 3, 5, 6, 0, 5, 6]
+        >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 2], 10, replacement=True, multiplier={2: 2}))
+        [3, 4, 6, 6, 3, 5, 6, 6, 1, 5, 6, 6]
+        >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 1, 2, 2], 7, replacement=False))
+        [2, 6, 7, 0, 5, 8]
     """
 
     def __init__(

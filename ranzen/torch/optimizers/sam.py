@@ -41,23 +41,22 @@ class SAM(Optimizer):
         :raises ValueError: if ``rho`` is negative.
 
         :example:
+            .. code-block:: python
 
-        .. code-block:: python
+                # Use AdamW as the base optimizer.
+                base_optimizer = AdamW(model.parameters())
+                # Wrap the base optimizer in SAM.
+                optimizer = SAM(base_optimizer)
 
-            # Use AdamW as the base optimizer.
-            base_optimizer = AdamW(model.parameters())
-            # Wrap the base optimizer in SAM.
-            optimizer = SAM(base_optimizer)
+                # Closure required for recomputing the loss after computing epsilon(w).
+                def _closure():
+                  return loss_function(logits=model(input), targets=targets)
 
-            # Closure required for recomputing the loss after computing epsilon(w).
-            def _closure():
-              return loss_function(logits=model(input), targets=targets)
+                loss = _closure()
+                loss.backward()
 
-            loss = _closure()
-            loss.backward()
-
-            optimizer.step(closure=_closure)
-            optimizer.zero_grad()
+                optimizer.step(closure=_closure)
+                optimizer.zero_grad()
         """
         if rho < 0.0:
             raise ValueError(f"Invalid rho value: {rho}. (Should be non-negative)")

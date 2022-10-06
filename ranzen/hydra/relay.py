@@ -126,12 +126,11 @@ class Relay:
     the subclasses will be instantiated and the run method called on the raw config.
 
     :example:
-
-    >>> Relay.with_hydra(
-    >>>     root="conf",
-    >>>     model=[Option(MoCoV2), DINO],
-    >>>     datamodule=[Option(ColoredMNISTDataModule, "cmnist")],
-    >>> )
+        >>> Relay.with_hydra(
+        >>>     root="conf",
+        >>>     model=[Option(MoCoV2), DINO],
+        >>>     datamodule=[Option(ColoredMNISTDataModule, "cmnist")],
+        >>> )
 
     """
 

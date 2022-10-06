@@ -67,9 +67,9 @@ class RandomMixUp(Generic[LS]):
 
         :param mode: Which mode to use to mix up samples: geometric or linear.
 
-        .. note::
-            The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for positive
-            inputs.
+            .. note::
+                The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for
+                positive inputs.
 
         :param p: The probability with which the transform will be applied to a given sample.
         :param num_classes: The total number of classes in the dataset that needs to be specified if
@@ -78,9 +78,9 @@ class RandomMixUp(Generic[LS]):
 
         :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
 
-        .. note::
-            If the ``lambda_sampler`` is a BernoulliDistribution, then featurewise sampling will
-            always be enabled.
+            .. note::
+                If the ``lambda_sampler`` is a BernoulliDistribution, then featurewise sampling will
+                always be enabled.
 
         :param inplace: Whether the transform should be performed in-place.
 
@@ -121,9 +121,9 @@ class RandomMixUp(Generic[LS]):
 
         :param mode: Which mode to use to mix up samples: geometric or linear.
 
-        .. note::
-            The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for positive
-            inputs.
+            .. note::
+                The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for
+                positive inputs.
 
         :param p: The probability with which the transform will be applied to a given sample.
         :param num_classes: The total number of classes in the dataset that needs to be specified if
@@ -164,9 +164,9 @@ class RandomMixUp(Generic[LS]):
         :param high: Upper range (inclusive).
         :param mode: Which mode to use to mix up samples: geometric or linear.
 
-        .. note::
-            The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for positive
-            inputs.
+            .. note::
+                The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for
+                positive inputs.
 
         :param p: The probability with which the transform will be applied to a given sample.
         :param num_classes: The total number of classes in the dataset that needs to be specified if

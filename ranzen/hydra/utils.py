@@ -59,14 +59,13 @@ class SchemaRegistration:
     """Register hydra schemas.
 
     :example:
-
-    >>> sr = SchemaRegistration()
-    >>> sr.register(Config, path="experiment_schema")
-    >>> sr.register(TrainerConf, path="trainer/trainer_schema")
-    >>>
-    >>> with sr.new_group("schema/data", target_path="data") as group:
-    >>>    group.add_option(CelebaDataConf, name="celeba")
-    >>>    group.add_option(WaterbirdsDataConf, name="waterbirds")
+        >>> sr = SchemaRegistration()
+        >>> sr.register(Config, path="experiment_schema")
+        >>> sr.register(TrainerConf, path="trainer/trainer_schema")
+        >>>
+        >>> with sr.new_group("schema/data", target_path="data") as group:
+        >>>    group.add_option(CelebaDataConf, name="celeba")
+        >>>    group.add_option(WaterbirdsDataConf, name="waterbirds")
     """
 
     def __init__(self) -> None:
