@@ -54,11 +54,10 @@ class Event:
     """Emulates torch.cuda.Event, but supports running on a CPU too.
 
     :example:
-
-    >>> from ranzen.torch import Event
-    >>> with Event() as event:
-    >>>     y = some_nn_module(x)
-    >>> print(event.time)
+        >>> from ranzen.torch import Event
+        >>> with Event() as event:
+        >>>     y = some_nn_module(x)
+        >>> print(event.time)
     """
 
     def __init__(self):
