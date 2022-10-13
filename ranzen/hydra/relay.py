@@ -390,9 +390,7 @@ class Relay:
             relay: cls = instantiate(cfg, _recursive_=instantiate_recursively)
             config_dict = cast(
                 Dict[str, Any],
-                OmegaConf.to_container(
-                    cfg, throw_on_missing=True, enum_to_str=False, resolve=True
-                ),
+                OmegaConf.to_container(cfg, throw_on_missing=True, enum_to_str=False, resolve=True),
             )
             return relay.run(config_dict)
 
