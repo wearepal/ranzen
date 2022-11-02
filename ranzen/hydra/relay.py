@@ -88,7 +88,7 @@ def _to_yaml_value(default: Any, *, indent_level: int = 0) -> str | None:
     return str_
 
 
-T = TypeVar("T", covariant=True, bound=object)
+T = TypeVar("T", covariant=True)
 
 
 @dataclass(init=False, unsafe_hash=True)
