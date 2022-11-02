@@ -1,32 +1,55 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Protocol
 from unittest.mock import patch
 
 import pytest
+from typing_extensions import Self
 
-from ranzen.hydra import Option
-from ranzen.hydra.relay import Relay
-
-
-class DummyOptionA:
-    def __init__(self, name: str = "a", value: Union[int, float] = 7) -> None:
-        self.name = name
-        self.value = value
+from ranzen.hydra.relay import Option, Options, Relay
 
 
-class DummyOptionB:
-    def __init__(self, name: str = "b", value: Union[int, float] = 5) -> None:
-        self.name = name
-        self.value = value
+class DummyOption(Protocol):
+    name: str
+    value: int | str
+
+
+@dataclass
+class DummyOptionA(DummyOption):
+    name: str = "a"
+    value: int = 7
+
+
+@dataclass
+class DummyOptionB(DummyOption):
+    name: str = "b"
+    value: str = "5"
 
 
 @dataclass
 class DummyRelay(Relay):
 
-    A: DummyOptionA
-    B: DummyOptionB
+    attr1: DummyOption
+    attr2: DummyOption
+
+    @classmethod
+    def with_hydra(
+        cls: type[Self],
+        root: Path | str,
+        *,
+        clear_cache: bool = False,
+        instantiate_recursively: bool = True,
+        attr1: Options[DummyOption],
+        attr2: Options[DummyOption],
+    ) -> None:
+        super().with_hydra(
+            root=root,
+            clear_cache=clear_cache,
+            instantiate_recursively=instantiate_recursively,
+            attr1=attr1,
+            attr2=attr2,
+        )
 
     def run(self, raw_config: Optional[Dict[str, Any]] = None) -> None:
         print(raw_config)
@@ -36,18 +59,21 @@ class DummyRelay(Relay):
 @pytest.mark.parametrize("clear_cache", [True, False])
 @pytest.mark.parametrize("instantiate_recursively", [True, False])
 def test_relay(tmpdir: Path, clear_cache: bool, instantiate_recursively: bool) -> None:
-    args = ["", "A=foo", "B=bar"]
+    args = ["", "attr1=foo", "attr2=bar"]
     with patch("sys.argv", args):
-        options = dict(
-            A=[Option(DummyOptionA, "foo"), DummyOptionB],
-            B=[DummyOptionA, Option(DummyOptionB, "bar")],
-        )
+        ops1 = [
+            Option(DummyOptionA, "foo"),
+            DummyOptionB,
+        ]
+        ops2 = [DummyOptionA, Option(DummyOptionB, "bar")]
+        options = {"attr1": ops1, "attr2": ops2}
         for _ in range(2):
             DummyRelay.with_hydra(
                 root=tmpdir,
                 clear_cache=clear_cache,
                 instantiate_recursively=instantiate_recursively,
-                **options,
+                attr1=ops1,
+                attr2=ops2,
             )
         conf_dir = tmpdir / DummyRelay._config_dir_name()  # pylint: disable=protected-access
         assert conf_dir.exists()
