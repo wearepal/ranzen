@@ -1,7 +1,8 @@
 #!/bin/bash
 
 echo "Begin check..." \
-&& black . \
+&& black ranzen \
+&& black tests \
 && python -m pytest -vv tests/ \
 && darglint --docstring-style sphinx -v 2 -z long ranzen \
 && pyright ranzen \
