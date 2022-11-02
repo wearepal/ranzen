@@ -428,7 +428,7 @@ class Relay:
             neoconfigen.
 
         :param instantiate_recursively: Whether to recursively instantiate the relay instance.
-        :param options: option ro list of options (value) to register for each group (key).
+        :param options: Option or sequence of options (value) to register for each group (key).
             If an option is a type or is an :class:`Option` with :attr:`Option.name` as ``None``,
             then a name will be generated based on the class name and used to register the option,
             else, the specified value for :attr:`Option.name` will be used.
