@@ -18,10 +18,15 @@ from typing import (
     ClassVar,
     DefaultDict,
     Dict,
+    Generic,
     List,
     NamedTuple,
     Optional,
+    Sequence,
     Tuple,
+    Type,
+    TypeVar,
+    Union,
     cast,
 )
 
@@ -31,13 +36,14 @@ from hydra.core.plugins import Plugins
 from hydra.plugins.search_path_plugin import SearchPathPlugin
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
-from typing_extensions import Final, Self, final
+from typing_extensions import Final, Self, TypeAlias, final
 
 from .utils import SchemaRegistration
 
 __all__ = [
     "Relay",
     "Option",
+    "Options",
 ]
 
 YAML_INDENT: Final[str] = "  "
@@ -82,11 +88,14 @@ def _to_yaml_value(default: Any, *, indent_level: int = 0) -> str | None:
     return str_
 
 
-@dataclass(init=False)
-class Option:
+T = TypeVar("T", covariant=True)
+
+
+@dataclass(init=False, unsafe_hash=True)
+class Option(Generic[T]):
     """Configuration option."""
 
-    def __init__(self, class_: type[Any], name: str | None = None) -> None:
+    def __init__(self, class_: type[T], name: str | None = None) -> None:
         self.class_ = class_
         self._name = name
 
@@ -109,6 +118,11 @@ class _SchemaImportInfo(NamedTuple):
     schema_name: str
     name: str
     module: ModuleType | Path
+
+
+Options: TypeAlias = Union[
+    Option, Type[T], Sequence[Type[T]], Sequence[Option[T]], Sequence[Union[Type[T], Option[T]]]
+]
 
 
 class Relay:
@@ -149,7 +163,7 @@ class Relay:
         return cls._logger
 
     @classmethod
-    def log(cls: type[Self], msg: str) -> None:
+    def _log(cls: type[Self], msg: str) -> None:
         cls._get_logger().info(msg)
 
     @classmethod
@@ -165,7 +179,7 @@ class Relay:
         primary_conf_exists = primary_conf_fp.exists()
         with primary_conf_fp.open("a+") as primary_conf:
             if not primary_conf_exists:
-                cls.log(f"Initialising primary config file '{primary_conf.name}'.")
+                cls._log(f"Initialising primary config file '{primary_conf.name}'.")
 
                 primary_conf.write("---\ndefaults:")
                 primary_conf.write(f"\n{YAML_INDENT}- {cls._PRIMARY_SCHEMA_NAME}")
@@ -178,7 +192,7 @@ class Relay:
                     default = "" if len(group_options) > 1 else f"{group_options[0].name}/default"
                     primary_conf.write(f"\n{YAML_INDENT}- {group}: {default}")
 
-                cls.log(f"Initialising group '{group}'.")
+                cls._log(f"Initialising group '{group}'.")
                 for option in group_options:
                     option_dir = group_dir / option.name
                     option_dir.mkdir(exist_ok=True)
@@ -207,9 +221,9 @@ class Relay:
                                 else:
                                     entry += f"{default_str}"
                             file.write(f"\n{entry}")
-                        cls.log(f"- Initialising config file '{file.name}'.")
+                        cls._log(f"- Initialising config file '{file.name}'.")
 
-        cls.log(f"Finished initialising config directory initialised at '{config_dir}'")
+        cls._log(f"Finished initialising config directory initialised at '{config_dir}'")
 
     @classmethod
     def _module_to_fp(cls: type[Self], module: ModuleType | str):
@@ -258,7 +272,7 @@ class Relay:
         config_dir: Path,
         *,
         clear_cache: bool = False,
-        **options: list[type[Any] | Option],
+        **options: Options,
     ) -> Tuple[type[Any], DefaultDict[str, List[Option]], DefaultDict[str, List[Option]]]:
         configen_dir = config_dir / "configen"
         primary_schema_fp = (
@@ -275,6 +289,8 @@ class Relay:
         schemas_to_init: DefaultDict[str, list[Option]] = defaultdict(list)
 
         for group, group_options in options.items():
+            if not isinstance(group_options, Sequence):
+                group_options = [group_options]
             for option in group_options:
                 if not isinstance(option, Option):
                     option = Option(class_=option)
@@ -361,12 +377,12 @@ class Relay:
         )
         # Initialise any missing yaml files
         if schemas_to_init:
-            cls.log(
+            cls._log(
                 f"One or more config files not found in config directory '{config_dir}'."
                 "\nInitialising missing config files."
             )
             cls._init_yaml_files(config_dir=config_dir, config_dict=schemas_to_init)
-            cls.log(f"Relaunch the relay, modifying the config files first if desired.")
+            cls._log(f"Relaunch the relay, modifying the config files first if desired.")
             return
 
         sr = SchemaRegistration()
@@ -386,7 +402,7 @@ class Relay:
         Plugins().plugin_type_to_subclass_list[SearchPathPlugin].append(RelayPlugin)
 
         @hydra.main(config_path=None, config_name=cls._CONFIG_NAME, version_base=None)
-        def launcher(cfg: Any) -> Any:
+        def launcher(cfg: Any, /) -> Any:
             relay: cls = instantiate(cfg, _recursive_=instantiate_recursively)
             config_dict = cast(
                 Dict[str, Any],
@@ -403,7 +419,7 @@ class Relay:
         *,
         clear_cache: bool = False,
         instantiate_recursively: bool = True,
-        **options: list[type[Any] | Option],
+        **options: Options,
     ) -> None:
         """Run the relay with hydra.
 
@@ -412,10 +428,10 @@ class Relay:
             neoconfigen.
 
         :param instantiate_recursively: Whether to recursively instantiate the relay instance.
-        :param options: List (value) of options to register for each group (key). If an option is a
-            type or is an :class:`Option` with :attr:`Option.name` as ``None``, then a name will be
-            generated based on the class name and used to register the option, else, the specified
-            value for :attr:`Option.name` will be used.
+        :param options: Option or sequence of options (value) to register for each group (key).
+            If an option is a type or is an :class:`Option` with :attr:`Option.name` as ``None``,
+            then a name will be generated based on the class name and used to register the option,
+            else, the specified value for :attr:`Option.name` will be used.
         """
         cls._launch(
             root=root,
