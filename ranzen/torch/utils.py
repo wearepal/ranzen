@@ -60,7 +60,7 @@ class Event:
         >>> print(event.time)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.time = 0.0
         self._cuda = torch.cuda.is_available()  # type: ignore
         self._event_start: torch.cuda.Event | datetime  # type: ignore

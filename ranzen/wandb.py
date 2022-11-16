@@ -8,7 +8,7 @@ import wandb
 
 
 @lru_cache(None)
-def get_api():
+def get_api() -> wandb.Api:
     return wandb.Api()
 
 
