@@ -108,7 +108,7 @@ class Option(Generic[T]):
         return self._name
 
     @name.setter
-    def name(self, name: str | None) -> None:  # type: ignore
+    def name(self, name: str | None) -> None:
         self._name = name
 
 
@@ -313,9 +313,7 @@ class Relay:
                         if schema is None:
                             schema_missing = True
                         else:
-                            imported_schemas[group].append(
-                                replace(option, class_=schema)  # type: ignore
-                            )
+                            imported_schemas[group].append(replace(option, class_=schema))
                     if schema_missing:
                         schemas_to_generate[option.class_.__module__].append(cls_name)
                     import_info = _SchemaImportInfo(
@@ -345,9 +343,7 @@ class Relay:
                 # attribute-retrieval during unpickling when using a paralllielising hydra
                 # launcher and implement a more graceful solution.
                 schema.__module__ = "__main__"
-                imported_schemas[group].append(
-                    Option(class_=schema, name=info.name)
-                )  # type: ignore
+                imported_schemas[group].append(Option(class_=schema, name=info.name))
 
         return primary_schema, imported_schemas, schemas_to_init
 

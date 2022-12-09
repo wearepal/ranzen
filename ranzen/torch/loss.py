@@ -238,7 +238,7 @@ class CrossEntropyLoss(nn.Module):
         return self._reduction
 
     @reduction.setter
-    def reduction(self, value: ReductionType | str) -> None:  # type: ignore
+    def reduction(self, value: ReductionType | str) -> None:
         if isinstance(value, str):
             value = str_to_enum(str_=value, enum=ReductionType)
         self._reduction = value
