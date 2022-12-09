@@ -22,8 +22,8 @@ def random_seed(seed_value: int, *, use_cuda: bool) -> None:
     torch.manual_seed(seed_value)  # cpu  vars
     random.seed(seed_value)  # Python
     if use_cuda:
-        torch.cuda.manual_seed(seed_value)  # type: ignore
-        torch.cuda.manual_seed_all(seed_value)  # type: ignore
+        torch.cuda.manual_seed(seed_value)
+        torch.cuda.manual_seed_all(seed_value)
         torch.backends.cudnn.deterministic = True  # type: ignore
         torch.backends.cudnn.benchmark = False  # type: ignore
 
@@ -62,7 +62,7 @@ class Event:
 
     def __init__(self) -> None:
         self.time = 0.0
-        self._cuda = torch.cuda.is_available()  # type: ignore
+        self._cuda = torch.cuda.is_available()
         self._event_start: torch.cuda.Event | datetime  # type: ignore
 
     def __enter__(self) -> Event:
@@ -72,7 +72,7 @@ class Event:
         """
         if self._cuda:
             self._event_start = torch.cuda.Event(enable_timing=True)  # type: ignore
-            self._event_start.record()  # type: ignore
+            self._event_start.record()
         else:
             self._event_start = datetime.now()
         return self
@@ -81,9 +81,9 @@ class Event:
         if self._cuda:
             event_end = torch.cuda.Event(enable_timing=True)  # type: ignore
             event_end.record(stream=torch.cuda.current_stream())
-            torch.cuda.synchronize()  # type: ignore
+            torch.cuda.synchronize()
             assert isinstance(self._event_start, torch.cuda.Event)  # type: ignore
-            self.time = self._event_start.elapsed_time(event_end)  # type: ignore
+            self.time = self._event_start.elapsed_time(event_end)
         else:
             assert isinstance(self._event_start, datetime)
             self.time = datetime.now().microsecond - self._event_start.microsecond

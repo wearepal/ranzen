@@ -281,7 +281,7 @@ class LinearWarmup(WarmupScheduler[T]):
     def __post_init__(self) -> None:
         super().__post_init__()
         if self.warmup_steps == 0:
-            self.step_size = 0
+            self.step_size = 0  # type: ignore
         else:
             self.step_size = (self.end_val - self.start_val) / self.warmup_steps
 
@@ -299,9 +299,9 @@ class ExponentialWarmup(WarmupScheduler[T]):
     def __post_init__(self) -> None:
         super().__post_init__()
         if self.warmup_steps == 0:
-            self.step_size = 0
+            self.step_size = 0  # type: ignore
         else:
-            self.step_size = (self.end_val / self.start_val) ** (1 / self.warmup_steps)
+            self.step_size = (self.end_val / self.start_val) ** (1 / self.warmup_steps)  # type: ignore
 
     @implements(WarmupScheduler)
     def _update(self, value: T) -> T:

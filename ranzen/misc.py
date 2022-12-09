@@ -116,7 +116,7 @@ def str_to_enum(str_: str | E, *, enum: type[E]) -> E:
 
 if sys.version_info >= (3, 11):
     # will be available in python 3.11
-    from enum import StrEnum  # type: ignore
+    from enum import StrEnum
 else:
     #
     # the following is copied straight from https://github.com/python/cpython/blob/3.11/Lib/enum.py
@@ -160,9 +160,10 @@ else:
             member._value_ = value
             return member
 
-        __str__ = str.__str__  # type: ignore
+        def __str__(self) -> str:
+            return str.__str__(self)
 
-        def _generate_next_value_(name: str, start: int, count: int, last_values: list[str]) -> str:
+        def _generate_next_value_(name: str, start: int, count: int, last_values: list[Any]) -> str:
             """
             Return the lower-cased version of the member name.
             """

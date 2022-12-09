@@ -63,6 +63,12 @@ def test_strenum_custom_value() -> None:
     assert str(_Cols.GENDER_MALE) == "gender-male"
     assert str(_Cols.MORE_THAN_50K) == ">50K"
 
+    def f(s: str) -> None:
+        assert isinstance(s, str)
+
+    f(_Cols.GENDER_MALE)
+    f(_Cols.MORE_THAN_50K)
+
 
 def test_adddict() -> None:
     d1 = AddDict({"foo": 1, "bar": 2})
