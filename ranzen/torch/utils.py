@@ -63,7 +63,7 @@ class Event:
     def __init__(self) -> None:
         self.time = 0.0
         self._cuda = torch.cuda.is_available()
-        self._event_start: torch.cuda.Event | datetime
+        self._event_start: torch.cuda.Event | datetime  # type: ignore
 
     def __enter__(self) -> Event:
         """Mark a time.
@@ -71,7 +71,7 @@ class Event:
         Mimics torch.cuda.Event.
         """
         if self._cuda:
-            self._event_start = torch.cuda.Event(enable_timing=True)
+            self._event_start = torch.cuda.Event(enable_timing=True)  # type: ignore
             self._event_start.record()
         else:
             self._event_start = datetime.now()
@@ -79,10 +79,10 @@ class Event:
 
     def __exit__(self, *args: Any) -> None:
         if self._cuda:
-            event_end = torch.cuda.Event(enable_timing=True)
+            event_end = torch.cuda.Event(enable_timing=True)  # type: ignore
             event_end.record(stream=torch.cuda.current_stream())
             torch.cuda.synchronize()
-            assert isinstance(self._event_start, torch.cuda.Event)
+            assert isinstance(self._event_start, torch.cuda.Event)  # type: ignore
             self.time = self._event_start.elapsed_time(event_end)
         else:
             assert isinstance(self._event_start, datetime)

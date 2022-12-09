@@ -38,7 +38,7 @@ class RunsDownloader:
         path = f"{self.entity}/{self.project}"
         dfs = []
         for group in groups_:
-            runs = self.api.runs(path, {"group": group})
+            runs = self.api.runs(path, filters={"group": group})  # type: ignore
             print(f"'{group}': found {len(runs)} runs.")
             dfs.append(self._runs_to_df(runs))
         return pd.concat(dfs, axis=1, sort=False, keys=groups_)
@@ -51,7 +51,7 @@ class RunsDownloader:
         This is not possible with the web UI.
         """
         path = f"{self.entity}/{self.project}"
-        runs = self.api.runs(path, {"group": group})
+        runs = self.api.runs(path, filters={"group": group})  # type: ignore
         i = 0
         for i, run in enumerate(runs, start=1):
             run.config[config_key] = new_value
