@@ -43,7 +43,7 @@ class RandomMixUp(Generic[LS]):
     of labels (this is relevant, for instance,to contrastive methods that use mixup to generate
     different views of samples to enable instance-discrimination) and additionally allows for
     different lambda-samplers, different methods for mixing up samples (linear vs. geometric)
-    based on lambda, and cross-group pair-sampling. Furthermore, unlike the official implementation,
+    based on lambda, and selective pair-sampling. Furthermore, unlike the official implementation,
     samples are guaranteed not to be paired with themselves.
 
     .. _mixup:
@@ -62,6 +62,7 @@ class RandomMixUp(Generic[LS]):
         num_classes: int | None = None,
         featurewise: bool = False,
         inplace: bool = False,
+        generator: torch.Generator | None = None,
     ) -> None:
         """
         :param lambda_sampler: The distribution from which to sample lambda (the mixup interpolation
@@ -85,6 +86,9 @@ class RandomMixUp(Generic[LS]):
                 always be enabled.
 
         :param inplace: Whether the transform should be performed in-place.
+        :param generator: Pseudo-random-number generator to use for sampling. Note that
+            :class:`torch.distributions.Distribution` does not accept such generator object and so
+            the sampling procedure is only partially deterministic as a function of it.
 
         :raises ValueError: if ``p`` is not in the range [0, 1] or ``num_classes < 1``.
         """
@@ -101,6 +105,7 @@ class RandomMixUp(Generic[LS]):
         self.num_classes = num_classes
         self.featurewise = featurewise or isinstance(lambda_sampler, td.Bernoulli)
         self.inplace = inplace
+        self.generator = generator
 
     @classmethod
     def with_beta_dist(
@@ -113,6 +118,7 @@ class RandomMixUp(Generic[LS]):
         num_classes: int | None = None,
         inplace: bool = False,
         featurewise: bool = False,
+        generator: torch.Generator | None = None,
     ) -> RandomMixUp[td.Beta]:
         """
         Instantiate a :class:`RandomMixUp` with a Beta-distribution sampler.
@@ -133,6 +139,10 @@ class RandomMixUp(Generic[LS]):
             specifying ``num_classes`` will result in a RuntimeError.
         :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
         :param inplace: Whether the transform should be performed in-place.
+        :param generator: Pseudo-random-number generator to use for sampling. Note that
+            :class:`torch.distributions.Distribution` does not accept such generator object and so
+            the sampling procedure is only partially deterministic as a function of it.
+
         :return: A :class:`RandomMixUp` instance with ``lambda_sampler`` set to a  Beta-distribution
             with ``concentration1=alpha`` and ``concentration0=beta``.
         """
@@ -145,6 +155,7 @@ class RandomMixUp(Generic[LS]):
             num_classes=num_classes,
             inplace=inplace,
             featurewise=featurewise,
+            generator=generator,
         )
 
     @classmethod
@@ -158,6 +169,7 @@ class RandomMixUp(Generic[LS]):
         num_classes: int | None = None,
         inplace: bool = False,
         featurewise: bool = False,
+        generator: torch.Generator | None,
     ) -> RandomMixUp[td.Uniform]:
         """
         Instantiate a :class:`RandomMixUp` with a uniform-distribution sampler.
@@ -177,6 +189,9 @@ class RandomMixUp(Generic[LS]):
             at call-time.
         :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
         :param inplace: Whether the transform should be performed in-place.
+        :param generator: Pseudo-random-number generator to use for sampling. Note that
+            :class:`torch.distributions.Distribution` does not accept such generator object and so
+            the sampling procedure is only partially deterministic as a function of it.
 
         :return: A :class:`RandomMixUp` instance with ``lambda_sampler`` set to a
             Uniform-distribution with ``low=low`` and ``high=high``.
@@ -189,6 +204,7 @@ class RandomMixUp(Generic[LS]):
             num_classes=num_classes,
             inplace=inplace,
             featurewise=featurewise,
+            generator=generator,
         )
 
     @classmethod
@@ -200,6 +216,7 @@ class RandomMixUp(Generic[LS]):
         p: float = 1.0,
         num_classes: int | None = None,
         inplace: bool = False,
+        generator: torch.Generator | None,
     ) -> RandomMixUp[td.Bernoulli]:
         """
         Instantiate a :class:`RandomMixUp` with a Bernoulli-distribution sampler.
@@ -215,14 +232,22 @@ class RandomMixUp(Generic[LS]):
         :param num_classes: The total number of classes in the dataset that needs to be specified if
             wanting to mix up targets that are label-enoded. Passing label-encoded targets without
             specifying ``num_classes`` will result in a RuntimeError.
-
         :param inplace: Whether the transform should be performed in-place.
+        :param generator: Pseudo-random-number generator to use for sampling. Note that
+            :class:`torch.distributions.Distribution` does not accept such generator object and so
+            the sampling procedure is only partially deterministic as a function of it.
+
         :return: A :class:`RandomMixUp` instance with ``lambda_sampler`` set to a
             Bernoulli-distribution with ``probs=prob_1``.
         """
         lambda_sampler = td.Bernoulli(probs=prob_1)
         return cls(
-            lambda_sampler=lambda_sampler, mode=mode, p=p, num_classes=num_classes, inplace=inplace
+            lambda_sampler=lambda_sampler,
+            mode=mode,
+            p=p,
+            num_classes=num_classes,
+            inplace=inplace,
+            generator=generator,
         )
 
     def _mix(self, tensor_a: Tensor, *, tensor_b: Tensor, lambda_: Tensor) -> Tensor:
@@ -272,7 +297,9 @@ class RandomMixUp(Generic[LS]):
             return InputsTargetsPair(inputs=inputs, targets=targets)
         elif self.p < 1:
             # Sample a mask determining which samples in the batch are to be transformed
-            selected = torch.rand(batch_size, device=inputs.device) < self.p
+            selected = (
+                torch.rand(batch_size, device=inputs.device, generator=self.generator) < self.p
+            )
             num_selected = int(selected.count_nonzero())
             indices = selected.nonzero(as_tuple=False).long().flatten()
         # if p >= 1 then the transform is always applied and we can skip
@@ -285,7 +312,12 @@ class RandomMixUp(Generic[LS]):
             # Sample the mixup pairs with the guarantee that a given sample will
             # not be paired with itself
             offset = torch.randint(
-                low=1, high=batch_size, size=(num_selected,), device=inputs.device, dtype=torch.long
+                low=1,
+                high=batch_size,
+                size=(num_selected,),
+                device=inputs.device,
+                dtype=torch.long,
+                generator=self.generator,
             )
             pair_indices = (indices + offset) % batch_size
         else:
@@ -348,7 +380,7 @@ class RandomMixUp(Generic[LS]):
             # diff_group_counts and rounding. 'randint' is unsuitable here because the groups aren't
             # guaranteed to have equal cardinality (using it to sample from the cyclic group,
             # Z / diff_group_count Z, as above, leads to biased sampling).
-            rel_pair_indices = batched_randint(degrees)
+            rel_pair_indices = batched_randint(degrees, generator=self.generator)
             # 2) Convert the row-wise indices into row-major indices, considering only
             # only the postive entries in the rows.
             rel_pair_indices[1:] += degrees.cumsum(dim=0)[:-1]

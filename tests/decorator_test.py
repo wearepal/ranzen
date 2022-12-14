@@ -61,15 +61,6 @@ def test_parsable_invalid_union() -> None:
                 ...
 
 
-def test_parsable_invalid_list() -> None:
-    with pytest.raises(ValueError):
-
-        class Foo:
-            @parsable
-            def __init__(self, a: int, b: Union[int, float], c: list[str]):
-                ...
-
-
 @enum_name_str
 class Stage(Enum):
     """An enum for the stage of model-development."""
