@@ -1,4 +1,6 @@
 from __future__ import annotations
+import operator
+import warnings
 from enum import Enum, auto
 from typing import Generic, NamedTuple, TypeVar, cast, overload
 
@@ -87,7 +89,7 @@ class RandomMixUp(Generic[LS]):
         :raises ValueError: if ``p`` is not in the range [0, 1] or ``num_classes < 1``.
         """
         super().__init__()
-        self.lambda_sampler: LS = lambda_sampler
+        self.lambda_sampler = lambda_sampler
         if not 0 <= p <= 1:
             raise ValueError("'p' must be in the range [0, 1].")
         self.p = p
@@ -171,7 +173,8 @@ class RandomMixUp(Generic[LS]):
         :param p: The probability with which the transform will be applied to a given sample.
         :param num_classes: The total number of classes in the dataset that needs to be specified if
             wanting to mix up targets that are label-enoded. Passing label-encoded targets without
-            specifying ``num_classes`` will result in a RuntimeError.
+            specifying ``num_classes`` will result in a RuntimeError unless ``num_classes`` is specified
+            at call-time.
         :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
         :param inplace: Whether the transform should be performed in-place.
 
@@ -230,18 +233,36 @@ class RandomMixUp(Generic[LS]):
 
     @overload
     def _transform(
-        self, inputs: Tensor, *, targets: Tensor, group_labels: Tensor | None = ...
+        self,
+        inputs: Tensor,
+        *,
+        targets: Tensor,
+        groups_or_edges: Tensor | None = ...,
+        cross_group: bool = ...,
+        num_classes: int | None = ...,
     ) -> InputsTargetsPair:
         ...
 
     @overload
     def _transform(
-        self, inputs: Tensor, *, targets: None = ..., group_labels: Tensor | None = ...
+        self,
+        inputs: Tensor,
+        *,
+        targets: None = ...,
+        groups_or_edges: Tensor | None = ...,
+        cross_group: bool = ...,
+        num_classes: int | None = ...,
     ) -> Tensor:
         ...
 
     def _transform(
-        self, inputs: Tensor, *, targets: Tensor | None = None, group_labels: Tensor | None = None
+        self,
+        inputs: Tensor,
+        *,
+        targets: Tensor | None = None,
+        groups_or_edges: Tensor | None = None,
+        cross_group: bool = ...,
+        num_classes: int | None = None,
     ) -> Tensor | InputsTargetsPair:
         batch_size = len(inputs)
         # If the batch is singular or the sampling probability is 0 there's nothing to do.
@@ -260,7 +281,7 @@ class RandomMixUp(Generic[LS]):
             num_selected = batch_size
             indices = torch.arange(batch_size, device=inputs.device, dtype=torch.long)
 
-        if group_labels is None:
+        if groups_or_edges is None:
             # Sample the mixup pairs with the guarantee that a given sample will
             # not be paired with itself
             offset = torch.randint(
@@ -268,23 +289,57 @@ class RandomMixUp(Generic[LS]):
             )
             pair_indices = (indices + offset) % batch_size
         else:
-            if group_labels.numel() != batch_size:
+            groups_or_edges = groups_or_edges.squeeze()
+            if groups_or_edges.ndim == 1:
+                if len(groups_or_edges) != batch_size:
+                    raise ValueError(
+                        "The number of elements in 'groups_or_edges' should match the size of dimension 0 of 'inputs'."
+                    )
+
+                groups = groups_or_edges.view(batch_size, 1)  # [batch_size]
+                # Compute the pairwise indicator matrix, indicating whether any two samples
+                # belong to the same group (0) or different groups (1)
+                comp = operator.ne if cross_group else operator.eq
+                connections = comp(groups[indices], groups.t())  # [num_selected, batch_size]
+                if not cross_group:
+                    # Fill the diagonal with 'False' to prevent self-matches.
+                    connections.fill_diagonal_(False)
+                # For each sample, compute how many other samples there are that belong
+                # to a different group.
+            elif groups_or_edges.ndim == 2:
+                if groups_or_edges.dtype is not torch.bool:
+                    raise ValueError(
+                        "If 'groups_or_edges' is a matrix, it must have dtype 'torch.bool'."
+                    )
+                connections = groups_or_edges[indices]
+                # Fill the diagonal with 'False' to prevent self-matches.
+                connections.fill_diagonal_(False)
+            else:
                 raise ValueError(
-                    "The number of elements in 'group_labels' should match the size of dimension 0 of 'inputs'."
+                    "'groups_or_edges' must be a vector denoting group membership or a boolean-type"
+                    "groups_or_edges matrix with elements denoting the permissibility of each"
+                    "possible pairing in 'inputs'."
                 )
-            group_labels = group_labels.view(batch_size, 1)  # [batch_size]
-            # Compute the pairwise indicator matrix, indicating whether any two samples
-            # belong to the same group (0) or different groups (1)
-            is_diff_group = group_labels[indices] != group_labels.t()  # [num_selected, batch_size]
-            # For each sample, compute how many other samples there are that belong
-            # to a different group.
-            diff_group_counts = is_diff_group.count_nonzero(dim=1)  # [num_selected]
-            if torch.any(diff_group_counts == 0):
-                raise RuntimeError(
-                    f"No samples from different groups to sample as mixup pairs for one or more groups."
+            degrees = connections.count_nonzero(dim=1)  # [num_selected]
+            is_connected = degrees.nonzero().squeeze(-1)
+            num_selected = len(is_connected)
+            if num_selected < len(degrees):
+                warnings.warn(
+                    "One or more samples without valid pairs according to "
+                    "the connectivity defined by 'groups_or_edges'.",
+                    RuntimeWarning,
                 )
-            # Sample the mixup pairs via cross-group sampling, meaning samples are paired exclusively
-            # with samples from other groups. This can be efficiently done as follows:
+            # If there are no valid pairs (all vertices are isolated), there's nothing to do.
+            if num_selected == 0:
+                if targets is None:
+                    return inputs
+                return InputsTargetsPair(inputs=inputs, targets=targets)
+            # Update the tensors to account for pairless samples.
+            indices = indices[is_connected]
+            degrees = degrees[is_connected]
+            connections = connections[is_connected]
+            # Sample the mixup pairs in accordance with the connectivity matrix.
+            # This can be efficiently done as follows:
             # 1) Sample uniformly from {0, ..., diff_group_count - 1} to obtain the groupwise pair indices.
             # This involves first drawing samples from the standard uniform distribution, rescaling them to
             # [-1/(2*diff_group_count), diff_group_count + (1/(2*diff_group_count)], and then clamping them
@@ -293,12 +348,12 @@ class RandomMixUp(Generic[LS]):
             # diff_group_counts and rounding. 'randint' is unsuitable here because the groups aren't
             # guaranteed to have equal cardinality (using it to sample from the cyclic group,
             # Z / diff_group_count Z, as above, leads to biased sampling).
-            rel_pair_indices = batched_randint(diff_group_counts)
+            rel_pair_indices = batched_randint(degrees)
             # 2) Convert the row-wise indices into row-major indices, considering only
             # only the postive entries in the rows.
-            rel_pair_indices[1:] += diff_group_counts.cumsum(dim=0)[:-1]
-            # 3) Finally, map from group-relative indices to absolute ones.
-            _, abs_pos_inds = is_diff_group.nonzero(as_tuple=True)
+            rel_pair_indices[1:] += degrees.cumsum(dim=0)[:-1]
+            # 3) Finally, map from relative indices to absolute ones.
+            _, abs_pos_inds = connections.nonzero(as_tuple=True)
             pair_indices = abs_pos_inds[rel_pair_indices]
 
         # Sample the mixing weights
@@ -321,12 +376,16 @@ class RandomMixUp(Generic[LS]):
 
         # Targets are label-encoded and need to be one-hot encoded prior to mixup.
         if torch.atleast_1d(targets.squeeze()).ndim == 1:
-            if self.num_classes is None:
-                raise RuntimeError(
-                    f"{self.__class__.__name__} can only be applied to label-encoded targets if "
-                    "'num_classes' is specified."
-                )
-            targets = cast(Tensor, F.one_hot(targets, num_classes=self.num_classes))
+            if num_classes is None:
+                if self.num_classes is None:
+                    raise RuntimeError(
+                        f"{self.__class__.__name__} can only be applied to label-encoded targets if "
+                        "'num_classes' is specified."
+                    )
+                num_classes = self.num_classes
+            elif num_classes < 1:
+                raise ValueError(f"{ num_classes } must be a positive integer.")
+            targets = cast(Tensor, F.one_hot(targets, num_classes=num_classes))
         elif not self.inplace:
             targets = targets.clone()
         # Targets need to be floats to be mixed up
@@ -346,29 +405,57 @@ class RandomMixUp(Generic[LS]):
 
     @overload
     def __call__(
-        self, inputs: Tensor, *, targets: Tensor, group_labels: Tensor | None
+        self,
+        inputs: Tensor,
+        *,
+        targets: Tensor,
+        groups_or_edges: Tensor | None = ...,
+        cross_group: bool = ...,
+        num_classes: int | None = ...,
     ) -> InputsTargetsPair:
         ...
 
     @overload
     def __call__(
-        self, inputs: Tensor, *, targets: None = ..., group_labels: Tensor | None = ...
+        self,
+        inputs: Tensor,
+        *,
+        targets: None = ...,
+        groups_or_edges: Tensor | None = ...,
+        cross_group: bool = ...,
+        num_classes: int | None = ...,
     ) -> Tensor:
         ...
 
     def __call__(
-        self, inputs: Tensor, *, targets: Tensor | None = None, group_labels: Tensor | None = None
+        self,
+        inputs: Tensor,
+        *,
+        targets: Tensor | None = None,
+        groups_or_edges: Tensor | None = None,
+        cross_group: bool = True,
+        num_classes: int | None = ...,
     ) -> Tensor | InputsTargetsPair:
         """
         :param inputs: The samples to apply mixup to.
         :param targets: The corresponding targets to apply mixup to. If the targets are
             label-encoded then the 'num_classes' attribute cannot be None.
-        :param group_labels: Labels indicating which group each sample belongs to. If specified,
-            mixup pairs will be sampled in a cross-group fashion (only samples belonging to
-            different groups will be paired for mixup).
+        :param groups_or_edges: Labels indicating which group each sample belongs to or
+            a boolean connectivity matrix encoding the permissibility of each possible pairing.
+            In the case of the former, mixup pairs will be sampled in a cross-group fashion (only
+            samples belonging to different groups will be paired for mixup) if ``cross_group``  is
+            ``True`` and sampled in a within-group fashion (only sampled belonging to the same
+            groups will be paired for mixup) otherwise.
+        :param cross_group: Whether to sample mixup pairs in a cross-group (``True``) or
+            within-group (``False``) fashion (see ``groups_or_edges``).
 
         :return: If target is None, the Tensor of mixup-transformed inputs. If target is not None, a
             namedtuple containing the Tensor of mixup-transformed inputs (inputs) and the
             corresponding Tensor of mixup-transformed targets (targets).
         """
-        return self._transform(inputs=inputs, targets=targets, group_labels=group_labels)
+        return self._transform(
+            inputs=inputs,
+            targets=targets,
+            groups_or_edges=groups_or_edges,
+            cross_group=cross_group,
+        )
