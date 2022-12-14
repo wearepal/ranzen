@@ -1,8 +1,8 @@
 from __future__ import annotations
-import operator
-import warnings
 from enum import Enum, auto
+import operator
 from typing import Generic, NamedTuple, TypeVar, cast, overload
+import warnings
 
 import torch
 from torch import Tensor
@@ -480,6 +480,9 @@ class RandomMixUp(Generic[LS]):
             groups will be paired for mixup) otherwise.
         :param cross_group: Whether to sample mixup pairs in a cross-group (``True``) or
             within-group (``False``) fashion (see ``groups_or_edges``).
+        :param num_classes: The total number of classes in the dataset that needs to be specified if
+            wanting to mix up targets that are label-enoded. Passing label-encoded targets without
+            specifying ``num_classes`` will result in a RuntimeError.
 
         :return: If target is None, the Tensor of mixup-transformed inputs. If target is not None, a
             namedtuple containing the Tensor of mixup-transformed inputs (inputs) and the
