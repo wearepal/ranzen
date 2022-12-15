@@ -33,7 +33,7 @@ def batched_randint(
 
     :returns: A tensor of random-sampled integers upper-bounded by the values in ``high``.
     """
-    total_size = high.size()
+    total_size: torch.Size | list[int] = high.size()
     if size is not None:
         total_size = list(total_size)
         if isinstance(size, int):

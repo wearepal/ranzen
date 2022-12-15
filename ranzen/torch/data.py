@@ -693,7 +693,7 @@ class WeightedBatchSampler(BatchSamplerBase):
 
     @classmethod
     def from_labels(
-        cls: type[Self],
+        cls,
         labels: Sequence[int] | Tensor,
         *,
         batch_size: int,

@@ -70,13 +70,11 @@ def _to_yaml_value(default: Any, *, indent_level: int = 0) -> str | None:
     elif isinstance(default, (tuple, list)):
         str_ = ""
         indent_level += 1
-        str_ls = []
         for elem in default:
             elem_str = _to_yaml_value(elem, indent_level=indent_level)
             if elem_str is None:
                 return None
             str_ += f"\n{YAML_INDENT * indent_level}- {elem_str}"
-        str_ = str(str_ls)
     elif isinstance(default, dict):
         str_ = ""
         indent_level += 1
@@ -110,7 +108,7 @@ class Option(Generic[T]):
         return self._name
 
     @name.setter
-    def name(self, name: str | None) -> None:  # type: ignore
+    def name(self, name: str | None) -> None:
         self._name = name
 
 
@@ -154,7 +152,7 @@ class Relay:
     _logger: ClassVar[Optional[logging.Logger]] = None
 
     @classmethod
-    def _get_logger(cls: type[Self]) -> logging.Logger:
+    def _get_logger(cls) -> logging.Logger:
         if cls._logger is None:
             logger = logging.getLogger(__name__)
             logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -163,18 +161,16 @@ class Relay:
         return cls._logger
 
     @classmethod
-    def _log(cls: type[Self], msg: str) -> None:
+    def _log(cls, msg: str) -> None:
         cls._get_logger().info(msg)
 
     @classmethod
-    def _config_dir_name(cls: type[Self]) -> str:
+    def _config_dir_name(cls) -> str:
         return _camel_to_snake(cls.__name__)
 
     @final
     @classmethod
-    def _init_yaml_files(
-        cls: type[Self], *, config_dir: Path, config_dict: dict[str, list[Any]]
-    ) -> None:
+    def _init_yaml_files(cls, *, config_dir: Path, config_dict: dict[str, list[Any]]) -> None:
         primary_conf_fp = (config_dir / cls._CONFIG_NAME).with_suffix(".yaml")
         primary_conf_exists = primary_conf_fp.exists()
         with primary_conf_fp.open("a+") as primary_conf:
@@ -226,15 +222,13 @@ class Relay:
         cls._log(f"Finished initialising config directory initialised at '{config_dir}'")
 
     @classmethod
-    def _module_to_fp(cls: type[Self], module: ModuleType | str):
+    def _module_to_fp(cls, module: ModuleType | str) -> str:
         if isinstance(module, ModuleType):
             module = module.__name__
         return module.replace(".", "/")
 
     @classmethod
-    def _generate_conf(
-        cls: type[Self], output_dir: Path, *, module_class_dict: dict[str, List[str]]
-    ) -> None:
+    def _generate_conf(cls, output_dir: Path, *, module_class_dict: dict[str, List[str]]) -> None:
         from configen.config import ConfigenConf, ModuleConf  # type: ignore
         from configen.configen import generate_module  # type: ignore
 
@@ -255,7 +249,7 @@ class Relay:
                 file.write(code)
 
     @classmethod
-    def _load_module_from_path(cls: type[Self], filepath: Path) -> ModuleType:
+    def _load_module_from_path(cls, filepath: Path) -> ModuleType:
         import sys
 
         spec = importlib.util.spec_from_file_location(  # type: ignore
@@ -268,7 +262,7 @@ class Relay:
 
     @classmethod
     def _load_schemas(
-        cls: type[Self],
+        cls,
         config_dir: Path,
         *,
         clear_cache: bool = False,
@@ -319,9 +313,7 @@ class Relay:
                         if schema is None:
                             schema_missing = True
                         else:
-                            imported_schemas[group].append(
-                                replace(option, class_=schema)  # type: ignore
-                            )
+                            imported_schemas[group].append(replace(option, class_=schema))
                     if schema_missing:
                         schemas_to_generate[option.class_.__module__].append(cls_name)
                     import_info = _SchemaImportInfo(
@@ -351,16 +343,14 @@ class Relay:
                 # attribute-retrieval during unpickling when using a paralllielising hydra
                 # launcher and implement a more graceful solution.
                 schema.__module__ = "__main__"
-                imported_schemas[group].append(
-                    Option(class_=schema, name=info.name)
-                )  # type: ignore
+                imported_schemas[group].append(Option(class_=schema, name=info.name))
 
         return primary_schema, imported_schemas, schemas_to_init
 
     @final
     @classmethod
     def _launch(
-        cls: type[Self],
+        cls,
         *,
         root: Path | str,
         clear_cache: bool = False,
@@ -388,9 +378,9 @@ class Relay:
         sr = SchemaRegistration()
         sr.register(path=cls._PRIMARY_SCHEMA_NAME, config_class=primary_schema)
         for group, schema_ls in schemas.items():
-            with sr.new_group(group_name=f"schema/{group}", target_path=f"{group}") as group:
+            with sr.new_group(group_name=f"schema/{group}", target_path=f"{group}") as group_:
                 for info in schema_ls:
-                    group.add_option(name=info.name, config_class=info.class_)
+                    group_.add_option(name=info.name, config_class=info.class_)
 
         # config_path only allows for relative paths; we need to resort to construct a
         # searchpath plugin on-the-fly in order to set the config directory with an absolute path
@@ -403,7 +393,7 @@ class Relay:
 
         @hydra.main(config_path=None, config_name=cls._CONFIG_NAME, version_base=None)
         def launcher(cfg: Any, /) -> Any:
-            relay: cls = instantiate(cfg, _recursive_=instantiate_recursively)
+            relay: Self = instantiate(cfg, _recursive_=instantiate_recursively)
             config_dict = cast(
                 Dict[str, Any],
                 OmegaConf.to_container(cfg, throw_on_missing=True, enum_to_str=False, resolve=True),
@@ -414,7 +404,7 @@ class Relay:
 
     @classmethod
     def with_hydra(
-        cls: type[Self],
+        cls,
         root: Path | str,
         *,
         clear_cache: bool = False,
