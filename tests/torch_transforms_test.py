@@ -97,6 +97,13 @@ def test_mixup(
                     groups_or_edges=groups_or_edges,
                     cross_group=cross_group,
                 )
+            transform(
+                inputs=inputs,
+                targets=targets,
+                groups_or_edges=groups_or_edges,
+                cross_group=cross_group,
+                num_classes=num_classes,
+            )
     else:
         assert targets is None
         assert res.shape == inputs.shape

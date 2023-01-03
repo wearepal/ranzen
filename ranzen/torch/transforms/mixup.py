@@ -466,7 +466,7 @@ class RandomMixUp(Generic[LS]):
         targets: Tensor | None = None,
         groups_or_edges: Tensor | None = None,
         cross_group: bool = True,
-        num_classes: int | None = ...,
+        num_classes: int | None = None,
     ) -> Tensor | InputsTargetsPair:
         """
         :param inputs: The samples to apply mixup to.
