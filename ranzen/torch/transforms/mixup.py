@@ -254,7 +254,7 @@ class RandomMixUp(Generic[LS]):
         lambda_c = 1 - lambda_
         if self.mode is MixUpMode.linear:
             return lambda_ * tensor_a + lambda_c * tensor_b
-        return tensor_a**lambda_ * tensor_b**lambda_c
+        return tensor_a ** lambda_ * tensor_b ** lambda_c
 
     @overload
     def _transform(
@@ -493,4 +493,5 @@ class RandomMixUp(Generic[LS]):
             targets=targets,
             groups_or_edges=groups_or_edges,
             cross_group=cross_group,
+            num_classes=num_classes,
         )
