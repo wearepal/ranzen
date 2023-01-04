@@ -74,7 +74,10 @@ def test_mixup(
         mixed_targets = res.targets
         assert len(mixed_inputs) == len(mixed_targets) == BATCH_SIZE
         assert mixed_inputs.shape == inputs.shape
-        assert mixed_targets.size(1) == num_classes
+        if mixed_targets.ndim == 1:
+            assert targets.shape == mixed_targets.shape
+        else:
+            assert mixed_targets.size(1) == num_classes
 
         # Check that setting rows to False in the connectivity matrix excludes samples.
         if (groups_or_edges is not None) and edges and (p == 1.0):

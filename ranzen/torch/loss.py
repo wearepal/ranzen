@@ -3,7 +3,6 @@ from enum import Enum, auto
 from functools import partial
 from typing import Optional, Union
 
-import torch
 from torch import Tensor, nn
 import torch.nn.functional as F
 
@@ -101,34 +100,34 @@ def cross_entropy_loss(
         reduction = str_to_enum(str_=reduction, enum=ReductionType)
 
     input = input.view(input.size(0), -1).squeeze(-1)
-    if (input.ndim == 1) or (input.size(1) == 1):  # Binary classification
-        if (target.ndim == 1) or (target.size(1) == 1):
-            target = target.view_as(input)
-            if not target.is_floating_point():
-                target = target.float()
-            loss_fn = F.binary_cross_entropy_with_logits
-        elif target.size(1) == 2:
-            input = input.view(target.size(0), -1)
-            # Convert to multiclass form by concatenating the input with its complement.
-            input = torch.cat(((1 - input), input), dim=1)
-            loss_fn = partial(
-                F.cross_entropy,
-                ignore_index=ignore_index,
-                label_smoothing=label_smoothing,
-            )
-        else:
+    target = target.view(target.size(0), -1).squeeze(-1)
+
+    if input.ndim == 1:  # Binary classification
+        if target.ndim == 2:
+            if target.size(1) == 2:
+                target = target[:, 1]
+            else:
+                raise ValueError(
+                    "'target' must be of size '2' at dimension '1' if not label encoded."
+                )
+        elif target.ndim > 2:
             raise ValueError(
                 "'target' must be a one- or two-dimensional tensor when 'input' is one-dimensional"
                 " (excluding dummy dimensions) and corresponds to binary predictions."
             )
+        if not target.is_floating_point():
+            target = target.float()
+        loss_fn = F.binary_cross_entropy_with_logits
     else:  # Multiclass classification
-        target = target.view(input.size(0), -1).squeeze(-1)
         if (target.ndim == 1) and target.is_floating_point():
             target = target.long()
-        elif target.ndim == 2 and (target.shape != input.shape):
-            raise ValueError(
-                "'target' and 'input' must match in size when 'target' is not label encoded."
-            )
+        elif target.ndim == 2:
+            if target.shape != input.shape:
+                raise ValueError(
+                    "'target' and 'input' must match in size when 'target' is not label encoded."
+                )
+            elif not target.is_floating_point():
+                target = target.to(input.dtype)
 
         loss_fn = partial(
             F.cross_entropy,
