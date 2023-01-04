@@ -81,6 +81,8 @@ def cross_entropy_loss(
 
     :returns: The (reduced) cross-entropy between ``input`` and ``target``.
 
+    :raises ValueError: If 'input' and 'target' have incompatible sizes.
+
     :example:
         >>> # Example of target with class indices
         >>> input = torch.randn(3, 5, requires_grad=True)
@@ -96,16 +98,42 @@ def cross_entropy_loss(
     """
     if isinstance(reduction, str):
         reduction = str_to_enum(str_=reduction, enum=ReductionType)
-    if input.ndim == 1 or input.size(1) == 1:  # Binary classification
-        target = target.view_as(input)
+
+    input = input.view(input.size(0), -1).squeeze(-1)
+    target = target.view(target.size(0), -1).squeeze(-1)
+
+    if input.ndim == 1:  # Binary classification
+        if target.ndim == 2:
+            if target.size(1) == 2:
+                target = target[:, 1]
+            else:
+                raise ValueError(
+                    "'target' must be of size '2' at dimension '1' if not label encoded."
+                )
+        elif target.ndim > 2:
+            raise ValueError(
+                "'target' must be a one- or two-dimensional tensor when 'input' is one-dimensional"
+                " (excluding dummy dimensions) and corresponds to binary predictions."
+            )
         if not target.is_floating_point():
             target = target.float()
         loss_fn = F.binary_cross_entropy_with_logits
     else:  # Multiclass classification
-        target = target.view(input.size(0), -1).squeeze(-1)
         if (target.ndim == 1) and target.is_floating_point():
             target = target.long()
-        loss_fn = partial(F.cross_entropy, ignore_index=ignore_index)
+        elif target.ndim == 2:
+            if target.shape != input.shape:
+                raise ValueError(
+                    "'target' and 'input' must match in size when 'target' is not label encoded."
+                )
+            elif not target.is_floating_point():
+                target = target.to(input.dtype)
+
+        loss_fn = partial(
+            F.cross_entropy,
+            ignore_index=ignore_index,
+            label_smoothing=label_smoothing,
+        )
     losses = loss_fn(
         input=input,
         target=target,

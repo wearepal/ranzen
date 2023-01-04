@@ -417,7 +417,8 @@ class RandomMixUp(Generic[LS]):
                 num_classes = self.num_classes
             elif num_classes < 1:
                 raise ValueError(f"{ num_classes } must be a positive integer.")
-            targets = cast(Tensor, F.one_hot(targets, num_classes=num_classes))
+            elif num_classes > 2:
+                targets = cast(Tensor, F.one_hot(targets, num_classes=num_classes))
         elif not self.inplace:
             targets = targets.clone()
         # Targets need to be floats to be mixed up
