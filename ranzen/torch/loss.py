@@ -114,8 +114,8 @@ def cross_entropy_loss(
             )
         else:
             raise RuntimeError(
-                "'target' must be a one- or two-dimensional tensor when 'logits' is one-dimensional"
-                " (excluding dummy dimensions) and specifies binary predictions."
+                "'target' must be a one- or two-dimensional tensor when 'input' is one-dimensional"
+                " (excluding dummy dimensions) and corresponds to binary predictions."
             )
     else:  # Multiclass classification
         target = target.view(input.size(0), -1).squeeze(-1)
