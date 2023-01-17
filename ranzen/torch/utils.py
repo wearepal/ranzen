@@ -185,7 +185,7 @@ def to_item(tensor: Tensor, /) -> Number:
 
 def torch_eps(tensor_or_dtype: Tensor | torch.dtype, /) -> float:
     """
-    Retrieves the epislon (the smallest representable number such that 1.0 + eps != 1.0.)
+    Retrieves the epsilon (the smallest representable number such that 1.0 + eps != 1.0.)
     value for the given dtype or the dtype of the given tensor.
 
     :param tensor_or_dtype: Tensor or :class:`torch.dtype` instance to retrieve
