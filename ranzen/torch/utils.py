@@ -2,14 +2,27 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from datetime import datetime
 import random
-from typing import Any, List, TypeVar
+from typing import Any, List, Optional, TypeVar, Union, overload
 
 import numpy as np
+import numpy.typing as npt
 import torch
 from torch import Tensor
 import torch.nn as nn
+from torch.types import Number
 
-__all__ = ["count_parameters", "random_seed", "inf_generator", "Event", "batchwise_pdist"]
+from ranzen.misc import some
+
+__all__ = [
+    "Event",
+    "batchwise_pdist",
+    "count_parameters",
+    "inf_generator",
+    "random_seed",
+    "to_item",
+    "to_numpy",
+    "torch_eps",
+]
 
 
 def count_parameters(model: nn.Module) -> int:
@@ -125,3 +138,61 @@ def batchwise_pdist(x: Tensor, chunk_size: int = 1000, p_norm: float = 2.0) -> T
         del column
     torch.cuda.empty_cache()
     return dist
+
+
+DT = TypeVar("DT", bound=Union[np.number, np.bool_])
+
+
+@overload
+def to_numpy(tensor: Tensor, *, dtype: DT) -> npt.NDArray[DT]:
+    ...
+
+
+@overload
+def to_numpy(tensor: Tensor, *, dtype: None = ...) -> npt.NDArray:
+    ...
+
+
+def to_numpy(
+    tensor: Tensor, *, dtype: Optional[DT] | None = None
+) -> Union[npt.NDArray[DT], npt.NDArray]:
+    """
+    Safely casts a tensor to a numpy ndarray of dtype ``dtype``
+    if ``dtype`` is specified.
+
+    :param tensor: Tensor to be cast to a ndarray.
+    :param dtype: dtype of the cast-to ndarray. If ``None`` then
+        the dtype will be inherited from ``tensor``.
+    :returns: ``tensor`` cast to an ndarray of dtype ``dtype``
+        if ``dtype`` is specified.
+    """
+    arr = tensor.detach().cpu().numpy()
+    if some(dtype):
+        arr.astype(dtype)
+    return arr
+
+
+def to_item(tensor: Tensor, /) -> Number:
+    """
+    Safely extracts the (int, float or bool) value from a single-element
+    (scalar) tensor.
+
+    :param tensor: Tensor to extract the item from.
+    :returns: The value of the scalar ``tensor`` as a built-in float, int, bool.
+    """
+    return tensor.detach().cpu().item()
+
+
+def torch_eps(tensor_or_dtype: Tensor | torch.dtype, /) -> float:
+    """
+    Retrieves the epsilon (the smallest representable number such that 1.0 + eps != 1.0.)
+    value for the given dtype or the dtype of the given tensor.
+
+    :param tensor_or_dtype: Tensor or :class:`torch.dtype` instance to retrieve
+        the epislon value for.
+
+    :returns: Epsilon value for the given dtype if ``tensor_or_dtype`` is an
+        instance of :class:`torch.dtype` else the epsilon value of the dtype of the
+        given tensor."""
+    dtype = tensor_or_dtype.dtype if isinstance(tensor_or_dtype, Tensor) else tensor_or_dtype
+    return torch.finfo(dtype).eps
