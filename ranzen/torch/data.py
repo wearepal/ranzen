@@ -18,15 +18,14 @@ from typing import (
     overload,
     runtime_checkable,
 )
+from typing_extensions import Self, override
 
 import numpy as np
 import numpy.typing as npt
 import torch
 from torch import Tensor
 from torch.utils.data import Sampler
-from typing_extensions import Self
 
-from ranzen import implements
 from ranzen.misc import str_to_enum
 
 __all__ = [
@@ -97,7 +96,7 @@ def prop_random_split(
     dataset: SizedDataset,
     *,
     props: Sequence[float] | float,
-    as_indices: Literal[True] = ...,
+    as_indices: Literal[True],
     seed: int | None = ...,
 ) -> List[list[int]]:
     ...
@@ -141,12 +140,13 @@ def prop_random_split(
         section_sizes.append(len_ - sum(section_sizes))
     generator = torch.default_generator if seed is None else torch.Generator().manual_seed(seed)
     indices = torch.randperm(sum(section_sizes), generator=generator).tolist()
-    splits = []
-    for offset, length in zip(np.cumsum(section_sizes), section_sizes):
-        split = indices[offset - length : offset]
-        if not as_indices:
-            split = Subset(dataset, indices=split)
-        splits.append(split)
+    splits = [
+        indices[offset - length : offset]
+        for offset, length in zip(np.cumsum(section_sizes), section_sizes)
+    ]
+
+    if not as_indices:
+        return [Subset(dataset, indices=split) for split in splits]
     return splits
 
 
@@ -235,7 +235,7 @@ class BatchSamplerBase(Sampler[Sequence[int]]):
     def __init__(self, epoch_length: int | None = None) -> None:
         self.epoch_length: Final[int | None] = epoch_length
 
-    @implements(Sampler)
+    @override
     @abstractmethod
     def __iter__(self) -> Iterator[list[int]]:
         ...
@@ -325,7 +325,7 @@ class SequentialBatchSampler(BatchSamplerBase):
         """Split the indexes into batches."""
         return indexes.split(self.batch_size)
 
-    @implements(BatchSamplerBase)
+    @override
     def __iter__(self) -> Iterator[list[int]]:
         generator = _check_generator(self.generator)
         batched_idxs_iter = iter(self._batch_indexes(self._generate_idx_seq(generator=generator)))
@@ -564,7 +564,7 @@ class StratifiedBatchSampler(BatchSamplerBase):
                     sampled_idxs += list(chunks[:multiplier])
             yield torch.cat(sampled_idxs, dim=0).tolist()
 
-    @implements(BatchSamplerBase)
+    @override
     def __iter__(self) -> Iterator[list[int]]:
         generator = _check_generator(self.generator)
         if self.sampler is BaseSampler.random:
@@ -614,7 +614,7 @@ class GreedyCoreSetSampler(BatchSamplerBase):
         sq = dist_mat.diagonal().view(batch.size(0), 1)
         return -2 * dist_mat + sq + sq.t()
 
-    @implements(BatchSamplerBase)
+    @override
     def __iter__(self) -> Iterator[list[int]]:
         generator = _check_generator(self.generator)
         # iterative forever (until some externally defined stopping-criterion is reached)
@@ -735,7 +735,7 @@ class WeightedBatchSampler(BatchSamplerBase):
             generator=generator,
         )
 
-    @implements(BatchSamplerBase)
+    @override
     def __iter__(self) -> Iterator[list[int]]:
         generator = _check_generator(self.generator)
         # Iterate until some stopping criterion is reached

@@ -1,9 +1,9 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
+from typing_extensions import Self, final
 
 import torch.nn as nn
-from typing_extensions import Self, final
 
 __all__ = ["DcModule"]
 

@@ -7,11 +7,11 @@ from ranzen.torch.data import TrainingMode
 
 
 @pytest.fixture(scope="module")
-def data() -> Tensor:  # type: ignore[no-any-unimported]
+def data() -> Tensor:
     return torch.arange(200)
 
 
-def test_regeneration(data: Tensor) -> None:  # type: ignore[no-any-unimported]
+def test_regeneration(data: Tensor) -> None:
     batch_size = 175
     dataset_size = 200
     sampler = SequentialBatchSampler(data_source=data, batch_size=batch_size, shuffle=False)
@@ -28,7 +28,7 @@ def test_regeneration(data: Tensor) -> None:  # type: ignore[no-any-unimported]
 
 @pytest.mark.parametrize("drop_last", [True, False])
 @pytest.mark.parametrize("batch_size", [55, 50])
-def test_epoch_mode(data: Tensor, batch_size: int, drop_last: bool) -> None:  # type: ignore[no-any-unimported]
+def test_epoch_mode(data: Tensor, batch_size: int, drop_last: bool) -> None:
     sampler = SequentialBatchSampler(
         data_source=data,
         batch_size=batch_size,
