@@ -58,6 +58,7 @@ readme="README.md"
 # more groups with the --without option: ``poetry install --without torch``.
 [tool.poetry.dependencies]
 python = ">=3.8.0,<3.11"
+typing-extensions = ">=4.4.0"
 
 [tool.poetry.group.wandb.dependencies]
 pandas = { version = "^1.4.3" }
@@ -90,6 +91,7 @@ reportUntypedNamedTuple = "error"
 reportConstantRedefinition = "warning"
 reportMissingImports = "error"
 reportMissingTypeStubs = "warning"
+reportUnusedVariable = "warning"
 strictListInference = true
 strictSetInference = true
 strictParameterNoneValue = true
@@ -139,7 +141,7 @@ target-version = "py38"
 
 [tool.ruff.isort]
 known-third-party = ["PIL", "black", "git", "fairlearn", "matplotlib", "mypy", "numpy", "pandas", "pylint", "pytest", "scipy", "seaborn", "setuptools", "sklearn", "teext", "torch"]
-extra-standard-library = ["__future__", "typing_extensions"]
+extra_standard_library = ["dataclasses", "__future__", "typing_extensions"]
 
 [tool.ruff.flake8-annotations]
 mypy-init-return = true

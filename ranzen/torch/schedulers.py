@@ -8,8 +8,7 @@ import torch
 from torch import Tensor
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import CosineAnnealingLR, _LRScheduler
-
-from ranzen.decorators import implements
+from typing_extensions import override
 
 __all__ = [
     "CosineLRWithLinearWarmup",
@@ -35,25 +34,25 @@ class LinearWarmupLR(_LRScheduler):
     def __init__(
         self, optimizer: Optimizer, *, warmup_iters: int, lr_start: float = 0, last_epoch: int = -1
     ) -> None:
+        if warmup_iters < 0:
+            raise AttributeError("'warmup_iters' must be non-negative.")
         self.lr_start = lr_start
         self.warmup_iters = warmup_iters
         super().__init__(optimizer=optimizer, last_epoch=last_epoch)
 
-    @implements(_LRScheduler)
+    @override
     def get_lr(self) -> list[float]:
         """
         Get the learning rate of each parameter group.
 
         :returns: The learning rate for each parameter group in the optimizer.
         """
-        if self.last_epoch > self.warmup_iters:
+        if self.last_epoch > self.warmup_iters or (self.warmup_iters == 0):
             return [group["lr"] for group in self.optimizer.param_groups]
-
-        lrs = [
+        return [
             self.lr_start + self._get_step_size(base_lr) * self.last_epoch
-            for group, base_lr in zip(self.optimizer.param_groups, self.base_lrs)
+            for base_lr in self.base_lrs
         ]
-        return lrs
 
     def _get_step_size(self, base_lr: float) -> float:
         return (base_lr - self.lr_start) / self.warmup_iters
@@ -109,6 +108,8 @@ class CosineLRWithLinearWarmup(_LRScheduler):
                     "If 'warmup_iters' is a float, it must be in the range [0, 1]."
                 )
             warmup_iters = round(warmup_iters * total_iters)
+        elif warmup_iters < 0:
+            raise AttributeError("If 'warmup_iters' is an integer, it must be non-negative.")
         self.warmup_iters = warmup_iters
         self._scheduler: Union[LinearWarmupLR, CosineAnnealingLR] = LinearWarmupLR(
             optimizer=optimizer, warmup_iters=warmup_iters, lr_start=lr_start
@@ -133,6 +134,7 @@ class CosineLRWithLinearWarmup(_LRScheduler):
             )
         return self._scheduler
 
+    @override
     def get_lr(self) -> list[float]:
         """
         Get the learning rate of each parameter group.
@@ -141,6 +143,7 @@ class CosineLRWithLinearWarmup(_LRScheduler):
         """
         return self.scheduler.get_lr()  # type: ignore
 
+    @override
     def step(self, epoch: Optional[int] = None) -> None:
         """
         Update the learning rates using the currently-used scheduler.
@@ -252,7 +255,7 @@ class WarmupScheduler(Scheduler[T]):
     warmup_steps: int
     _curr_step: int = field(init=False)
 
-    @implements(Scheduler)
+    @override
     def __post_init__(self) -> None:
         if self.warmup_steps < 0:
             raise AttributeError("'warmup_steps' must be a non-negative integer.")
@@ -266,7 +269,7 @@ class WarmupScheduler(Scheduler[T]):
         return self._curr_step == self.warmup_steps
 
     @torch.no_grad()
-    @implements(Scheduler)
+    @override
     def step(self) -> None:
         if not self.warmed_up:
             super().step()
@@ -277,7 +280,7 @@ class WarmupScheduler(Scheduler[T]):
 class LinearWarmup(WarmupScheduler[T]):
     step_size: T = field(init=False)
 
-    @implements(WarmupScheduler)
+    @override
     def __post_init__(self) -> None:
         super().__post_init__()
         if self.warmup_steps == 0:
@@ -285,7 +288,7 @@ class LinearWarmup(WarmupScheduler[T]):
         else:
             self.step_size = (self.end_val - self.start_val) / self.warmup_steps
 
-    @implements(WarmupScheduler)
+    @override
     def _update(self, value: T) -> T:
         return value + self.step_size
 
@@ -295,7 +298,7 @@ class ExponentialWarmup(WarmupScheduler[T]):
     end_val: T
     step_size: T = field(init=False)
 
-    @implements(WarmupScheduler)
+    @override
     def __post_init__(self) -> None:
         super().__post_init__()
         if self.warmup_steps == 0:
@@ -303,7 +306,7 @@ class ExponentialWarmup(WarmupScheduler[T]):
         else:
             self.step_size = (self.end_val / self.start_val) ** (1 / self.warmup_steps)  # type: ignore
 
-    @implements(WarmupScheduler)
+    @override
     def _update(self, value: T) -> T:
         return value * self.step_size
 
@@ -313,12 +316,12 @@ class CosineWarmup(WarmupScheduler[T]):
     end_val: T
     _coeff: T = field(init=False)
 
-    @implements(WarmupScheduler)
+    @override
     def __post_init__(self) -> None:
         super().__post_init__()
         self._coeff = 0.5 * (self.end_val - self.start_val)
 
-    @implements(WarmupScheduler)
+    @override
     def _update(self, value: T) -> T:
         if self.warmup_steps == 0:
             return value
