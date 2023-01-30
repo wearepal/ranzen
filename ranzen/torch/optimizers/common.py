@@ -1,7 +1,7 @@
 from typing import Callable
+from typing_extensions import TypeAlias
 
 from torch import Tensor
-from typing_extensions import TypeAlias
 
 __all__ = ["LossClosure"]
 

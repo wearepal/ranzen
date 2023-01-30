@@ -3,11 +3,11 @@
 from __future__ import annotations
 import math
 from typing import Iterable, Sequence, cast
+from typing_extensions import TypedDict
 
 import torch
 from torch import Tensor
 from torch.optim import Optimizer
-from typing_extensions import TypedDict
 
 from .common import LossClosure
 
