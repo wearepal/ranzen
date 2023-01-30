@@ -1,18 +1,21 @@
 from __future__ import annotations
-from typing import Any, Callable
+from typing import Any
 from typing_extensions import override
 
 import torch
 from torch import Tensor
 from torch.optim.optimizer import Optimizer
 
+from .common import LossClosure
+
 __all__ = ["SAM"]
 
 
 class SAM(Optimizer):
     """
-    Implements the 'Sharpness Aware Minimization' (SAM) algorithm introducued in
-    `Sharpness Aware Minimization`_) and the adaptive variant of it introduced in `ASAM`_.
+    Implements the 'Sharpness Aware Minimization' (SAM) algorithm introducued
+    in `Sharpness Aware Minimization`_ along with the adaptive variant of it
+    introduced in `ASAM`_.
 
     SAM seeks parameters that lie in neighborhoods having uniformly low loss (rather than
     parameters that only themselves have low loss value). The adaptive variant of the
@@ -96,7 +99,7 @@ class SAM(Optimizer):
 
     @torch.no_grad()
     @override
-    def step(self, closure: Callable[[], Tensor]) -> Tensor:
+    def step(self, closure: LossClosure) -> Tensor:
         r"""Performs a single optimization step.
 
         :param closure: A closure that reevaluates the model and returns the loss.
