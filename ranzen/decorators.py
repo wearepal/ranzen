@@ -9,7 +9,10 @@ _F = TypeVar("_F", bound=Callable[..., Any])
 
 
 class implements:  # pylint: disable=invalid-name
-    """Mark a function as implementing an interface."""
+    """Mark a function as implementing an interface.
+
+    Deprecated. Use ``typing_extensions.override`` instead.
+    """
 
     def __init__(self, interface: type):
         """Instantiate the decorator.

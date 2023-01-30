@@ -1,11 +1,10 @@
 from __future__ import annotations
 from typing import Any, Callable
+from typing_extensions import override
 
 import torch
 from torch import Tensor
 from torch.optim.optimizer import Optimizer
-
-from ranzen.decorators import implements
 
 __all__ = ["SAM"]
 
@@ -96,7 +95,7 @@ class SAM(Optimizer):
             self.zero_grad()
 
     @torch.no_grad()
-    @implements(Optimizer)
+    @override
     def step(self, closure: Callable[[], Tensor]) -> Tensor:
         r"""Performs a single optimization step.
 
@@ -110,7 +109,7 @@ class SAM(Optimizer):
         self._second_step()
         return loss
 
-    def _grad_norm(self):
+    def _grad_norm(self) -> Tensor:
         shared_device = self.param_groups[0]["params"][
             0
         ].device  # put everything on the same device, in case of model parallelism
@@ -129,7 +128,7 @@ class SAM(Optimizer):
         )
         return norm
 
-    @implements(Optimizer)
+    @override
     def load_state_dict(self, state_dict: dict[str, Any]) -> None:
         r"""Loads the optimizer state.
 

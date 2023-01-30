@@ -1,5 +1,4 @@
 from typing import TypeVar
-
 from typing_extensions import Protocol, Self, runtime_checkable
 
 __all__ = ["Sized", "Addable"]

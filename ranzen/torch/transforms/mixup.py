@@ -93,7 +93,7 @@ class RandomMixUp(Generic[LS]):
         :raises ValueError: if ``p`` is not in the range [0, 1] or ``num_classes < 1``.
         """
         super().__init__()
-        self.lambda_sampler = lambda_sampler
+        self.lambda_sampler: LS = lambda_sampler
         if not 0 <= p <= 1:
             raise ValueError("'p' must be in the range [0, 1].")
         self.p = p
@@ -286,7 +286,7 @@ class RandomMixUp(Generic[LS]):
         *,
         targets: Tensor | None = None,
         groups_or_edges: Tensor | None = None,
-        cross_group: bool = ...,
+        cross_group: bool = False,
         num_classes: int | None = None,
     ) -> Tensor | InputsTargetsPair:
         batch_size = len(inputs)

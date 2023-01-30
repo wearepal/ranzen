@@ -1,7 +1,8 @@
+from typing import Final
+
 import pytest
 import torch
 import torch.nn.functional as F
-from typing_extensions import Final
 
 from ranzen.torch import CrossEntropyLoss, ReductionType
 
