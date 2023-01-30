@@ -1,11 +1,13 @@
 from __future__ import annotations
-from typing import Any, Callable
+from typing import Any
 
 import torch
 from torch import Tensor
 from torch.optim.optimizer import Optimizer
 
 from ranzen.decorators import implements
+
+from .common import LossClosure
 
 __all__ = ["SAM"]
 
@@ -97,7 +99,7 @@ class SAM(Optimizer):
 
     @torch.no_grad()
     @implements(Optimizer)
-    def step(self, closure: Callable[[], Tensor]) -> Tensor:
+    def step(self, closure: LossClosure) -> Tensor:
         r"""Performs a single optimization step.
 
         :param closure: A closure that reevaluates the model and returns the loss.
