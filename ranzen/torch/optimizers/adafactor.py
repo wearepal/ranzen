@@ -85,7 +85,6 @@ class Adafactor(Optimizer):
         :param multiply_by_parameter_scale: if True, learning rate is scaled by
             root mean square of parameter.
 
-
         :param warmup_init: time-dependent learning rate computation depends on
             whether warm-up initialization is being used.
         """
