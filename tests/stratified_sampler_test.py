@@ -88,7 +88,7 @@ def test_with_dataloader(group_ids: list[int], sampler: BaseSampler) -> None:
     dataset = TensorDataset(torch.as_tensor(group_ids))
     data_loader = DataLoader(
         dataset=dataset, batch_sampler=batch_sampler, drop_last=False, shuffle=False
-    )  # type: ignore
+    )
     iters = 0
     for (x,) in data_loader:
         assert x.size(0) == batch_size

@@ -5,7 +5,6 @@ import functools
 import operator
 import sys
 from typing import Any, Dict, Iterable, MutableMapping, Type, TypeVar, overload
-
 from typing_extensions import Self, TypeGuard
 
 from ranzen.types import Addable
@@ -64,6 +63,7 @@ def gcopy(
     obj: T, *, deep: bool = True, num_copies: int | None = None, **kwargs: Any
 ) -> T | list[T]:
     """Generalised (g) copy function.
+
     Allows for switching between deep and shallow copying within a single function
     as well as for the creation of multiple copies and for copying while simultaneously
     attribute-setting.
@@ -80,8 +80,7 @@ def gcopy(
     """
     if num_copies is not None:
         return [gcopy(obj=obj, deep=deep, num_copies=None, **kwargs) for _ in range(num_copies)]
-    copy_fn = copy.deepcopy if deep else copy.copy
-    obj_cp = copy_fn(obj)
+    obj_cp = copy.deepcopy(obj) if deep else copy.copy(obj)
     for attr, value in kwargs.items():
         if not hasattr(obj_cp, attr):
             raise AttributeError(
@@ -219,7 +218,7 @@ class AddDict(Dict[_KT, _VT], Addable):
         # with th 'no-default' version of``sum``.
         if isinstance(other, int):
             return self
-        copy = AddDict()
+        copy: AddDict[_KT, _VT | _VT2] = AddDict()
         copy.update(gcopy(self, deep=False))
 
         for key_o, value_o in other.items():

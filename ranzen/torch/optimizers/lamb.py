@@ -1,12 +1,11 @@
 from __future__ import annotations
 import math
 from typing import Iterable
+from typing_extensions import override
 
 import torch
 from torch import Tensor
 from torch.optim.optimizer import Optimizer
-
-from ranzen.decorators import implements
 
 from .common import LossClosure
 
@@ -68,7 +67,7 @@ class LAMB(Optimizer):
 
         super().__init__(params=params, defaults=defaults)  # type: ignore
 
-    @implements(Optimizer)
+    @override
     def step(self, closure: LossClosure | None = None) -> Tensor | None:
         r"""Performs a single optimization step.
 

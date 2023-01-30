@@ -9,7 +9,7 @@ from ranzen.torch.optimizers import LAMB, SAM, Adafactor
 
 
 @pytest.mark.parametrize("debias", [True, False])
-def test_lamb(debias: bool):
+def test_lamb(debias: bool) -> None:
     params = torch.randn(10, requires_grad=True)
     optimizer = LAMB(params=[params], debias=debias)
     old_params = params.data.clone()
@@ -21,7 +21,7 @@ def test_lamb(debias: bool):
 
 
 @pytest.mark.parametrize("adaptive", [True, False])
-def test_sam(adaptive: bool):
+def test_sam(adaptive: bool) -> None:
     params = torch.randn(10, requires_grad=True)
     base_optimizer = AdamW([params])
     optimizer = SAM(base_optimizer=base_optimizer, adaptive=adaptive)

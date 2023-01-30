@@ -3,12 +3,12 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 import math
 from typing import Generic, List, Optional, TypeVar, Union, overload
+from typing_extensions import override
 
 import torch
 from torch import Tensor
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import CosineAnnealingLR, _LRScheduler
-from typing_extensions import override
 
 __all__ = [
     "CosineLRWithLinearWarmup",
