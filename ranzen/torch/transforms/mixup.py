@@ -325,7 +325,8 @@ class RandomMixUp(Generic[LS]):
             if groups_or_edges.ndim == 1:
                 if len(groups_or_edges) != batch_size:
                     raise ValueError(
-                        "The number of elements in 'groups_or_edges' should match the size of dimension 0 of 'inputs'."
+                        "The number of elements in 'groups_or_edges' should match the size of "
+                        "dimension 0 of 'inputs'."
                     )
 
                 groups = groups_or_edges.view(batch_size, 1)  # [batch_size]
@@ -357,8 +358,10 @@ class RandomMixUp(Generic[LS]):
             num_selected = len(is_connected)
             if num_selected < len(degrees):
                 warnings.warn(
-                    "One or more samples without valid pairs according to "
-                    "the connectivity defined by 'groups_or_edges'.",
+                    (
+                        "One or more samples without valid pairs according to "
+                        "the connectivity defined by 'groups_or_edges'."
+                    ),
                     RuntimeWarning,
                 )
             # If there are no valid pairs (all vertices are isolated), there's nothing to do.
@@ -411,8 +414,8 @@ class RandomMixUp(Generic[LS]):
             if num_classes is None:
                 if self.num_classes is None:
                     raise RuntimeError(
-                        f"{self.__class__.__name__} can only be applied to label-encoded targets if "
-                        "'num_classes' is specified."
+                        f"{self.__class__.__name__} can only be applied to label-encoded targets "
+                        "if 'num_classes' is specified."
                     )
                 num_classes = self.num_classes
             elif num_classes < 1:

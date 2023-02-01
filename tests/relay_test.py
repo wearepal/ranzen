@@ -29,7 +29,6 @@ class DummyOptionB(DummyOption):
 
 @dataclass
 class DummyRelay(Relay):
-
     attr1: DummyOption
     attr2: DummyOption
 
