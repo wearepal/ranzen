@@ -155,7 +155,6 @@ S = TypeVar("S")
 
 @dataclass(frozen=True)
 class TrainTestSplit(Generic[S]):
-
     train: S
     test: S
 
