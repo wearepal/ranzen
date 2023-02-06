@@ -15,7 +15,7 @@ from typing import (
     overload,
 )
 
-import loguru
+from loguru import logger
 import wrapt  # pyright: ignore
 
 from ranzen.misc import some
@@ -104,7 +104,7 @@ def deprecated(
                 msg = f"{msg} {explanation}"
 
             # Display the deprecated warning.
-            loguru.logger.warning(msg)
+            logger.warning(msg)
 
         # Call the function/initialise the class.
         return cast(_W, wrapped)
