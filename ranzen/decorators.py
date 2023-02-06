@@ -3,17 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from functools import partial
 import inspect
-from typing import (
-    Any,
-    Callable,
-    Protocol,
-    Type,
-    TypeVar,
-    Union,
-    cast,
-    get_type_hints,
-    overload,
-)
+from typing import Any, Callable, Protocol, TypeVar, cast, get_type_hints, overload
 
 from loguru import logger
 import wrapt  # pyright: ignore
