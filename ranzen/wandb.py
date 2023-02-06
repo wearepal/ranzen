@@ -3,6 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Sequence
 
+from loguru import logger
 import pandas as pd
 import wandb
 
@@ -38,8 +39,8 @@ class RunsDownloader:
         path = f"{self.entity}/{self.project}"
         dfs = []
         for group in groups_:
-            runs = self.api.runs(path, filters={"group": group})  # type: ignore
-            print(f"'{group}': found {len(runs)} runs.")
+            runs = self.api.runs(path, filters={"group": group})
+            logger.info(f"'{group}': found {len(runs)} runs.")
             dfs.append(self._runs_to_df(runs))
         return pd.concat(dfs, axis=1, sort=False, keys=list(groups_))
 
@@ -51,12 +52,12 @@ class RunsDownloader:
         This is not possible with the web UI.
         """
         path = f"{self.entity}/{self.project}"
-        runs = self.api.runs(path, filters={"group": group})  # type: ignore
+        runs = self.api.runs(path, filters={"group": group})
         i = 0
         for i, run in enumerate(runs, start=1):
             run.config[config_key] = new_value
             run.update()
-        print(f"Changed config for {i} runs.")
+        logger.info(f"Changed config for {i} runs.")
 
     @staticmethod
     def _runs_to_df(runs: Sequence[wandb.wandb_run.Run]) -> pd.DataFrame:  # type: ignore
