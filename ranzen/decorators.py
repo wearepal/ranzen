@@ -120,7 +120,7 @@ class implements:  # pylint: disable=invalid-name
     """Mark a function as implementing an interface.
 
     .. warning::
-        This decorator is deprecated in favour of :function:`typing_extensions.override` instead.
+        This decorator is deprecated in favour of ``typing_extensions.override`` instead.
     """
 
     def __init__(self, interface: type):
