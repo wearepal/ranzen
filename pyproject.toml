@@ -1,6 +1,35 @@
 [tool.black]
 line-length = 100
 target-version = ['py38']
+exclude = '''
+(
+  /(
+      \.eggs
+    | .*/\.venv
+    | .github
+    | .pre-commit-config.yaml
+    | .pylintrc
+    | .yamllint
+    | LICENSE
+    | README.md
+    | \.coverage.*
+    | \.editorconfig
+    | \.git
+    | \.gitignore
+    | \.hg
+    | \.mypy_cache
+    | \.pytest_cache
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+    | mypy.ini
+    | results
+  )/
+)
+'''
+extend_exclude = ".undodir/*"
 
 [tool.isort]
 known_third_party = [
@@ -59,6 +88,8 @@ readme="README.md"
 [tool.poetry.dependencies]
 python = ">=3.8.0,<3.11"
 typing-extensions = ">=4.4.0"
+wrapt = "^1.14.1"
+loguru = "^0.6.0"
 
 [tool.poetry.group.wandb.dependencies]
 pandas = { version = "^1.4.3" }
@@ -100,13 +131,22 @@ reportUnnecessaryTypeIgnoreComment = "warning"
 [tool.ruff]
 line-length = 100
 select = [
+    "A", # builtins
+    # "ANN", # flake8-annotations
     "D", # pydocstyle
     "E", # pycodestyle
     "F", # pyflakes
-    # "I", # isort
+    "I", # isort
+    # "N", # naming
+    # "PD", # pandas-vet
+    "PLC", # pylint convention
+    "PLE", # pylint error
+    "PLR", # pylint refactor
+    "PLW", # pylint warning
+    # "PT", # pytest-style
+    "PTH", # use-pathlib
     # "UP", # pyupgrade
-    # "PDV", # pandas-vet
-    # "ANN", # flake8-annotations
+    "W",
 ]
 ignore = [
     "D105", # magic methods
@@ -139,9 +179,30 @@ target-version = "py38"
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F403"]
 
-[tool.ruff.isort]
-known-third-party = ["PIL", "black", "git", "fairlearn", "matplotlib", "mypy", "numpy", "pandas", "pylint", "pytest", "scipy", "seaborn", "setuptools", "sklearn", "teext", "torch"]
-extra_standard_library = ["dataclasses", "__future__", "typing_extensions"]
+known_third_party = [
+  "black",
+  "hydra",
+  "matplotlib",
+  "mypy",
+  "numpy",
+  "omegaconf",
+  "pandas",
+  "pylint",
+  "pytest",
+  "scipy",
+  "setuptools",
+  "sklearn",
+  "torch",
+  "tqdm",
+  "wandb",
+]
+extra-standard-library = ["__future__", "typing_extensions"]
+force-sort-within-sections = true
+split-on-trailing-comma = false
+classes = [
+  "SAM",
+  "LAMB",
+]
 
 [tool.ruff.flake8-annotations]
 mypy-init-return = true

@@ -165,7 +165,12 @@ else:
         def __str__(self) -> str:
             return str.__str__(self)
 
-        def _generate_next_value_(name: str, start: int, count: int, last_values: list[Any]) -> str:
+        def _generate_next_value_(
+            name: str,
+            start: int,  # pyright: ignore
+            count: int,  # pyright: ignore
+            last_values: list[Any],  # pyright: ignore
+        ) -> str:
             """
             Return the lower-cased version of the member name.
             """

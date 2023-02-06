@@ -18,46 +18,44 @@ def test_implements() -> None:
         def no_docstring(self) -> None:
             pass
 
-    class CorrectImplementation(BaseClass):
+    class CorrectImplementation(BaseClass):  # pyright: ignore
         @implements(BaseClass)
         def func(self) -> None:
             pass
 
     with pytest.raises(AssertionError):
 
-        class IncorrectImplementation(BaseClass):
+        class IncorrectImplementation(BaseClass):  # pyright: ignore
             @implements(BaseClass)
             def wrong_func(self) -> None:
                 pass
 
-    # with pytest.raises(AssertionError):
-
-    class NoDocstringImpl(BaseClass):
+    class NoDocstringImpl(BaseClass):  # pyright: ignore
         @implements(BaseClass)
         def no_docstring(self) -> None:
             pass
 
 
 def test_parsable() -> None:
-    class Foo:
+    class Foo:  # pyright: ignore
         @parsable
         def __init__(self) -> None:
             ...
 
 
 def test_parsable_valid() -> None:
-    class Foo:
+    class Foo:  # pyright: ignore
         @parsable
-        def __init__(self, a: int, b: Union[int, float], c: List[str]):
+        def __init__(self, a: int, b: Union[int, float], c: List[str]):  # pyright: ignore
             ...
 
 
 def test_parsable_invalid_union() -> None:
     with pytest.raises(ValueError):
 
-        class Foo:
+        class Foo:  # pyright: ignore
             @parsable
-            def __init__(self, a: int, b: int | float, c: List[str]):
+            def __init__(self, a: int, b: int | float, c: List[str]):  # pyright: ignore
                 ...
 
 

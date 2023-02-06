@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, cast, overload
+from typing import cast, overload
 
 import torch
 from torch import Tensor
@@ -8,6 +8,7 @@ import torch.nn.functional as F
 
 from ranzen.torch.sampling import batched_randint
 from ranzen.torch.transforms.mixup import InputsTargetsPair
+from ranzen.torch.transforms.utils import sample_paired_indices
 
 __all__ = ["RandomCutMix"]
 
@@ -31,10 +32,10 @@ class RandomCutMix:
         self,
         alpha: float = 1.0,
         *,
-        p: float = 0.5,
+        p: float = 1.0,
         num_classes: int | None = None,
         inplace: bool = False,
-        seed: Optional[int] = None,
+        generator: torch.Generator | None = None,
     ) -> None:
         """
         :param alpha: hyperparameter of the Beta distribution used for sampling the areas
@@ -48,11 +49,12 @@ class RandomCutMix:
 
         :param inplace: Whether the transform should be performed in-place.
 
-        :param seed: The PRNG seed to use for sampling pairs and bounding-box coordinates.
+        :param generator: Pseudo-random-number generator to use for sampling. Note that
+            :class:`torch.distributions.Beta` does not accept such generator object and so
+            the sampling procedure is only partially deterministic as a function of it.
 
         :raises ValueError: if ``p`` is not in the range [0, 1] , if ``num_classes < 1``, or if
             ``alpha`` is not a positive real number.
-
         """
         super().__init__()
         if not 0 <= p <= 1:
@@ -66,7 +68,7 @@ class RandomCutMix:
         self.lambda_sampler = td.Beta(concentration0=alpha, concentration1=alpha)
         self.num_classes = num_classes
         self.inplace = inplace
-        self.seed = seed
+        self.generator = generator
 
     def _sample_masks(
         self,
@@ -97,7 +99,7 @@ class RandomCutMix:
             x_indices >= box_coords_x1.unsqueeze(-1)
         )
         masks = (
-            (y_masks.unsqueeze(1) * x_masks.unsqueeze(-1))
+            (y_masks.unsqueeze(-1) * x_masks.unsqueeze(1))
             .unsqueeze(1)
             .expand(-1, inputs.size(1), -1, -1)
         )
@@ -106,15 +108,37 @@ class RandomCutMix:
         return masks, cropped_area_ratios
 
     @overload
-    def _transform(self, inputs: Tensor, *, targets: Tensor) -> InputsTargetsPair:
+    def _transform(
+        self,
+        inputs: Tensor,
+        *,
+        targets: Tensor,
+        groups_or_edges: Tensor | None = ...,
+        cross_group: bool = ...,
+        num_classes: int | None = None,
+    ) -> InputsTargetsPair:
         ...
 
     @overload
-    def _transform(self, inputs: Tensor, *, targets: None = ...) -> Tensor:
+    def _transform(
+        self,
+        inputs: Tensor,
+        *,
+        targets: None = ...,
+        groups_or_edges: Tensor | None = ...,
+        cross_group: bool = ...,
+        num_classes: int | None = None,
+    ) -> Tensor:
         ...
 
     def _transform(
-        self, inputs: Tensor, *, targets: Tensor | None = None
+        self,
+        inputs: Tensor,
+        *,
+        targets: Tensor | None = None,
+        groups_or_edges: Tensor | None = None,
+        cross_group: bool = False,
+        num_classes: int | None = None,
     ) -> Tensor | InputsTargetsPair:
         if inputs.ndim != 4:
             raise ValueError(f"'inputs' must be a batch of image tensors of shape (C, H, W).")
@@ -122,76 +146,109 @@ class RandomCutMix:
         if (targets is not None) and (batch_size != len(targets)):
             raise ValueError(f"'inputs' and 'targets' must match in size at dimension 0.")
 
-        generator = (
-            None if self.seed is None else torch.Generator(inputs.device).manual_seed(self.seed)
+        index_pairs = sample_paired_indices(
+            inputs=inputs,
+            p=self.p,
+            groups_or_edges=groups_or_edges,
+            cross_group=cross_group,
         )
-        if (batch_size == 1) or (self.p == 0):
+        if index_pairs is None:
             return inputs if targets is None else InputsTargetsPair(inputs=inputs, targets=targets)
-        elif self.p < 1:
-            # Sample a mask determining which samples in the batch are to be transformed
-            selected = torch.rand(batch_size, device=inputs.device, generator=generator) < self.p
-            num_selected = int(selected.count_nonzero())
-            if num_selected == 0:
-                return (
-                    inputs if targets is None else InputsTargetsPair(inputs=inputs, targets=targets)
-                )
-            indices = selected.nonzero(as_tuple=False).long().flatten()
-        # If p >= 1 then the transform is always applied and we can skip the sampling step above.
-        else:
-            num_selected = batch_size
-            indices = torch.arange(batch_size, device=inputs.device, dtype=torch.long)
-
-        # Pair each selected sample with another sample that will serve as the 'patch donor'
-        pair_indices = torch.arange(num_selected).roll(1, 0)
+        num_selected = len(index_pairs)
+        anchor_indices = index_pairs.anchors
+        match_indices = index_pairs.matches
         masks, cropped_area_ratios = self._sample_masks(
-            inputs=inputs, num_samples=num_selected, generator=generator
+            inputs=inputs, num_samples=num_selected, generator=self.generator
         )
 
         if not self.inplace:
             inputs = inputs.clone()
         # Trnasplant patches from the paired images to the anchor images as determined by the masks.
-        inputs[indices] = ~masks * inputs[indices] + masks * inputs[pair_indices]
+        inputs[anchor_indices] = ~masks * inputs[anchor_indices] + masks * inputs[match_indices]
         # No targets were recevied so we're done.
         if targets is None:
             return inputs
 
         # Targets are label-encoded and need to be one-hot encoded prior to mixup.
         if torch.atleast_1d(targets.squeeze()).ndim == 1:
-            if self.num_classes is None:
-                raise RuntimeError(
-                    f"{self.__class__.__name__} can only be applied to label-encoded targets if "
-                    "'num_classes' is specified."
-                )
-            targets = cast(Tensor, F.one_hot(targets, num_classes=self.num_classes))
-        elif not self.inplace:
-            targets = targets.clone()
+            if num_classes is None:
+                if self.num_classes is None:
+                    raise RuntimeError(
+                        f"{self.__class__.__name__} can only be applied to label-encoded targets "
+                        "if 'num_classes' is specified."
+                    )
+                num_classes = self.num_classes
+            elif num_classes < 1:
+                raise ValueError(f"{ num_classes } must be a positive integer.")
+            if num_classes > 2:
+                targets = cast(Tensor, F.one_hot(targets.long(), num_classes=num_classes))
         # Targets need to be floats to be mixed up.
         targets = targets.float()
         target_lambdas = 1.0 - cropped_area_ratios
-        target_lambdas.unsqueeze_(-1)
-        targets[indices] *= target_lambdas
-        targets[indices] += (1.0 - target_lambdas) * targets[pair_indices]
+        if targets.ndim > 1:
+            target_lambdas.unsqueeze_(-1)
+        targets[anchor_indices] *= target_lambdas
+        targets[anchor_indices] += (1.0 - target_lambdas) * targets[match_indices]
 
         return InputsTargetsPair(inputs=inputs, targets=targets)
 
     @overload
-    def __call__(self, inputs: Tensor, *, targets: Tensor) -> InputsTargetsPair:
+    def __call__(
+        self,
+        inputs: Tensor,
+        *,
+        targets: Tensor,
+        groups_or_edges: Tensor | None = ...,
+        cross_group: bool = ...,
+        num_classes: int | None = ...,
+    ) -> InputsTargetsPair:
         ...
 
     @overload
-    def __call__(self, inputs: Tensor, *, targets: None = ...) -> Tensor:
+    def __call__(
+        self,
+        inputs: Tensor,
+        *,
+        targets: None = ...,
+        groups_or_edges: Tensor | None = ...,
+        cross_group: bool = ...,
+        num_classes: int | None = ...,
+    ) -> Tensor:
         ...
 
     def __call__(
-        self, inputs: Tensor, *, targets: Tensor | None = None
+        self,
+        inputs: Tensor,
+        *,
+        targets: Tensor | None = None,
+        groups_or_edges: Tensor | None = None,
+        cross_group: bool = True,
+        num_classes: int | None = None,
     ) -> Tensor | InputsTargetsPair:
         """
         :param inputs: The samples to apply mixup to.
         :param targets: The corresponding targets to apply mixup to. If the targets are
             label-encoded then the 'num_classes' attribute cannot be None.
+        :param groups_or_edges: Labels indicating which group each sample belongs to or
+            a boolean connectivity matrix encoding the permissibility of each possible pairing.
+            In the case of the former, cutmix pairs will be sampled in a cross-group fashion (only
+            samples belonging to different groups will be paired for mixup) if ``cross_group``  is
+            ``True`` and sampled in a within-group fashion (only sampled belonging to the same
+            groups will be paired for cutmix) otherwise.
+        :param cross_group: Whether to sample cutmix pairs in a cross-group (``True``) or
+            within-group (``False``) fashion (see ``groups_or_edges``).
+        :param num_classes: The total number of classes in the dataset that needs to be specified if
+            wanting to mix up targets that are label-enoded. Passing label-encoded targets without
+            specifying ``num_classes`` will result in a RuntimeError.
 
         :return: If target is None, the Tensor of cutmix-transformed inputs. If target is not None, a
             namedtuple containing the Tensor of cutmix-transformed inputs (inputs) and the
             corresponding Tensor of cutmix-transformed targets (targets).
         """
-        return self._transform(inputs=inputs, targets=targets)
+        return self._transform(
+            inputs=inputs,
+            targets=targets,
+            groups_or_edges=groups_or_edges,
+            cross_group=cross_group,
+            num_classes=num_classes,
+        )
