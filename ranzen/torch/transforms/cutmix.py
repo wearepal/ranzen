@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import cast, overload
+from typing import Optional, cast, overload
 
 import torch
 from torch import Tensor
@@ -33,9 +33,9 @@ class RandomCutMix:
         alpha: float = 1.0,
         *,
         p: float = 1.0,
-        num_classes: int | None = None,
+        num_classes: Optional[int] = None,
         inplace: bool = False,
-        generator: torch.Generator | None = None,
+        generator: Optional[torch.Generator] = None,
     ) -> None:
         """
         :param alpha: hyperparameter of the Beta distribution used for sampling the areas

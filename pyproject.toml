@@ -1,34 +1,6 @@
 [tool.black]
 line-length = 100
 target-version = ['py38']
-exclude = '''
-(
-  /(
-      \.eggs
-    | .*/\.venv
-    | .github
-    | .pre-commit-config.yaml
-    | .pylintrc
-    | .yamllint
-    | LICENSE
-    | README.md
-    | \.coverage.*
-    | \.editorconfig
-    | \.git
-    | \.gitignore
-    | \.hg
-    | \.mypy_cache
-    | \.pytest_cache
-    | \.venv
-    | _build
-    | buck-out
-    | build
-    | dist
-    | mypy.ini
-    | results
-  )/
-)
-'''
 extend_exclude = ".undodir/*"
 
 [tool.isort]
