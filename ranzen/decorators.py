@@ -29,7 +29,7 @@ __all__ = [
 
 
 _T = TypeVar("_T")
-_W = TypeVar("_W", bound=Union[Callable[..., Any], Type[Any]])
+_F = TypeVar("_F", bound=Callable[..., Any])
 
 
 class IdentityFunction(Protocol[_T]):
@@ -43,12 +43,12 @@ _PRINTED_WARNING = {}
 
 @overload
 def deprecated(
-    wrapped: _W,
+    wrapped: _F,
     /,
     *,
     version: str | None = ...,
     explanation: str | None = ...,
-) -> _W:
+) -> _F:
     ...
 
 
@@ -64,12 +64,12 @@ def deprecated(
 
 
 def deprecated(
-    wrapped: _W | None = None,
+    wrapped: _F | None = None,
     /,
     *,
     version: str | None = None,
     explanation: str | None = None,
-) -> _W | IdentityFunction:
+) -> _F | IdentityFunction:
     """
     Decorator which can be used for indicating that a function/class is deprecated and going to be removed.
     Tracks down which function/class printed the warning and will print it only once per call.
@@ -85,7 +85,7 @@ def deprecated(
         return partial(deprecated, version=version, explanation=explanation)
 
     @wrapt.decorator
-    def wrapper(wrapped: _W, *args: Any, **kwargs: Any) -> _W:  # pyright: ignore
+    def wrapper(wrapped: _F, *args: Any, **kwargs: Any) -> _F:  # pyright: ignore
         # Check if we already warned about the given function/class.
         if wrapped.__name__ not in _PRINTED_WARNING.keys():
             # Add to list so we won't log it again.
@@ -107,12 +107,9 @@ def deprecated(
             logger.warning(msg)
 
         # Call the function/initialise the class.
-        return cast(_W, wrapped)
+        return cast(_F, wrapped)
 
     return wrapper(wrapped)
-
-
-_F = TypeVar("_F", bound=Callable[..., Any])
 
 
 @deprecated(explanation="Use 'typing_extensions.override' instead.")
@@ -120,7 +117,7 @@ class implements:  # pylint: disable=invalid-name
     """Mark a function as implementing an interface.
 
     .. warning::
-        This decorator is deprecated in favour of ``typing_extensions.override`` instead.
+        This decorator is deprecated in favour of :function:`typing_extensions.override` instead.
     """
 
     def __init__(self, interface: type):

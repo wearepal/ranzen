@@ -55,6 +55,7 @@ autodoc_mock_imports = [
     "torch",
     "tqdm",
     "wandb",
+    "wrapt",
 ]
 add_module_names = False
 
