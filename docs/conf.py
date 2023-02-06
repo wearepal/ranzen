@@ -47,6 +47,7 @@ autodoc_type_aliases = {
 autodoc_mock_imports = [
     "attr",
     "hydra",
+    "loguru",
     "numpy",
     "omegaconf",
     "pandas",
