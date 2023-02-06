@@ -88,12 +88,14 @@ readme="README.md"
 [tool.poetry.dependencies]
 python = ">=3.8.0,<3.11"
 typing-extensions = ">=4.4.0"
-wrapt = "^1.14.1"
-loguru = "^0.6.0"
 
 [tool.poetry.group.wandb.dependencies]
 pandas = { version = "^1.4.3" }
 wandb = { version= ">=0.12,<0.14" }
+
+[tool.poetry.group.logging.dependencies]
+wrapt = "^1.14.1"
+loguru = "^0.6.0"
 
 [tool.poetry.group.torch.dependencies]
 torch = { version = ">=1.12.1" }
