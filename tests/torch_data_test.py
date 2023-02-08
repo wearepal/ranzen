@@ -22,9 +22,18 @@ def test_prop_random_split(
     props_ls = [props] if isinstance(props, float) else props
     if sum_ > 1 or any(not (0 <= prop <= 1) for prop in props_ls):
         with pytest.raises(ValueError):
-            splits = prop_random_split(dataset=dummy_ds, props=props, as_indices=as_indices)  # type: ignore
+            splits = prop_random_split(dataset_or_size=dummy_ds, props=props, as_indices=as_indices)
     else:
-        splits = prop_random_split(dataset=dummy_ds, props=props, as_indices=as_indices)  # type: ignore
+        splits = prop_random_split(dataset_or_size=dummy_ds, props=props, as_indices=as_indices)
+        sizes = [len(split) for split in splits]
+        sum_sizes = sum(sizes)
+        assert len(splits) == (len(props_ls) + 1)
+        assert sum_sizes == len(dummy_ds)
+        assert sizes[-1] == (len(dummy_ds) - (round(sum_ * len(dummy_ds))))
+
+        splits = prop_random_split(
+            dataset_or_size=len(dummy_ds), props=props, as_indices=as_indices
+        )
         sizes = [len(split) for split in splits]
         sum_sizes = sum(sizes)
         assert len(splits) == (len(props_ls) + 1)
