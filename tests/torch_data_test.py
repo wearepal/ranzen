@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import TensorDataset
 
 from ranzen.torch import prop_random_split
-from ranzen.torch.data import stratified_split_indices
+from ranzen.torch.data import Subset, stratified_split_indices
 
 
 @pytest.fixture(scope="module")
@@ -30,6 +30,8 @@ def test_prop_random_split(
         assert len(splits) == (len(props_ls) + 1)
         assert sum_sizes == len(dummy_ds)
         assert sizes[-1] == (len(dummy_ds) - (round(sum_ * len(dummy_ds))))
+        if not as_indices:
+            assert all(isinstance(split, Subset) for split in splits)
 
         splits = prop_random_split(
             dataset_or_size=len(dummy_ds), props=props, as_indices=as_indices
