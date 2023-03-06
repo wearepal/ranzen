@@ -159,8 +159,8 @@ else:
                     raise TypeError("errors must be a string, not %r" % (values[2]))
             value = str(*values)
             member = str.__new__(cls, value)
-            member._value_ = value
-            return member
+            member._value_ = value  # pyright: ignore
+            return member  # pyright: ignore
 
         def __str__(self) -> str:
             return str.__str__(self)
