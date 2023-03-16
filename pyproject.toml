@@ -58,11 +58,11 @@ readme="README.md"
 # do so with the --only option: ``poetry install --only main``. Equally, you can exclude one or 
 # more groups with the --without option: ``poetry install --without torch``.
 [tool.poetry.dependencies]
-python = ">=3.8.0,<3.11"
+python = ">=3.8.0,<3.12"
 typing-extensions = ">=4.4.0"
 
 [tool.poetry.group.wandb.dependencies]
-pandas = { version = "^1.4.3" }
+pandas = { version = "^1.5.0" }
 wandb = { version= ">=0.12,<0.14" }
 
 [tool.poetry.group.logging.dependencies]
@@ -71,10 +71,10 @@ loguru = "^0.6.0"
 
 [tool.poetry.group.torch.dependencies]
 torch = { version = ">=1.12.1" }
-numpy = { version = "^1.21.4" }
+numpy = { version = "^1.23.2" }
 
 [tool.poetry.group.hydra.dependencies]
-hydra-core = { version = "^1.2.0" }
+hydra-core = { version = "^1.3.0" }
 neoconfigen = { version = ">=2.3.3" }
 
 [tool.poetry.group.dev.dependencies]
