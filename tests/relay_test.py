@@ -2,10 +2,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional, Protocol
+from typing_extensions import Self
 from unittest.mock import patch
 
 import pytest
-from typing_extensions import Self
 
 from ranzen.hydra.relay import Option, Options, Relay
 
@@ -29,7 +29,6 @@ class DummyOptionB(DummyOption):
 
 @dataclass
 class DummyRelay(Relay):
-
     attr1: DummyOption
     attr2: DummyOption
 

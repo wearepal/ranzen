@@ -4,7 +4,7 @@ from collections import defaultdict
 from dataclasses import dataclass, is_dataclass, replace
 from enum import Enum
 from functools import lru_cache
-import importlib
+import importlib.util
 import inspect
 import logging
 import os
@@ -18,6 +18,7 @@ from typing import (
     ClassVar,
     DefaultDict,
     Dict,
+    Final,
     Generic,
     List,
     NamedTuple,
@@ -28,7 +29,9 @@ from typing import (
     TypeVar,
     Union,
     cast,
+    final,
 )
+from typing_extensions import Self, TypeAlias
 
 import hydra
 from hydra.core.config_search_path import ConfigSearchPath
@@ -36,7 +39,6 @@ from hydra.core.plugins import Plugins
 from hydra.plugins.search_path_plugin import SearchPathPlugin
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
-from typing_extensions import Final, Self, TypeAlias, final
 
 from .utils import SchemaRegistration
 
@@ -209,8 +211,7 @@ class Relay:
                             ):
                                 continue
                             entry = f"{name}: "
-                            default = param.default
-                            if not default is param.empty:
+                            if (default := param.default) is not param.empty:
                                 default_str = _to_yaml_value(default)
                                 if default_str is None:
                                     entry = f"# {entry}???"
@@ -252,10 +253,10 @@ class Relay:
     def _load_module_from_path(cls, filepath: Path) -> ModuleType:
         import sys
 
-        spec = importlib.util.spec_from_file_location(  # type: ignore
-            name="", location=str(filepath)
-        )
-        module = importlib.util.module_from_spec(spec)  # type: ignore
+        spec = importlib.util.spec_from_file_location(name="", location=str(filepath))
+        assert spec is not None
+        assert spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         sys.modules[""] = module
         return module
@@ -334,9 +335,7 @@ class Relay:
         # Load the sub-schemas
         for group, info_ls in schemas_to_import.items():
             for info in info_ls:
-                module = info.module
-                if isinstance(module, Path):
-                    module = cls._load_module_from_path(module)
+                module = cls._load_module_from_path(m) if isinstance(m := info.module, Path) else m
 
                 schema = getattr(module, info.schema_name)
                 # TODO: figure out why the below kludge (ostensibly) solves the issue of failed
@@ -355,7 +354,7 @@ class Relay:
         root: Path | str,
         clear_cache: bool = False,
         instantiate_recursively: bool = True,
-        **options: list[type[Any] | Option],
+        **options: Options,
     ) -> None:
         root = Path(root)
         config_dir_name = cls._config_dir_name()

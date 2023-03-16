@@ -8,7 +8,6 @@ from typing import (
     Final,
     Generic,
     Iterator,
-    List,
     Literal,
     Protocol,
     Sequence,
@@ -18,15 +17,14 @@ from typing import (
     overload,
     runtime_checkable,
 )
+from typing_extensions import Self, override
 
 import numpy as np
 import numpy.typing as npt
 import torch
 from torch import Tensor
 from torch.utils.data import Sampler
-from typing_extensions import Self
 
-from ranzen import implements
 from ranzen.misc import str_to_enum
 
 __all__ = [
@@ -83,7 +81,7 @@ class Subset(Generic[D]):
 
 @overload
 def prop_random_split(
-    dataset: D,
+    dataset_or_size: D,
     *,
     props: Sequence[float] | float,
     as_indices: Literal[False] = ...,
@@ -94,31 +92,55 @@ def prop_random_split(
 
 @overload
 def prop_random_split(
-    dataset: SizedDataset,
+    dataset_or_size: SizedDataset,
     *,
     props: Sequence[float] | float,
-    as_indices: Literal[True] = ...,
+    as_indices: Literal[True],
     seed: int | None = ...,
-) -> List[list[int]]:
+) -> list[list[int]]:
+    ...
+
+
+@overload
+def prop_random_split(
+    dataset_or_size: int,
+    *,
+    props: Sequence[float] | float,
+    as_indices: bool = ...,
+    seed: int | None = ...,
+) -> list[list[int]]:
+    ...
+
+
+@overload
+def prop_random_split(
+    dataset_or_size: D | int,
+    *,
+    props: Sequence[float] | float,
+    as_indices: bool = ...,
+    seed: int | None = ...,
+) -> list[Subset[D]] | list[list[int]]:
     ...
 
 
 def prop_random_split(
-    dataset: D,
+    dataset_or_size: D | int,
     *,
     props: Sequence[float] | float,
     as_indices: bool = False,
     seed: int | None = None,
-) -> list[Subset[D]] | List[List[int]]:
+) -> list[Subset[D]] | list[list[int]]:
     """Splits a dataset based on proportions rather than on absolute sizes
 
-    :param dataset: Dataset to split.
+    :param dataset_or_size: Dataset or size (length) of the dataset to split.
     :param props: The fractional size of each subset into which to randomly split the data.
         Elements must be non-negative and sum to 1 or less; if less then the size of the final
         split will be computed by complement.
 
     :param as_indices: If ``True`` the raw indices are returned instead of subsets constructed
-        from them.
+        from them when `dataset_or_len` is a dataset. This means that when `dataset_or_len`
+        corresponds to the length of a dataset, this argument has no effect and
+        the function always returns the split indices.
 
     :param seed: The PRNG used for determining the random splits.
 
@@ -126,13 +148,17 @@ def prop_random_split(
 
     :raises ValueError: If the dataset does not have a ``__len__`` method or sum(props) > 1.
     """
-    if not hasattr(dataset, "__len__"):
-        raise ValueError(
-            "Split proportions can only be computed for datasets with __len__ defined."
-        )
+    if isinstance(dataset_or_size, int):
+        len_ = dataset_or_size
+    else:
+        if not hasattr(dataset_or_size, "__len__"):
+            raise ValueError(
+                "Split proportions can only be computed for datasets with __len__ defined."
+            )
+        len_ = len(dataset_or_size)
+
     if isinstance(props, float):
         props = [props]
-    len_ = len(dataset)
     sum_ = np.sum(props)
     if (sum_ > 1.0) or any(prop < 0 for prop in props):
         raise ValueError("Values for 'props` must be positive and sum to 1 or less.")
@@ -141,13 +167,14 @@ def prop_random_split(
         section_sizes.append(len_ - sum(section_sizes))
     generator = torch.default_generator if seed is None else torch.Generator().manual_seed(seed)
     indices = torch.randperm(sum(section_sizes), generator=generator).tolist()
-    splits = []
-    for offset, length in zip(np.cumsum(section_sizes), section_sizes):
-        split = indices[offset - length : offset]
-        if not as_indices:
-            split = Subset(dataset, indices=split)
-        splits.append(split)
-    return splits
+    splits = [
+        indices[offset - length : offset]
+        for offset, length in zip(np.cumsum(section_sizes), section_sizes)
+    ]
+
+    if as_indices or isinstance(dataset_or_size, int):
+        return splits
+    return [Subset(dataset_or_size, indices=split) for split in splits]
 
 
 S = TypeVar("S")
@@ -155,7 +182,6 @@ S = TypeVar("S")
 
 @dataclass(frozen=True)
 class TrainTestSplit(Generic[S]):
-
     train: S
     test: S
 
@@ -235,7 +261,7 @@ class BatchSamplerBase(Sampler[Sequence[int]]):
     def __init__(self, epoch_length: int | None = None) -> None:
         self.epoch_length: Final[int | None] = epoch_length
 
-    @implements(Sampler)
+    @override
     @abstractmethod
     def __iter__(self) -> Iterator[list[int]]:
         ...
@@ -325,7 +351,7 @@ class SequentialBatchSampler(BatchSamplerBase):
         """Split the indexes into batches."""
         return indexes.split(self.batch_size)
 
-    @implements(BatchSamplerBase)
+    @override
     def __iter__(self) -> Iterator[list[int]]:
         generator = _check_generator(self.generator)
         batched_idxs_iter = iter(self._batch_indexes(self._generate_idx_seq(generator=generator)))
@@ -564,7 +590,7 @@ class StratifiedBatchSampler(BatchSamplerBase):
                     sampled_idxs += list(chunks[:multiplier])
             yield torch.cat(sampled_idxs, dim=0).tolist()
 
-    @implements(BatchSamplerBase)
+    @override
     def __iter__(self) -> Iterator[list[int]]:
         generator = _check_generator(self.generator)
         if self.sampler is BaseSampler.random:
@@ -614,7 +640,7 @@ class GreedyCoreSetSampler(BatchSamplerBase):
         sq = dist_mat.diagonal().view(batch.size(0), 1)
         return -2 * dist_mat + sq + sq.t()
 
-    @implements(BatchSamplerBase)
+    @override
     def __iter__(self) -> Iterator[list[int]]:
         generator = _check_generator(self.generator)
         # iterative forever (until some externally defined stopping-criterion is reached)
@@ -735,7 +761,7 @@ class WeightedBatchSampler(BatchSamplerBase):
             generator=generator,
         )
 
-    @implements(BatchSamplerBase)
+    @override
     def __iter__(self) -> Iterator[list[int]]:
         generator = _check_generator(self.generator)
         # Iterate until some stopping criterion is reached

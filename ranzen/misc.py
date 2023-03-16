@@ -5,18 +5,20 @@ import functools
 import operator
 import sys
 from typing import Any, Dict, Iterable, MutableMapping, Type, TypeVar, overload
-
-from typing_extensions import Self
+from typing_extensions import Self, TypeGuard
 
 from ranzen.types import Addable
 
 __all__ = [
     "AddDict",
     "StrEnum",
+    "default_if_none",
     "flatten_dict",
     "gcopy",
     "reduce_add",
+    "some",
     "str_to_enum",
+    "unwrap_or",
 ]
 
 
@@ -61,6 +63,7 @@ def gcopy(
     obj: T, *, deep: bool = True, num_copies: int | None = None, **kwargs: Any
 ) -> T | list[T]:
     """Generalised (g) copy function.
+
     Allows for switching between deep and shallow copying within a single function
     as well as for the creation of multiple copies and for copying while simultaneously
     attribute-setting.
@@ -77,8 +80,7 @@ def gcopy(
     """
     if num_copies is not None:
         return [gcopy(obj=obj, deep=deep, num_copies=None, **kwargs) for _ in range(num_copies)]
-    copy_fn = copy.deepcopy if deep else copy.copy
-    obj_cp = copy_fn(obj)
+    obj_cp = copy.deepcopy(obj) if deep else copy.copy(obj)
     for attr, value in kwargs.items():
         if not hasattr(obj_cp, attr):
             raise AttributeError(
@@ -163,7 +165,12 @@ else:
         def __str__(self) -> str:
             return str.__str__(self)
 
-        def _generate_next_value_(name: str, start: int, count: int, last_values: list[Any]) -> str:
+        def _generate_next_value_(
+            name: str,
+            start: int,  # pyright: ignore
+            count: int,  # pyright: ignore
+            last_values: list[Any],  # pyright: ignore
+        ) -> str:
             """
             Return the lower-cased version of the member name.
             """
@@ -216,7 +223,7 @@ class AddDict(Dict[_KT, _VT], Addable):
         # with th 'no-default' version of``sum``.
         if isinstance(other, int):
             return self
-        copy = AddDict()
+        copy: AddDict[_KT, _VT | _VT2] = AddDict()
         copy.update(gcopy(self, deep=False))
 
         for key_o, value_o in other.items():
@@ -270,3 +277,29 @@ def reduce_add(sequence: Iterable[A]) -> A:
     :returns: The sum of all elements in ``__iterable``.
     """
     return functools.reduce(operator.add, sequence)
+
+
+def some(value: T | None, /) -> TypeGuard[T]:
+    """
+    Returns ``True`` if the input is **not** ``None``
+    (that is, if the ``Optional`` monad contains some value).
+
+    :param value: Value to be checked.
+    :returns: ``True`` if ``value`` is **not** ``None`` else ``False``.
+    """
+    return value is not None
+
+
+def unwrap_or(value: T | None, /, *, default: T) -> T:
+    """
+    Returns the input if the input is **not** None else the specified
+    ``default`` value.
+
+    :param value: Input to be unwrapped and returned if not ``None``.
+    :param default: Default value to use if ``value`` is ``None``.
+    :returns: ``default`` if ``value`` is ``None`` otherwise ``value``.
+    """
+    return default if value is None else value
+
+
+default_if_none = unwrap_or

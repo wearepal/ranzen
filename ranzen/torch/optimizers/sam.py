@@ -1,19 +1,21 @@
 from __future__ import annotations
-from typing import Any, Callable
+from typing import Any
+from typing_extensions import override
 
 import torch
 from torch import Tensor
 from torch.optim.optimizer import Optimizer
 
-from ranzen.decorators import implements
+from .common import LossClosure
 
 __all__ = ["SAM"]
 
 
 class SAM(Optimizer):
     """
-    Implements the 'Sharpness Aware Minimization' (SAM) algorithm introducued in
-    `Sharpness Aware Minimization`_) and the adaptive variant of it introduced in `ASAM`_.
+    Implements the 'Sharpness Aware Minimization' (SAM) algorithm introducued
+    in `Sharpness Aware Minimization`_ along with the adaptive variant of it
+    introduced in `ASAM`_.
 
     SAM seeks parameters that lie in neighborhoods having uniformly low loss (rather than
     parameters that only themselves have low loss value). The adaptive variant of the
@@ -96,8 +98,8 @@ class SAM(Optimizer):
             self.zero_grad()
 
     @torch.no_grad()
-    @implements(Optimizer)
-    def step(self, closure: Callable[[], Tensor]) -> Tensor:
+    @override
+    def step(self, closure: LossClosure) -> Tensor:
         r"""Performs a single optimization step.
 
         :param closure: A closure that reevaluates the model and returns the loss.
@@ -110,7 +112,7 @@ class SAM(Optimizer):
         self._second_step()
         return loss
 
-    def _grad_norm(self):
+    def _grad_norm(self) -> Tensor:
         shared_device = self.param_groups[0]["params"][
             0
         ].device  # put everything on the same device, in case of model parallelism
@@ -129,7 +131,7 @@ class SAM(Optimizer):
         )
         return norm
 
-    @implements(Optimizer)
+    @override
     def load_state_dict(self, state_dict: dict[str, Any]) -> None:
         r"""Loads the optimizer state.
 

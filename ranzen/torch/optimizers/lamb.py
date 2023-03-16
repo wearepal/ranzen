@@ -1,12 +1,13 @@
 from __future__ import annotations
 import math
-from typing import Callable, Iterable
+from typing import Iterable
+from typing_extensions import override
 
 import torch
 from torch import Tensor
 from torch.optim.optimizer import Optimizer
 
-from ranzen.decorators import implements
+from .common import LossClosure
 
 __all__ = ["LAMB"]
 
@@ -66,8 +67,8 @@ class LAMB(Optimizer):
 
         super().__init__(params=params, defaults=defaults)  # type: ignore
 
-    @implements(Optimizer)
-    def step(self, closure: Callable[[], Tensor] | None = None) -> Tensor | None:
+    @override
+    def step(self, closure: LossClosure | None = None) -> Tensor | None:
         r"""Performs a single optimization step.
 
         :param closure: A closure that reevaluates the model and returns the loss.
@@ -86,8 +87,7 @@ class LAMB(Optimizer):
                 grad = p.grad.data
                 if grad.is_sparse:
                     msg = (
-                        "Lamb does not support sparse gradients, "
-                        "please consider SparseAdam instead"
+                        "Lamb does not support sparse gradients, please consider SparseAdam instead"
                     )
                     raise RuntimeError(msg)
 

@@ -47,6 +47,7 @@ autodoc_type_aliases = {
 autodoc_mock_imports = [
     "attr",
     "hydra",
+    "loguru",
     "numpy",
     "omegaconf",
     "pandas",
@@ -54,6 +55,7 @@ autodoc_mock_imports = [
     "torch",
     "tqdm",
     "wandb",
+    "wrapt",
 ]
 add_module_names = False
 
