@@ -13,5 +13,5 @@ pip install ranzen
 
 or install directly from GitHub:
 ```
-pip install git+https://github.com/predictive-analytics-lab/ranzen.git@main
+pip install git+https://github.com/wearepal/ranzen.git@main
 ```
