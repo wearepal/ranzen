@@ -68,7 +68,7 @@ class LAMB(Optimizer):
         super().__init__(params=params, defaults=defaults)  # type: ignore
 
     @override
-    def step(self, closure: LossClosure | None = None) -> Tensor | None:
+    def step(self, closure: LossClosure | None = None) -> Tensor | None:  # type: ignore
         r"""Performs a single optimization step.
 
         :param closure: A closure that reevaluates the model and returns the loss.

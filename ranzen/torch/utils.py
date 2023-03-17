@@ -37,8 +37,8 @@ def random_seed(seed_value: int, *, use_cuda: bool) -> None:
     if use_cuda:
         torch.cuda.manual_seed(seed_value)
         torch.cuda.manual_seed_all(seed_value)
-        torch.backends.cudnn.deterministic = True  # type: ignore
-        torch.backends.cudnn.benchmark = False  # type: ignore
+        torch.backends.cudnn.deterministic = True  # pyright: ignore
+        torch.backends.cudnn.benchmark = False  # pyright: ignore
 
 
 T = TypeVar("T")

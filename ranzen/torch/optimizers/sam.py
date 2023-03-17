@@ -99,7 +99,7 @@ class SAM(Optimizer):
 
     @torch.no_grad()
     @override
-    def step(self, closure: LossClosure) -> Tensor:
+    def step(self, closure: LossClosure) -> Tensor:  # type: ignore
         r"""Performs a single optimization step.
 
         :param closure: A closure that reevaluates the model and returns the loss.
