@@ -5,7 +5,7 @@ import torch
 from torch import Tensor
 from torch.optim import AdamW
 
-from ranzen.torch.optimizers import LAMB, SAM, Adafactor
+from ranzen.torch.optimizers import Adafactor, LAMB, SAM
 
 
 @pytest.mark.parametrize("debias", [True, False])
