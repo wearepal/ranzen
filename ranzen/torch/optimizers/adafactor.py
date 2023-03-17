@@ -102,32 +102,34 @@ class Adafactor(Optimizer):
         )
         super().__init__(params, defaults)
 
-    def _get_lr(self, param_group: ParamGroup, param_state) -> float:
+    def _get_lr(self, param_group: ParamGroup, param_state: ParamState) -> float:
         rel_step_sz = param_group["lr"]
         if param_group["relative_step"]:
             min_step = 1e-6 * param_state["step"] if param_group["warmup_init"] else 1e-2
             rel_step_sz = min(min_step, 1.0 / math.sqrt(param_state["step"]))
         param_scale = 1.0
         if param_group["multiply_by_parameter_scale"]:
-            param_scale = max(param_group["eps"][1], param_state["rms"])
+            param_scale = max(param_group["eps"][1], param_state["rms"])  # type: ignore
         return param_scale * rel_step_sz
 
-    def _get_options(self, param_group: ParamGroup, param_shape: Sequence[int]):
+    def _get_options(
+        self, param_group: ParamGroup, param_shape: Sequence[int]
+    ) -> tuple[bool, bool]:
         factored = len(param_shape) >= 2
         use_first_moment = param_group["beta1"] is not None
         return factored, use_first_moment
 
     def _rms(self, tensor: Tensor) -> Tensor:
-        return tensor.norm(p=2) / (tensor.numel() ** 0.5)  # type: ignore
+        return tensor.norm(p=2) / (tensor.numel() ** 0.5)  # pyright: ignore
 
-    def _approx_sq_grad(self, *, exp_avg_sq_row: Tensor, exp_avg_sq_col: Tensor):
+    def _approx_sq_grad(self, *, exp_avg_sq_row: Tensor, exp_avg_sq_col: Tensor) -> Tensor:
         r_factor = (
             (exp_avg_sq_row / exp_avg_sq_row.mean(dim=-1, keepdim=True)).rsqrt_().unsqueeze(-1)
         )
         c_factor = exp_avg_sq_col.unsqueeze(-2).rsqrt()
         return torch.mul(r_factor, c_factor)
 
-    def step(self, closure: LossClosure | None = None) -> Tensor | None:
+    def step(self, closure: LossClosure | None = None) -> Tensor | None:  # type: ignore
         """Performs a single optimization step.
         :param closure: A closure that reevaluates the model and returns the loss.
         :returns: loss returned by the closure if ``closure`` is not ``None`` else ``None``.

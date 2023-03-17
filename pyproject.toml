@@ -60,7 +60,7 @@ readme="README.md"
 # more groups with the --without option: ``poetry install --without torch``.
 [tool.poetry.dependencies]
 python = ">=3.8.0,<3.12"
-typing-extensions = ">=4.4.0"
+typing-extensions = ">=4.5.0"
 
 [tool.poetry.group.wandb.dependencies]
 pandas = { version = "^1.5.0" }
@@ -86,21 +86,16 @@ darglint = "^1.8.0"
 pandas-stubs = ">=1.4.3.220718"
 
 [tool.pyright]
-exclude = ["**/node_modules", "**/__pycache__", "**/.*"]
-typeCheckingMode = "basic"
+typeCheckingMode = "strict"
 pythonVersion = "3.8"
-reportUnusedImport = "error"
-reportDuplicateImport  = "error"
-reportIncompatibleVariableOverride = "error"
-reportOverlappingOverload = "error"
-reportUntypedNamedTuple = "error"
-reportConstantRedefinition = "warning"
-reportMissingImports = "error"
-reportMissingTypeStubs = "warning"
-reportUnusedVariable = "warning"
-strictListInference = true
-strictSetInference = true
-strictParameterNoneValue = true
+reportUnknownArgumentType = "none"
+reportUnknownMemberType = "none"
+reportUnknownVariableType = "none"
+reportUnknownParameterType = "none"
+reportMissingTypeArgument = "none"
+reportUnnecessaryIsInstance = "none"
+reportPrivateImportUsage = "none"
+reportPrivateUsage = "warning"
 reportUnnecessaryTypeIgnoreComment = "warning"
 
 [tool.ruff]

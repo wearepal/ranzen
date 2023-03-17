@@ -41,7 +41,7 @@ class LinearWarmupLR(_LRScheduler):
         super().__init__(optimizer=optimizer, last_epoch=last_epoch)
 
     @override
-    def get_lr(self) -> list[float]:
+    def get_lr(self) -> list[float]:  # type: ignore
         """
         Get the learning rate of each parameter group.
 
@@ -135,7 +135,7 @@ class CosineLRWithLinearWarmup(_LRScheduler):
         return self._scheduler
 
     @override
-    def get_lr(self) -> list[float]:
+    def get_lr(self) -> list[float]:  # type: ignore
         """
         Get the learning rate of each parameter group.
 
@@ -304,7 +304,9 @@ class ExponentialWarmup(WarmupScheduler[T]):
         if self.warmup_steps == 0:
             self.step_size = 0  # type: ignore
         else:
-            self.step_size = (self.end_val / self.start_val) ** (1 / self.warmup_steps)  # type: ignore
+            self.step_size = (self.end_val / self.start_val) ** (  # pyright: ignore
+                1 / self.warmup_steps
+            )
 
     @override
     def _update(self, value: T) -> T:

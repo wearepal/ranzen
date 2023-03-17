@@ -159,13 +159,13 @@ else:
                     raise TypeError("errors must be a string, not %r" % (values[2]))
             value = str(*values)
             member = str.__new__(cls, value)
-            member._value_ = value
-            return member
+            member._value_ = value  # pyright: ignore
+            return member  # pyright: ignore
 
         def __str__(self) -> str:
             return str.__str__(self)
 
-        def _generate_next_value_(
+        def _generate_next_value_(  # type: ignore
             name: str,
             start: int,  # pyright: ignore
             count: int,  # pyright: ignore

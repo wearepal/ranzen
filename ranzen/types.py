@@ -3,12 +3,7 @@ from dataclasses import Field
 from typing import Any, ClassVar, TypedDict, TypeVar, get_type_hints
 from typing_extensions import Protocol, Self, TypeGuard, runtime_checkable
 
-__all__ = [
-    "Addable",
-    "DataclassInstance",
-    "Sized",
-    "is_td_instance",
-]
+__all__ = ["Addable", "DataclassInstance", "Sized", "is_td_instance"]
 
 
 T_co = TypeVar("T_co", covariant=True)
