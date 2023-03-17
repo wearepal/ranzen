@@ -4,8 +4,6 @@ from enum import Enum
 from typing import Any, Callable, Protocol, TypeVar, get_type_hints
 from typing_extensions import deprecated
 
-import wrapt  # type: ignore
-
 __all__ = ["enum_name_str", "implements", "parsable"]
 
 
