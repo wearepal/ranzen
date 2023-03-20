@@ -66,7 +66,7 @@ class SAM(Optimizer):
         defaults = dict(rho=rho, adaptive=adaptive)
         self.base_optimizer = base_optimizer
         self.param_groups = self.base_optimizer.param_groups
-        super(SAM, self).__init__(params=base_optimizer.param_groups, defaults=defaults)  # type: ignore
+        super(SAM, self).__init__(params=base_optimizer.param_groups, defaults=defaults)
 
     @torch.no_grad()
     def _first_step(self, zero_grad: bool = False) -> None:
