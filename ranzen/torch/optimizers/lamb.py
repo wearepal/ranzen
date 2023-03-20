@@ -65,7 +65,7 @@ class LAMB(Optimizer):
         self.clamp_value = clamp_value
         self.debias = debias
 
-        super().__init__(params=params, defaults=defaults)  # type: ignore
+        super().__init__(params=params, defaults=defaults)
 
     @override
     def step(self, closure: LossClosure | None = None) -> Tensor | None:  # type: ignore
