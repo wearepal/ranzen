@@ -48,7 +48,6 @@ class Adafactor(Optimizer):
     """
 
     param_groups: list[ParamGroup]  # type: ignore
-    state: dict[Tensor, ParamState]
 
     def __init__(
         self,
@@ -120,7 +119,7 @@ class Adafactor(Optimizer):
         return factored, use_first_moment
 
     def _rms(self, tensor: Tensor) -> Tensor:
-        return tensor.norm(p=2) / (tensor.numel() ** 0.5)  # pyright: ignore
+        return tensor.norm(p=2) / (tensor.numel() ** 0.5)
 
     def _approx_sq_grad(self, *, exp_avg_sq_row: Tensor, exp_avg_sq_col: Tensor) -> Tensor:
         r_factor = (
@@ -149,7 +148,7 @@ class Adafactor(Optimizer):
                 if grad.is_sparse:
                     raise RuntimeError("Adafactor does not support sparse gradients.")
 
-                state = self.state[p]
+                state = self.state[p]  # type: ignore
                 grad_shape = grad.shape
 
                 factored, use_first_moment = self._get_options(group, grad_shape)
