@@ -12,6 +12,7 @@ from typing import (
     List,
     Literal,
     NewType,
+    Optional,
     Protocol,
     Sequence,
     Sized,
@@ -29,7 +30,7 @@ import torch
 from torch import Tensor
 from torch.utils.data import Sampler
 
-from ranzen.misc import str_to_enum
+from ranzen.misc import some, str_to_enum
 
 __all__ = [
     "ApproxStratBatchSampler",
@@ -784,16 +785,30 @@ Y = NewType("Y", int)
 
 
 class ApproxStratBatchSampler(BatchSamplerBase):
-    """Approximate Stratified Batch Sampler.
+    r"""Approximate Stratified Batch Sampler.
 
-    This faithfully imlements the pi function.
+    Essentially, we’re doing: :math:`x\sim P(x|s,y)` where :math:`s\sim \text{uniform}(S|y)`. That
+    is, we iterate over all classes y and uniformly sample a subgroup s, and then we sample a
+    datapoint from that s-y combination.
 
-    We iterate over every class and then, if not all subgroups are present, sample subgroups
-    and take data points from these subgroups.
+    You have to either specify ``num_samples_per_group`` or ``num_samples_per_class`` (but not
+    both).
+
+    If ``num_samples_per_group`` is given, this faithfully implements the :math:`\pi` function. This means
+    that for those classes which have "full s-support" (all subgroups are present), we don’t sample
+    a subgroup but iterate over each subgroup one-by-one. We take ``num_samples_per_group`` samples
+    from each s-y combination.
+
+    On the other hand, if ``num_samples_per_class`` is given, then classes with full s-support are
+    not given special treatment. We always sample as many subgroups as are specified in
+    ``num_samples_per_class`` and then take a single datapoint from each of these s-y combinations.
 
     :param class_labels: List-like object with the class labels.
     :param subgroup_labels: List-like object with the subgroup labels.
-    :param num_samples_per_group: How many samples to take per s-y group.
+    :param num_samples_per_group: How many samples to take per s-y group. Cannot be specified
+        together with ``num_samples_per_class``.
+    :param num_samples_per_class: How many samples to take per y class. Cannot be specified
+        together with ``num_samples_per_group``.
     :param training_mode: Iteration-based vs epoch-based.
     :param generator: Torch generator for random numbers.
     """
@@ -803,10 +818,18 @@ class ApproxStratBatchSampler(BatchSamplerBase):
         class_labels: Sequence[int],
         subgroup_labels: Sequence[int],
         *,
-        num_samples_per_group: int,
+        num_samples_per_group: Optional[int] = None,
+        num_samples_per_class: Optional[int] = None,
         training_mode: TrainingMode = TrainingMode.step,
         generator: Union[torch.Generator, None] = None,
     ) -> None:
+        if some(num_samples_per_group) and some(num_samples_per_class):
+            raise ValueError(
+                "Specify either `num_samples_per_group` or `num_samples_per_class` but not both"
+            )
+        elif (num_samples_per_group is None) and (num_samples_per_class is None):
+            raise ValueError("Specify one of `num_samples_per_group` or `num_samples_per_class`")
+
         assert len(class_labels) == len(subgroup_labels), "labels should have the same length"
 
         class_labels_t = torch.as_tensor(class_labels, dtype=torch.int64)
@@ -834,34 +857,55 @@ class ApproxStratBatchSampler(BatchSamplerBase):
                     continue
                 groupwise_idxs[class_].append(idxs)
 
-                if num_samples < num_samples_per_group:
+                if some(num_samples_per_group) and (num_samples < num_samples_per_group):
                     raise ValueError(
                         f"Not enough samples in group (s={subgroup}, y={class_}) "
-                        f"to sample {num_samples_per_group} (available: {len(idxs)})."
+                        f"to sample {num_samples_per_group} (available: {num_samples})."
                     )
 
-        self.card_s = len(subgroups)
-        self.classes_with_full_support: set[Y] = {
-            y for y, subgroup_idxs in groupwise_idxs.items() if len(subgroup_idxs) == self.card_s
-        }
         self.groupwise_idxs = groupwise_idxs
-        self.num_samples_per_group = num_samples_per_group
         self.generator = generator
-        self.batch_size = len(classes) * self.card_s * num_samples_per_group
+        if some(num_samples_per_group):
+            # In each batch, we want the full list of subgroups
+            self.num_subgroup_samples = len(subgroups)
+            self.num_samples_per_group = num_samples_per_group
+            self.classes_with_full_support: set[Y] = {
+                y
+                for y, subgroup_idxs in groupwise_idxs.items()
+                if len(subgroup_idxs) == self.num_subgroup_samples
+            }
+        elif some(num_samples_per_class):
+            self.num_subgroup_samples = num_samples_per_class
+            self.num_samples_per_group = 1  # Take one sample for each sampled s
+            self.classes_with_full_support = set()  # No special-casing for full-support classes
+        else:
+            raise RuntimeError("shouldn’t happen")
+
+        self.batch_size = len(classes) * self.num_subgroup_samples * self.num_samples_per_group
 
         if training_mode is TrainingMode.epoch:
             # some groups have fewer samples than others
             # we want to know how many batches to sample to cover even the biggest group
-            classwise_epoch_lengths = [
-                num_batches_per_epoch(
-                    num_samples=len(idxs),
-                    batch_size=num_samples_per_group,
-                    drop_last=False,
+            if some(num_samples_per_group):
+                max_epoch_length = max(
+                    num_batches_per_epoch(
+                        num_samples=len(idxs), batch_size=num_samples_per_group, drop_last=False
+                    )
+                    for subgroup_idxs in self.groupwise_idxs.values()
+                    for idxs in subgroup_idxs
                 )
-                for subgroup_idxs in self.groupwise_idxs.values()
-                for idxs in subgroup_idxs
-            ]
-            max_epoch_length = max(classwise_epoch_lengths)
+            elif some(num_samples_per_class):
+                # (the following calculation is a bit sketchy, but I think it's fine)
+                max_epoch_length = max(
+                    num_batches_per_epoch(
+                        num_samples=max(len(idxs) for idxs in subgroup_idxs) * len(subgroup_idxs),
+                        batch_size=num_samples_per_class,
+                        drop_last=False,
+                    )
+                    for subgroup_idxs in self.groupwise_idxs.values()
+                )
+            else:
+                raise RuntimeError("shouldn’t happen")
         else:
             max_epoch_length = None
 
@@ -887,7 +931,10 @@ class ApproxStratBatchSampler(BatchSamplerBase):
                 else:
                     # first sample (with replacement) the required number of subgroups
                     subgroups = torch.randint(
-                        low=0, high=len(subgroupwise_idxs), size=(self.card_s,), generator=generator
+                        low=0,
+                        high=len(subgroupwise_idxs),
+                        size=(self.num_subgroup_samples,),
+                        generator=generator,
                     )
                     # then take samples from each
                     sampled_idxs.extend(
