@@ -794,7 +794,7 @@ class ApproxStratBatchSampler(BatchSamplerBase):
     You have to either specify ``num_samples_per_group`` or ``num_samples_per_class`` (but not
     both).
 
-    If ``num_samples_per_group`` is given, this faithfully imlements the pi function. This means
+    If ``num_samples_per_group`` is given, this faithfully implements the :math:`\pi` function. This means
     that for those classes which have "full s-support" (all subgroups are present), we don’t sample
     a subgroup but iterate over each subgroup one-by-one. We take ``num_samples_per_group`` samples
     from each s-y combination.
@@ -857,7 +857,7 @@ class ApproxStratBatchSampler(BatchSamplerBase):
                     continue
                 groupwise_idxs[class_].append(idxs)
 
-                if some(num_samples_per_group) and num_samples < num_samples_per_group:
+                if some(num_samples_per_group) and (num_samples < num_samples_per_group):
                     raise ValueError(
                         f"Not enough samples in group (s={subgroup}, y={class_}) "
                         f"to sample {num_samples_per_group} (available: {num_samples})."
