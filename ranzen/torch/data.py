@@ -827,7 +827,7 @@ class ApproxStratBatchSampler(BatchSamplerBase):
             raise ValueError(
                 "Specify either `num_samples_per_group` or `num_samples_per_class` but not both"
             )
-        elif num_samples_per_group is None and num_samples_per_class is None:
+        elif (num_samples_per_group is None) and (num_samples_per_class is None):
             raise ValueError("Specify one of `num_samples_per_group` or `num_samples_per_class`")
 
         assert len(class_labels) == len(subgroup_labels), "labels should have the same length"
