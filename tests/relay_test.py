@@ -41,6 +41,7 @@ class DummyRelay(Relay):
         instantiate_recursively: bool = True,
         attr1: Options[DummyOption],
         attr2: Options[DummyOption],
+        **options: Option,
     ) -> None:
         super().with_hydra(
             root=root,

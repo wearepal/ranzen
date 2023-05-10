@@ -1,11 +1,12 @@
 from __future__ import annotations
+from itertools import islice
 
 import pytest
 import torch
 from torch.utils.data import TensorDataset
 
 from ranzen.torch import prop_random_split
-from ranzen.torch.data import Subset, stratified_split_indices
+from ranzen.torch.data import ApproxStratBatchSampler, Subset, stratified_split_indices
 
 
 @pytest.fixture(scope="module")
@@ -72,3 +73,51 @@ def test_stratified_split_indices() -> None:
 
         assert n_train == pytest.approx(train_prop * n_all, abs=1)
         assert n_test == pytest.approx((1 - train_prop) * n_all, abs=1)
+
+
+def test_approximate_stratified_sampler() -> None:
+    class_labels = [0, 1, 1, 0, 1]
+    subgroup_labels = [1, 1, 1, 0, 1]
+    generator = torch.Generator()
+    generator = generator.manual_seed(42)
+
+    sampler = ApproxStratBatchSampler(
+        class_labels, subgroup_labels, num_samples_per_group=1, generator=generator
+    )
+    assert sampler.batch_size == 4
+    assert len(sampler.classes_with_full_support) == 1
+
+    batches = list(islice(sampler, 100))
+    # all batches should have 4 elements
+    assert all(len(batch) == 4 for batch in batches)
+    # element 0 or element 3 has to be in all batches, because they're the only ones with y=0
+    assert all((0 in batch or 3 in batch) for batch in batches)
+    # every batch has two of elements 1, 2, 4, because they're the only ones with y=1
+    assert all((batch[2] in {1, 2, 4} and batch[3] in {1, 2, 4}) for batch in batches)
+    # all elements appear at least once
+    # (this is not guaranteed, but with 100 samples, it is overwhelmingly likely; 1:2^100)
+    assert all(any((i in batch) for batch in batches) for i in range(5))
+
+
+def test_approximate_stratified_sampler_class() -> None:
+    class_labels = [0, 1, 1, 0, 1]
+    subgroup_labels = [1, 1, 1, 0, 1]
+    generator = torch.Generator()
+    generator = generator.manual_seed(42)
+
+    sampler = ApproxStratBatchSampler(
+        class_labels, subgroup_labels, num_samples_per_class=1, generator=generator
+    )
+    assert sampler.batch_size == 2
+    assert len(sampler.classes_with_full_support) == 0
+
+    batches = list(islice(sampler, 100))
+    # all batches should have 2 elements
+    assert all(len(batch) == 2 for batch in batches)
+    # element 0 or element 3 has to be in all batches, because they're the only ones with y=0
+    assert all((0 in batch or 3 in batch) for batch in batches)
+    # every batch has one of elements 1, 2, 4, because they're the only ones with y=1
+    assert all((batch[1] in {1, 2, 4}) for batch in batches)
+    # all elements appear at least once
+    # (this is not guaranteed, but with 100 samples, it is overwhelmingly likely; 1:2^100)
+    assert all(any((i in batch) for batch in batches) for i in range(5))

@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import abstractmethod
+from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum, auto
 import math
@@ -8,11 +9,15 @@ from typing import (
     Final,
     Generic,
     Iterator,
+    List,
     Literal,
+    NewType,
+    Optional,
     Protocol,
     Sequence,
     Sized,
     TypeVar,
+    Union,
     cast,
     overload,
     runtime_checkable,
@@ -25,9 +30,10 @@ import torch
 from torch import Tensor
 from torch.utils.data import Sampler
 
-from ranzen.misc import str_to_enum
+from ranzen.misc import some, str_to_enum
 
 __all__ = [
+    "ApproxStratBatchSampler",
     "BatchSamplerBase",
     "GreedyCoreSetSampler",
     "SequentialBatchSampler",
@@ -177,15 +183,15 @@ def prop_random_split(
     return [Subset(dataset_or_size, indices=split) for split in splits]
 
 
-S = TypeVar("S")
+_S = TypeVar("_S")
 
 
 @dataclass(frozen=True)
-class TrainTestSplit(Generic[S]):
-    train: S
-    test: S
+class TrainTestSplit(Generic[_S]):
+    train: _S
+    test: _S
 
-    def __iter__(self) -> Iterator[S]:
+    def __iter__(self) -> Iterator[_S]:
         yield from (self.train, self.test)
 
 
@@ -772,3 +778,172 @@ class WeightedBatchSampler(BatchSamplerBase):
                 replacement=self.replacement,
                 generator=generator,
             ).tolist()
+
+
+S = NewType("S", int)  # type meant to help with documentation
+Y = NewType("Y", int)
+
+
+class ApproxStratBatchSampler(BatchSamplerBase):
+    r"""Approximate Stratified Batch Sampler.
+
+    Essentially, we’re doing: :math:`x\sim P(x|s,y)` where :math:`s\sim \text{uniform}(S|y)`. That
+    is, we iterate over all classes y and uniformly sample a subgroup s, and then we sample a
+    datapoint from that s-y combination.
+
+    You have to either specify ``num_samples_per_group`` or ``num_samples_per_class`` (but not
+    both).
+
+    If ``num_samples_per_group`` is given, this faithfully implements the :math:`\pi` function. This means
+    that for those classes which have "full s-support" (all subgroups are present), we don’t sample
+    a subgroup but iterate over each subgroup one-by-one. We take ``num_samples_per_group`` samples
+    from each s-y combination.
+
+    On the other hand, if ``num_samples_per_class`` is given, then classes with full s-support are
+    not given special treatment. We always sample as many subgroups as are specified in
+    ``num_samples_per_class`` and then take a single datapoint from each of these s-y combinations.
+
+    :param class_labels: List-like object with the class labels.
+    :param subgroup_labels: List-like object with the subgroup labels.
+    :param num_samples_per_group: How many samples to take per s-y group. Cannot be specified
+        together with ``num_samples_per_class``.
+    :param num_samples_per_class: How many samples to take per y class. Cannot be specified
+        together with ``num_samples_per_group``.
+    :param training_mode: Iteration-based vs epoch-based.
+    :param generator: Torch generator for random numbers.
+    """
+
+    def __init__(
+        self,
+        class_labels: Sequence[int],
+        subgroup_labels: Sequence[int],
+        *,
+        num_samples_per_group: Optional[int] = None,
+        num_samples_per_class: Optional[int] = None,
+        training_mode: TrainingMode = TrainingMode.step,
+        generator: Union[torch.Generator, None] = None,
+    ) -> None:
+        if some(num_samples_per_group) and some(num_samples_per_class):
+            raise ValueError(
+                "Specify either `num_samples_per_group` or `num_samples_per_class` but not both"
+            )
+        elif (num_samples_per_group is None) and (num_samples_per_class is None):
+            raise ValueError("Specify one of `num_samples_per_group` or `num_samples_per_class`")
+
+        assert len(class_labels) == len(subgroup_labels), "labels should have the same length"
+
+        class_labels_t = torch.as_tensor(class_labels, dtype=torch.int64)
+        subgroup_labels_t = torch.as_tensor(subgroup_labels, dtype=torch.int64)
+        # find all unique labels
+        classes = class_labels_t.unique().tolist()
+        subgroups = subgroup_labels_t.unique().tolist()
+        # cast to nice-looking types
+        classes = cast(List[Y], classes)
+        subgroups = cast(List[S], subgroups)
+
+        # get the indexes for each group separately and store them in a hierarchical dict
+        groupwise_idxs: defaultdict[Y, list[Tensor]] = defaultdict(list)
+        for class_ in classes:
+            for subgroup in subgroups:
+                # Idxs needs to be 1 dimensional
+                idxs = (
+                    ((subgroup_labels_t == subgroup) & (class_labels_t == class_))
+                    .nonzero(as_tuple=False)
+                    .view(-1)
+                )
+                num_samples = len(idxs)
+
+                if num_samples == 0:
+                    continue
+                groupwise_idxs[class_].append(idxs)
+
+                if some(num_samples_per_group) and (num_samples < num_samples_per_group):
+                    raise ValueError(
+                        f"Not enough samples in group (s={subgroup}, y={class_}) "
+                        f"to sample {num_samples_per_group} (available: {num_samples})."
+                    )
+
+        self.groupwise_idxs = groupwise_idxs
+        self.generator = generator
+        if some(num_samples_per_group):
+            # In each batch, we want the full list of subgroups
+            self.num_subgroup_samples = len(subgroups)
+            self.num_samples_per_group = num_samples_per_group
+            self.classes_with_full_support: set[Y] = {
+                y
+                for y, subgroup_idxs in groupwise_idxs.items()
+                if len(subgroup_idxs) == self.num_subgroup_samples
+            }
+        elif some(num_samples_per_class):
+            self.num_subgroup_samples = num_samples_per_class
+            self.num_samples_per_group = 1  # Take one sample for each sampled s
+            self.classes_with_full_support = set()  # No special-casing for full-support classes
+        else:
+            raise RuntimeError("shouldn’t happen")
+
+        self.batch_size = len(classes) * self.num_subgroup_samples * self.num_samples_per_group
+
+        if training_mode is TrainingMode.epoch:
+            # some groups have fewer samples than others
+            # we want to know how many batches to sample to cover even the biggest group
+            if some(num_samples_per_group):
+                max_epoch_length = max(
+                    num_batches_per_epoch(
+                        num_samples=len(idxs), batch_size=num_samples_per_group, drop_last=False
+                    )
+                    for subgroup_idxs in self.groupwise_idxs.values()
+                    for idxs in subgroup_idxs
+                )
+            elif some(num_samples_per_class):
+                # (the following calculation is a bit sketchy, but I think it's fine)
+                max_epoch_length = max(
+                    num_batches_per_epoch(
+                        num_samples=max(len(idxs) for idxs in subgroup_idxs) * len(subgroup_idxs),
+                        batch_size=num_samples_per_class,
+                        drop_last=False,
+                    )
+                    for subgroup_idxs in self.groupwise_idxs.values()
+                )
+            else:
+                raise RuntimeError("shouldn’t happen")
+        else:
+            max_epoch_length = None
+
+        super().__init__(epoch_length=max_epoch_length)
+
+    @override
+    def __iter__(self) -> Iterator[list[int]]:
+        generator = self.generator
+        if generator is None:
+            generator = torch.Generator()
+            generator = generator.manual_seed(
+                int(torch.empty((), dtype=torch.int64).random_().item())
+            )
+
+        while True:
+            sampled_idxs: list[Tensor] = []
+            for y, subgroupwise_idxs in self.groupwise_idxs.items():
+                if y in self.classes_with_full_support:
+                    # just take samples from each subgroup
+                    sampled_idxs.extend(
+                        self._take_samples_per_group(idxs, generator) for idxs in subgroupwise_idxs
+                    )
+                else:
+                    # first sample (with replacement) the required number of subgroups
+                    subgroups = torch.randint(
+                        low=0,
+                        high=len(subgroupwise_idxs),
+                        size=(self.num_subgroup_samples,),
+                        generator=generator,
+                    )
+                    # then take samples from each
+                    sampled_idxs.extend(
+                        self._take_samples_per_group(subgroupwise_idxs[i], generator)
+                        for i in subgroups.tolist()
+                    )
+            yield torch.cat(sampled_idxs, dim=0).tolist()
+
+    def _take_samples_per_group(self, tensor: Tensor, generator: torch.Generator) -> Tensor:
+        # first shuffle and then take as many as we need
+        shuffled = tensor[torch.randperm(len(tensor), generator=generator)]
+        return shuffled[: self.num_samples_per_group]
