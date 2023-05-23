@@ -271,7 +271,7 @@ class CrossEntropyLoss(nn.Module):
             value = str_to_enum(str_=value, enum=ReductionType)
         self._reduction = value
 
-    def forward(  # pyright: ignore
+    def forward(
         self,
         input: Tensor,
         *,
