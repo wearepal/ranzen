@@ -97,7 +97,7 @@ reportUnknownParameterType = "none"
 reportMissingTypeArgument = "none"
 reportUnnecessaryIsInstance = "none"
 reportPrivateImportUsage = "none"
-reportPrivateUsage = "warning"
+reportPrivateUsage = "none"
 reportUnnecessaryTypeIgnoreComment = "warning"
 
 [tool.ruff]
