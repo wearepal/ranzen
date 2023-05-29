@@ -10,9 +10,9 @@ jobs:
   format_with_black:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.8
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.8
     - name: Install black
@@ -27,9 +27,9 @@ jobs:
   format_with_isort:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.8
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.8
     - name: Install isort
@@ -45,11 +45,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: "3.10"
+        python-version: "3.11"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -71,36 +71,33 @@ jobs:
       #  ----  check-out repo and set-up python ----
       # ----------------------------------------------
       - name: Check out repository
-        uses: actions/checkout@v2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-
+        uses: actions/checkout@v3
       # ----------------------------------------------
       #  -----  install & configure poetry  -----
       # ----------------------------------------------
-      - name: Install Poetry
-        uses: snok/install-poetry@v1.2
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
         with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
+          python-version: 3.8
+          cache: 'poetry'
 
       # ----------------------------------------------
       # install dependencies if cache does not exist
       # ----------------------------------------------
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root -E all
+        run: |
+          poetry env use 3.8
+          poetry install --no-interaction --no-root -E all --with ci
 
       # ----------------------------------------------
       #  -----  install and run pyright  -----
       # ----------------------------------------------
       - name: Setup node.js (for pyright)
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "18"
 
       - name: Install pyright
         run: npm install -g pyright
