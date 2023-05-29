@@ -51,7 +51,7 @@ all = ["hydra-core", "loguru", "neoconfigen", "pandas", "wandb"]
 [tool.poetry.group.dev.dependencies]
 black = "^23.1"
 pytest = "^7.1.2"
-isort = "^5.7.0"
+ruff = "0.0.270"
 darglint = "^1.8.0"
 pandas-stubs = ">=1.4.3.220718"
 
