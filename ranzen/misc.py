@@ -125,8 +125,6 @@ else:
     #
     # DO NOT CHANGE THIS CODE!
     #
-    from enum import Enum
-
     class ReprEnum(Enum):
         """
         Only changes the repr(), leaving str() and format() to the mixed-in type.
