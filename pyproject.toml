@@ -3,34 +3,6 @@ line-length = 100
 target-version = ['py38']
 extend_exclude = ".undodir/*"
 
-[tool.isort]
-known_third_party = [
-  "black",
-  "click",
-  "click_option_group",
-  "ethicml",
-  "hydra",
-  "matplotlib",
-  "mypy",
-  "numpy",
-  "omegaconf",
-  "pandas",
-  "pylint",
-  "pytest",
-  "scipy",
-  "setuptools",
-  "sklearn",
-  "torch",
-  "tqdm",
-  "wandb",
-]
-known_future_library = []
-extra_standard_library = ["dataclasses", "__future__", "typing_extensions"]
-line_length = 88
-profile = "black"
-force_sort_within_sections = "True"
-classes = ["MISSING", "LAMB", "SAM"]
-
 [tool.poetry]
 name = "ranzen"
 version = "3.0.0.dev0"
@@ -79,7 +51,7 @@ all = ["hydra-core", "loguru", "neoconfigen", "pandas", "wandb"]
 [tool.poetry.group.dev.dependencies]
 black = "^23.1"
 pytest = "^7.1.2"
-isort = "^5.7.0"
+ruff = "0.0.270"
 darglint = "^1.8.0"
 pandas-stubs = ">=1.4.3.220718"
 
@@ -114,57 +86,32 @@ reportPrivateUsage = "none"
 reportUnnecessaryTypeIgnoreComment = "warning"
 
 [tool.ruff]
-line-length = 100
+line-length = 88  # for import sorting
 select = [
-    "A", # builtins
-    # "ANN", # flake8-annotations
-    "D", # pydocstyle
     "E", # pycodestyle
     "F", # pyflakes
     "I", # isort
     # "N", # naming
-    # "PD", # pandas-vet
     "PLC", # pylint convention
     "PLE", # pylint error
-    "PLR", # pylint refactor
+    # "PLR", # pylint refactor
     "PLW", # pylint warning
-    # "PT", # pytest-style
     "PTH", # use-pathlib
     # "UP", # pyupgrade
     "W",
 ]
 ignore = [
-    "D105", # magic methods
-    "D107", # __init__
-    "D203",
-    "D208", # over indentation
-    "D212",
-    "D213",
-    "D214",
-    "D215",
-    "D404",
-    "D405",
-    "D406",
-    "D407",
-    "D408",
-    "D409",
-    "D410",
-    "D411",
-    "D413",
-    "D415",
-    "D416",
-    "D417",
-    "TID252", # relative imports
-    "PDV901", # forbidding "df" as a variable name
-    "ANN101",
-    "ANN102",
+    "E501", # line length
+    "F541", # f-string without placeholder
+    "PLW2901", # overwriting loop variable
 ]
 target-version = "py38"
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F403"]
 
-known_third_party = [
+[tool.ruff.isort]
+known-third-party = [
   "black",
   "hydra",
   "matplotlib",
@@ -181,16 +128,14 @@ known_third_party = [
   "tqdm",
   "wandb",
 ]
-extra-standard-library = ["__future__", "typing_extensions"]
+extra-standard-library = ["typing_extensions"]
+no-lines-before = ["future", "standard-library"]
 force-sort-within-sections = true
 split-on-trailing-comma = false
 classes = [
   "SAM",
   "LAMB",
 ]
-
-[tool.ruff.flake8-annotations]
-mypy-init-return = true
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

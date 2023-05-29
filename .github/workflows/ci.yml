@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.8
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: "3.11"
     - name: Install black
       run: |
         python -m pip install --upgrade pip
@@ -24,21 +24,24 @@ jobs:
         python -m black --check -l 100 -t py38 -S ranzen/
         python -m black --check -l 100 -t py38 -S tests/
 
-  format_with_isort:
+  lint_with_ruff:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.8
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.8
-    - name: Install isort
+        python-version: "3.11"
+    - name: Install ruff
       run: |
         python -m pip install --upgrade pip
-        pip install isort
-    - name: Format with isort
+        pip install ruff
+    - name: Lint with ruff
       run: |
-        isort . --check --diff
+        ruff check --format=github ranzen
+    - name: Lint tests with ruff
+      run: |
+        ruff check --format=github tests
 
   check_docstrings:
 
@@ -63,7 +66,7 @@ jobs:
         sphinx-build -W -b html ./docs ./docs/_build
 
   run_tests_and_type_checking:
-    needs: [format_with_black, format_with_isort, check_docstrings]
+    needs: [format_with_black, lint_with_ruff, check_docstrings]
     runs-on: ubuntu-latest
 
     steps:
