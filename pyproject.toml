@@ -57,6 +57,7 @@ readme="README.md"
 [tool.poetry.dependencies]
 python = ">=3.8.0,<3.12"
 typing-extensions = ">=4.5.0"
+numpy = "^1.23.2"
 
 # wandb dependencies
 pandas = { version = "^1.5.0", optional = true }
@@ -65,10 +66,6 @@ wandb = { version= ">=0.12,<0.14", optional = true }
 # logging dependencies
 loguru = { version = "^0.6.0", optional = true }
 
-# torch dependencies
-torch = { version = ">=1.12.1", optional = true }
-numpy = { version = "^1.23.2", optional = true }
-
 # hydra dependencies
 hydra-core = { version = "^1.3.0", optional = true }
 neoconfigen = { version = ">=2.3.3", optional = true }
@@ -76,9 +73,8 @@ neoconfigen = { version = ">=2.3.3", optional = true }
 [tool.poetry.extras]
 wandb = ["pandas", "wandb"]
 logging = ["loguru"]
-torch = ["torch", "numpy"]
 hydra = ["hydra-core", "neoconfigen"]
-all = ["hydra-core", "loguru", "neoconfigen", "numpy", "pandas", "torch", "wandb"]
+all = ["hydra-core", "loguru", "neoconfigen", "pandas", "wandb"]
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1"
@@ -86,6 +82,23 @@ pytest = "^7.1.2"
 isort = "^5.7.0"
 darglint = "^1.8.0"
 pandas-stubs = ">=1.4.3.220718"
+
+[tool.poetry.group.ci]
+optional = true
+
+[tool.poetry.group.ci.dependencies]
+filelock = "*"
+jinja2 = "*"
+networkx = "*"
+sympy = "*"
+pillow = ">=5.3.0,<8.3.0 || >=8.4.0"
+requests = "*"
+torch = { version = "*", source = "torchcpu", markers = "sys_platform == 'linux'" }
+
+[[tool.poetry.source]]
+name = "torchcpu"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
 
 [tool.pyright]
 typeCheckingMode = "strict"
