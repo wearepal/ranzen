@@ -84,8 +84,8 @@ class Event:
         Mimics torch.cuda.Event.
         """
         if self._cuda:
-            self._event_start = torch.cuda.Event(enable_timing=True)
-            self._event_start.record()
+            self._event_start = torch.cuda.Event(enable_timing=True)  # type: ignore
+            self._event_start.record()  # type: ignore
         else:
             self._event_start = datetime.now()
         return self

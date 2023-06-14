@@ -224,11 +224,11 @@ class CrossEntropyLoss(nn.Module):
             indices, as this allows for optimized computation. Consider providing `target` as
             class probabilities only when a single class label per minibatch item is too restrictive.
 
-    
-        :param class_weight: A manual rescaling weight given to each class. If given, has to be a 
+
+        :param class_weight: A manual rescaling weight given to each class. If given, has to be a
             Tensor of size `C`.
 
-        :param ignore_index: Specifies a target value that is ignored and does not contribute to the 
+        :param ignore_index: Specifies a target value that is ignored and does not contribute to the
             input gradient. Note that :attr:`ignore_index` is only applicable when the target contains
             class indices.
 
@@ -271,7 +271,7 @@ class CrossEntropyLoss(nn.Module):
             value = str_to_enum(str_=value, enum=ReductionType)
         self._reduction = value
 
-    def forward(  # pyright: ignore
+    def forward(
         self,
         input: Tensor,
         *,

@@ -1,7 +1,15 @@
 from __future__ import annotations
 from dataclasses import Field
-from typing import Any, ClassVar, TypedDict, TypeVar, get_type_hints
-from typing_extensions import Protocol, Self, TypeGuard, runtime_checkable
+from typing import (
+    Any,
+    ClassVar,
+    Protocol,
+    TypedDict,
+    TypeVar,
+    get_type_hints,
+    runtime_checkable,
+)
+from typing_extensions import Self, TypeGuard
 
 __all__ = ["Addable", "DataclassInstance", "Sized", "is_td_instance"]
 

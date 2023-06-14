@@ -10,11 +10,11 @@ jobs:
   format_with_black:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: "3.11"
     - name: Install black
       run: |
         python -m pip install --upgrade pip
@@ -24,32 +24,35 @@ jobs:
         python -m black --check -l 100 -t py38 -S ranzen/
         python -m black --check -l 100 -t py38 -S tests/
 
-  format_with_isort:
+  lint_with_ruff:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.8
-    - name: Install isort
+        python-version: "3.11"
+    - name: Install ruff
       run: |
         python -m pip install --upgrade pip
-        pip install isort
-    - name: Format with isort
+        pip install ruff
+    - name: Lint with ruff
       run: |
-        isort . --check --diff
+        ruff check --format=github ranzen
+    - name: Lint tests with ruff
+      run: |
+        ruff check --format=github tests
 
   check_docstrings:
 
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: "3.10"
+        python-version: "3.11"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -63,7 +66,7 @@ jobs:
         sphinx-build -W -b html ./docs ./docs/_build
 
   run_tests_and_type_checking:
-    needs: [format_with_black, format_with_isort, check_docstrings]
+    needs: [format_with_black, lint_with_ruff, check_docstrings]
     runs-on: ubuntu-latest
 
     steps:
@@ -71,36 +74,33 @@ jobs:
       #  ----  check-out repo and set-up python ----
       # ----------------------------------------------
       - name: Check out repository
-        uses: actions/checkout@v2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-
+        uses: actions/checkout@v3
       # ----------------------------------------------
       #  -----  install & configure poetry  -----
       # ----------------------------------------------
-      - name: Install Poetry
-        uses: snok/install-poetry@v1.2
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
         with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
+          python-version: 3.8
+          cache: 'poetry'
 
       # ----------------------------------------------
       # install dependencies if cache does not exist
       # ----------------------------------------------
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root -E all
+        run: |
+          poetry env use 3.8
+          poetry install --no-interaction --no-root -E all --with ci
 
       # ----------------------------------------------
       #  -----  install and run pyright  -----
       # ----------------------------------------------
       - name: Setup node.js (for pyright)
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "18"
 
       - name: Install pyright
         run: npm install -g pyright
