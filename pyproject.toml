@@ -104,6 +104,7 @@ ignore = [
     "E501", # line length
     "F541", # f-string without placeholder
     "PLW2901", # overwriting loop variable
+    "PLC0105", # covariant typevars have to end in "_co"
 ]
 target-version = "py38"
 
