@@ -65,10 +65,10 @@ jobs:
         poetry install --no-interaction --no-root --only docs
     - name: Check docstrings with darglint
       run: |
-        darglint --docstring-style sphinx -v 2 -z long ranzen
+        poetry run darglint --docstring-style sphinx -v 2 -z long ranzen
     - name: Build with sphinx
       run: |
-        sphinx-build -W -b html ./docs ./docs/_build
+        poetry run sphinx-build -W -b html ./docs ./docs/_build
 
   run_tests_and_type_checking:
     needs: [format_with_black, lint_with_ruff, check_docstrings]
