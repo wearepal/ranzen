@@ -15,14 +15,16 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: "3.11"
-    - name: Install black
+    - name: Install poetry
+      run: pipx install poetry
+    - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install 'black<=23'
+        poetry env use 3.11
+        poetry install --no-interaction --no-root --only format
     - name: Format with black
       run: |
-        python -m black --check -l 100 -t py38 -S ranzen/
-        python -m black --check -l 100 -t py38 -S tests/
+        poetry run black --check -l 100 -t py38 -S ranzen/
+        poetry run black --check -l 100 -t py38 -S tests/
 
   lint_with_ruff:
     runs-on: ubuntu-latest
@@ -32,16 +34,18 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: "3.11"
-    - name: Install ruff
+    - name: Install poetry
+      run: pipx install poetry
+    - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install ruff
+        poetry env use 3.11
+        poetry install --no-interaction --no-root --only lint
     - name: Lint with ruff
       run: |
-        ruff check --format=github ranzen
+        poetry run ruff check --format=github ranzen
     - name: Lint tests with ruff
       run: |
-        ruff check --format=github tests
+        poetry run ruff check --format=github tests
 
   check_docstrings:
 
@@ -53,11 +57,12 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: "3.11"
+    - name: Install poetry
+      run: pipx install poetry
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install wheel
-        pip install darglint sphinx autodocsumm typing_extensions furo toml
+        poetry env use 3.11
+        poetry install --no-interaction --no-root --only docs
     - name: Check docstrings with darglint
       run: |
         darglint --docstring-style sphinx -v 2 -z long ranzen
@@ -92,23 +97,17 @@ jobs:
       - name: Install dependencies
         run: |
           poetry env use 3.8
-          poetry install --no-interaction --no-root -E all --with ci
+          poetry install --no-interaction --no-root -E all --with torchcpu --without format --without lint --without docs
 
       # ----------------------------------------------
-      #  -----  install and run pyright  -----
+      #  -----         Run type checking        -----
       # ----------------------------------------------
-      - name: Setup node.js (for pyright)
-        uses: actions/setup-node@v3
+      - name: Set python path for all subsequent actions
+        run: echo "$(poetry env info --path)/bin" >> $GITHUB_PATH
+      - uses: jakebailey/pyright-action@v1
         with:
-          node-version: "18"
-
-      - name: Install pyright
-        run: npm install -g pyright
-
-      - name: Run pyright
-        run: |
-          poetry run pyright ranzen
-          poetry run pyright tests
+          # don't show warnings
+          level: error
 
       # ----------------------------------------------
       #  -----           Run Tests            -----
