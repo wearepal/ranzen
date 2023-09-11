@@ -343,7 +343,7 @@ sphinx-basic-ng = "*"
 name = "gitdb"
 version = "4.0.10"
 description = "Git Object Database"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "gitdb-4.0.10-py3-none-any.whl", hash = "sha256:c286cf298426064079ed96a9e4a9d39e7f3e9bf15ba60701e95f5492f28415c7"},
@@ -357,7 +357,7 @@ smmap = ">=3.0.1,<6"
 name = "gitpython"
 version = "3.1.34"
 description = "GitPython is a Python library used to interact with Git repositories"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "GitPython-3.1.34-py3-none-any.whl", hash = "sha256:5d3802b98a3bae1c2b8ae0e1ff2e4aa16bcdf02c145da34d092324f599f01395"},
@@ -1166,7 +1166,7 @@ files = [
 name = "smmap"
 version = "5.0.0"
 description = "A pure Python implementation of a sliding window memory map manager"
-optional = false
+optional = true
 python-versions = ">=3.6"
 files = [
     {file = "smmap-5.0.0-py3-none-any.whl", hash = "sha256:2aba19d6a040e78d8b09de5c57e96207b09ed71d8e55ce0959eeee6c8e190d94"},
@@ -1460,13 +1460,13 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "wandb"
-version = "0.15.9"
-description = "A CLI and library for interacting with the Weights and Biases API."
+version = "0.15.10"
+description = "A CLI and library for interacting with the Weights & Biases API."
 optional = true
 python-versions = ">=3.6"
 files = [
-    {file = "wandb-0.15.9-py3-none-any.whl", hash = "sha256:879365e5fcd00444874785b02f56f25973e7064420d9de3cc08a9948ecdf565b"},
-    {file = "wandb-0.15.9.tar.gz", hash = "sha256:3c41f59e72f3116177705d88d6049f443e238fa1451d1dda6fa89e055caf230f"},
+    {file = "wandb-0.15.10-py3-none-any.whl", hash = "sha256:bc810879fecd1b62ccd498658e55ade3702939090a94b99418630e77e1f43d50"},
+    {file = "wandb-0.15.10.tar.gz", hash = "sha256:5ce6d2d6be904da726b591a19ac22d2e71aa4b6a9ed450d8cd817d1712969b13"},
 ]
 
 [package.dependencies]
@@ -1493,7 +1493,6 @@ async = ["httpx (>=0.22.0)"]
 aws = ["boto3"]
 azure = ["azure-identity", "azure-storage-blob"]
 gcp = ["google-cloud-storage"]
-grpc = ["grpcio (>=1.27.2)"]
 kubeflow = ["google-cloud-storage", "kubernetes", "minio", "sh"]
 launch = ["awscli", "azure-containerregistry", "azure-identity", "azure-storage-blob", "boto3", "botocore", "chardet", "google-auth", "google-cloud-artifact-registry", "google-cloud-compute", "google-cloud-storage", "iso8601", "kubernetes", "nbconvert", "nbformat", "optuna", "typing-extensions"]
 media = ["bokeh", "moviepy", "numpy", "pillow", "plotly", "rdkit-pypi", "soundfile"]
