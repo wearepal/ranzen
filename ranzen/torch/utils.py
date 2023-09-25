@@ -48,6 +48,10 @@ def inf_generator(iterable: Iterable[T]) -> Iterator[T]:
     """Get DataLoaders in a single infinite loop.
 
     for i, (x, y) in enumerate(inf_generator(train_loader))
+
+    :param iterable: An iterable that will be looped infinitely.
+    :yield: Elements from the given iterable.
+    :raises RuntimeError: If the given iterable is empty.
     """
     iterator = iter(iterable)
     # try to take one element to ensure that the iterator is not empty
@@ -84,8 +88,8 @@ class Event:
         Mimics torch.cuda.Event.
         """
         if self._cuda:
-            self._event_start = torch.cuda.Event(enable_timing=True)  # type: ignore
-            self._event_start.record()  # type: ignore
+            self._event_start = torch.cuda.Event(enable_timing=True)  # pyright: ignore
+            self._event_start.record()  # pyright: ignore
         else:
             self._event_start = datetime.now()
         return self

@@ -200,23 +200,14 @@ class AddDict(Dict[_KT, _VT], Addable):
     """
 
     @overload
-    def __add__(
-        self: Self,
-        other: int,
-    ) -> Self:
+    def __add__(self, other: int) -> Self:
         ...
 
     @overload
-    def __add__(
-        self: Self,
-        other: dict[_KT, _VT2],
-    ) -> AddDict[_KT, _VT | _VT2]:
+    def __add__(self, other: dict[_KT, _VT2]) -> AddDict[_KT, _VT | _VT2]:
         ...
 
-    def __add__(
-        self: Self,
-        other: int | dict[_KT, _VT2],
-    ) -> Self | AddDict[_KT, _VT | _VT2]:
+    def __add__(self, other: int | dict[_KT, _VT2]) -> Self | AddDict[_KT, _VT | _VT2]:
         # Allow ``other`` to be an integer, but specifying the identity function, for compatibility
         # with th 'no-default' version of``sum``.
         if isinstance(other, int):
@@ -245,20 +236,14 @@ class AddDict(Dict[_KT, _VT], Addable):
         return copy
 
     @overload
-    def __radd__(
-        self: Self,
-        other: int,
-    ) -> Self:
+    def __radd__(self, other: int) -> Self:
         ...
 
     @overload
-    def __radd__(
-        self: Self,
-        other: dict[_KT, _VT2],
-    ) -> AddDict[_KT, _VT | _VT2]:
+    def __radd__(self, other: dict[_KT, _VT2]) -> AddDict[_KT, _VT | _VT2]:
         ...
 
-    def __radd__(self: Self, other: int | dict[_KT, _VT2]) -> Self | AddDict[_KT, _VT | _VT2]:
+    def __radd__(self, other: int | dict[_KT, _VT2]) -> Self | AddDict[_KT, _VT | _VT2]:
         return self + other
 
 
