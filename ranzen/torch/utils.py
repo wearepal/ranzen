@@ -49,7 +49,9 @@ def inf_generator(iterable: Iterable[T]) -> Iterator[T]:
 
     for i, (x, y) in enumerate(inf_generator(train_loader))
 
-    :yield: elements from the given iterable
+    :param iterable: An iterable that will be looped infinitely.
+    :yield: Elements from the given iterable.
+    :raises RuntimeError: If the given iterable is empty.
     """
     iterator = iter(iterable)
     # try to take one element to ensure that the iterator is not empty
