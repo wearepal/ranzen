@@ -46,7 +46,7 @@ attrs = { version = "^23.1.0", optional = true }
 [tool.poetry.extras]
 wandb = ["pandas", "wandb"]
 logging = ["loguru"]
-hydra = ["attrs", hydra-core", "neoconfigen"]
+hydra = ["attrs", "hydra-core", "neoconfigen"]
 all = ["attrs", "hydra-core", "loguru", "neoconfigen", "pandas", "wandb"]
 
 [tool.poetry.group.format.dependencies]
