@@ -33,7 +33,7 @@ numpy = "^1.23.2"
 
 # wandb dependencies
 pandas = { version = "^1.5.0", optional = true }
-wandb = { version= ">=0.12,<0.14", optional = true }
+wandb = { version= ">=0.15", optional = true }
 
 # logging dependencies
 loguru = { version = "^0.6.0", optional = true }
@@ -41,30 +41,36 @@ loguru = { version = "^0.6.0", optional = true }
 # hydra dependencies
 hydra-core = { version = "^1.3.0", optional = true }
 neoconfigen = { version = ">=2.3.3", optional = true }
+attrs = { version = "^23.1.0", optional = true }
 
 [tool.poetry.extras]
 wandb = ["pandas", "wandb"]
 logging = ["loguru"]
-hydra = ["hydra-core", "neoconfigen"]
-all = ["hydra-core", "loguru", "neoconfigen", "pandas", "wandb"]
+hydra = ["attrs", "hydra-core", "neoconfigen"]
+all = ["attrs", "hydra-core", "loguru", "neoconfigen", "pandas", "wandb"]
 
-[tool.poetry.group.dev.dependencies]
+[tool.poetry.group.format.dependencies]
 black = "^23.1"
-pytest = "^7.1.2"
-ruff = "0.0.270"
+
+[tool.poetry.group.lint.dependencies]
+ruff = "^0.0.285"
+
+[tool.poetry.group.docs.dependencies]
 darglint = "^1.8.0"
+sphinx = "*"
+autodocsumm = "*"
+typing-extensions = "*"
+furo = "*"
+toml = "*"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.1.2"
 pandas-stubs = ">=1.4.3.220718"
 
-[tool.poetry.group.ci]
+[tool.poetry.group.torchcpu]
 optional = true
 
-[tool.poetry.group.ci.dependencies]
-filelock = "*"
-jinja2 = "*"
-networkx = "*"
-sympy = "*"
-pillow = ">=5.3.0,<8.3.0 || >=8.4.0"
-requests = "*"
+[tool.poetry.group.torchcpu.dependencies]
 torch = { version = "*", source = "torchcpu", markers = "sys_platform == 'linux'" }
 
 [[tool.poetry.source]]
@@ -80,13 +86,13 @@ reportUnknownMemberType = "none"
 reportUnknownVariableType = "none"
 reportUnknownParameterType = "none"
 reportMissingTypeArgument = "none"
-reportUnnecessaryIsInstance = "none"
+reportUnnecessaryIsInstance = "warning"
 reportPrivateImportUsage = "none"
 reportPrivateUsage = "none"
 reportUnnecessaryTypeIgnoreComment = "warning"
 
 [tool.ruff]
-line-length = 88  # for import sorting
+line-length = 100
 select = [
     "E", # pycodestyle
     "F", # pyflakes
@@ -104,6 +110,7 @@ ignore = [
     "E501", # line length
     "F541", # f-string without placeholder
     "PLW2901", # overwriting loop variable
+    "PLC0105", # covariant typevars have to end in "_co"
 ]
 target-version = "py38"
 

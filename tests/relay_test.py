@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional, Protocol
@@ -12,17 +13,20 @@ from ranzen.hydra.relay import Option, Options, Relay
 
 class DummyOption(Protocol):
     name: str
-    value: int | str
+
+    @property
+    def value(self) -> int | str:
+        ...
 
 
 @dataclass
-class DummyOptionA(DummyOption):
+class DummyOptionA:
     name: str = "a"
     value: int = 7
 
 
 @dataclass
-class DummyOptionB(DummyOption):
+class DummyOptionB:
     name: str = "b"
     value: str = "5"
 
@@ -61,11 +65,14 @@ class DummyRelay(Relay):
 def test_relay(tmpdir: Path, clear_cache: bool, instantiate_recursively: bool) -> None:
     args = ["", "attr1=foo", "attr2=bar"]
     with patch("sys.argv", args):
-        ops1 = [
+        ops1: Sequence[type[DummyOption] | Option[DummyOption]] = [
             Option(DummyOptionA, "foo"),
             DummyOptionB,
         ]
-        ops2 = [DummyOptionA, Option(DummyOptionB, "bar")]
+        ops2: Sequence[type[DummyOption] | Option[DummyOption]] = [
+            DummyOptionA,
+            Option(DummyOptionB, "bar"),
+        ]
         options = {"attr1": ops1, "attr2": ops2}
         for _ in range(2):
             DummyRelay.with_hydra(
