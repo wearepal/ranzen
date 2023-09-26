@@ -67,6 +67,7 @@ class Subset(Generic[D]):
     r"""
     Subset of a dataset at specified indices.
     """
+
     dataset: D
     indices: Sequence[int]
 
