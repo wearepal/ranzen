@@ -91,7 +91,7 @@ reportPrivateUsage = "none"
 reportUnnecessaryTypeIgnoreComment = "warning"
 
 [tool.ruff]
-line-length = 88  # for import sorting
+line-length = 100
 select = [
     "E", # pycodestyle
     "F", # pyflakes
