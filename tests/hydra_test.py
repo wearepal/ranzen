@@ -9,7 +9,7 @@ from attrs import define
 from omegaconf import MISSING, DictConfig, MissingMandatoryValue, OmegaConf
 import pytest
 
-from ranzen.hydra import register_hydra_config, prepare_for_logging
+from ranzen.hydra import prepare_for_logging, register_hydra_config
 
 
 def test_dataclass_no_default() -> None:
