@@ -5,7 +5,6 @@ from typing_extensions import Self, TypeGuard
 
 __all__ = ["Addable", "DataclassInstance", "Sized", "is_td_instance"]
 
-
 T_co = TypeVar("T_co", covariant=True)
 
 
