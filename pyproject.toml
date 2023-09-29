@@ -73,6 +73,10 @@ optional = true
 [tool.poetry.group.torchcpu.dependencies]
 torch = { version = "*", source = "torchcpu", markers = "sys_platform == 'linux'" }
 
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.4.0"
+
 [[tool.poetry.source]]
 name = "torchcpu"
 url = "https://download.pytorch.org/whl/cpu"
