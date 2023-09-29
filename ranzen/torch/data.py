@@ -164,7 +164,7 @@ def prop_random_split(
             )
         len_ = len(dataset_or_size)
 
-    if isinstance(props, float):
+    if isinstance(props, (float, int)):
         props = [props]
     sum_ = np.sum(props)
     if (sum_ > 1.0) or any(prop < 0 for prop in props):
