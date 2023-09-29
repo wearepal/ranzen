@@ -17,7 +17,7 @@ def dummy_ds() -> TensorDataset:
 @pytest.mark.parametrize("as_indices", [False, True])
 @pytest.mark.parametrize("props", [0.5, [-0.2, 0.5], [0.1, 0.3, 0.4], [0.5, 0.6]])
 def test_prop_random_split(
-    dummy_ds: TensorDataset, props: float | int | list[float] | list[int], as_indices: bool
+    dummy_ds: TensorDataset, props: float | list[float], as_indices: bool
 ) -> None:
     sum_ = props if isinstance(props, (float, int)) else sum(props)
     props_ls = [props] if isinstance(props, (float, int)) else props
