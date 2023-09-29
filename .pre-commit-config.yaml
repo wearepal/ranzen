@@ -9,7 +9,7 @@ repos:
           - --remove-unused-variable
           - --ignore-init-module-imports
 -   repo: https://github.com/timothycrosley/isort
-    rev: 5.12.0  # pick the isort version you'd like to use from https://github.com/timothycrosley/isort/releases
+    rev: 5.12.0
     hooks:
       - id: isort
         args: 
