@@ -1,12 +1,10 @@
 from __future__ import annotations
-
 import copy
+from enum import Enum, auto
 import functools
 import operator
 import sys
-from enum import Enum, auto
 from typing import Any, Dict, Iterable, MutableMapping, Type, TypeVar, overload
-
 from typing_extensions import Self, TypeGuard
 
 from ranzen.types import Addable
