@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 import copy
-from enum import Enum
 import functools
 import operator
 import sys
+from enum import Enum, auto
 from typing import Any, Dict, Iterable, MutableMapping, Type, TypeVar, overload
+
 from typing_extensions import Self, TypeGuard
 
 from ranzen.types import Addable
@@ -19,6 +21,8 @@ __all__ = [
     "some",
     "str_to_enum",
     "unwrap_or",
+    "Stage",
+    "Split",
 ]
 
 
@@ -286,3 +290,15 @@ def unwrap_or(value: T | None, /, *, default: T) -> T:
 
 
 default_if_none = unwrap_or
+
+
+class Stage(StrEnum):
+    FIT = auto()
+    VALIDATE = auto()
+    TEST = auto()
+
+
+class Split(StrEnum):
+    TRAIN = auto()
+    VAL = auto()
+    TEST = auto()

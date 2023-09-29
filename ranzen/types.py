@@ -1,10 +1,19 @@
 from __future__ import annotations
+
 from dataclasses import Field
-from typing import Any, ClassVar, Protocol, TypedDict, TypeVar, get_type_hints, runtime_checkable
+from typing import (
+    Any,
+    ClassVar,
+    Protocol,
+    TypedDict,
+    TypeVar,
+    get_type_hints,
+    runtime_checkable,
+)
+
 from typing_extensions import Self, TypeGuard
 
 __all__ = ["Addable", "DataclassInstance", "Sized", "is_td_instance"]
-
 
 T_co = TypeVar("T_co", covariant=True)
 
