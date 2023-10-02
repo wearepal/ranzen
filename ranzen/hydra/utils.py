@@ -132,7 +132,9 @@ def prepare_for_logging(hydra_config: DictConfig, *, enum_to_str: bool = True) -
     }
 
 
-def register_hydra_config(main_cls: type, groups: dict[str, dict[str, type]]) -> None:
+def register_hydra_config(
+    main_cls: type, groups: dict[str, dict[str, type]], schema_name: str = "config_schema"
+) -> None:
     """Check the given config and store everything in the ConfigStore.
 
     This function performs two tasks: 1) make the necessary calls to `ConfigStore`
@@ -143,6 +145,8 @@ def register_hydra_config(main_cls: type, groups: dict[str, dict[str, type]]) ->
     :param groups: A dictionary that defines all the variants. The keys of top level of the
         dictionary should corresponds to the group names, and the keys in the nested dictionaries
         should correspond to the names of the options.
+    :param schema_name: Name of the main schema. This name has to appear in the defaults list in the
+        main config file.
     :raises ValueError: If the config is malformed in some way.
     :raises RuntimeError: If hydra itself is throwing an error.
 
@@ -169,6 +173,7 @@ def register_hydra_config(main_cls: type, groups: dict[str, dict[str, type]]) ->
             groups = {"model": {"linear": LinearModel, "cnn": CNNModel}}
             register_hydra_config(Config, groups)
     """
+    assert isinstance(main_cls, type), "`main_cls` has to be a type."
     configs: Union[tuple[Attribute, ...], tuple[Field, ...]]
     is_dc = is_dataclass(main_cls)
     if is_dc:
@@ -176,7 +181,9 @@ def register_hydra_config(main_cls: type, groups: dict[str, dict[str, type]]) ->
     elif attrs.has(main_cls):
         configs = attrs.fields(main_cls)
     else:
-        raise ValueError("The given class is neither a dataclass nor an attrs class.")
+        raise ValueError(
+            f"The given class {main_cls.__name__} is neither a dataclass nor an attrs class."
+        )
     ABSENT = MISSING if is_dc else NOTHING
 
     for config in configs:
@@ -196,7 +203,7 @@ def register_hydra_config(main_cls: type, groups: dict[str, dict[str, type]]) ->
                 raise ValueError(f"{IF} a real type, {NEED} a default value: `{config.name}`")
 
     cs = ConfigStore.instance()
-    cs.store(node=main_cls, name="config_schema")
+    cs.store(node=main_cls, name=schema_name)
     for group, entries in groups.items():
         for name, node in entries.items():
             try:
