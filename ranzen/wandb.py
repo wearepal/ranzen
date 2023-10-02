@@ -42,7 +42,7 @@ class RunsDownloader:
             runs = self.api.runs(path, filters={"group": group})
             logger.info(f"'{group}': found {len(runs)} runs.")
             dfs.append(self._runs_to_df(runs))
-        return pd.concat(dfs, axis=1, sort=False, keys=list(groups_))
+        return pd.concat(dfs, axis=0, sort=False, keys=list(groups_))
 
     def modify_config(
         self, *, group: str, config_key: str, new_value: bool | int | float | str
