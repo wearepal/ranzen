@@ -1,10 +1,11 @@
 from __future__ import annotations
+from collections.abc import Mapping
 import copy
 from enum import Enum, auto
 import functools
 import operator
 import sys
-from typing import Any, Dict, Iterable, MutableMapping, Type, TypeVar, overload
+from typing import Any, Dict, Iterable, Type, TypeVar, overload
 from typing_extensions import Self, TypeGuard
 
 from ranzen.types import Addable
@@ -24,9 +25,7 @@ __all__ = [
 ]
 
 
-def flatten_dict(
-    d: MutableMapping[str, Any], *, parent_key: str = "", sep: str = "."
-) -> dict[str, Any]:
+def flatten_dict(d: Mapping[str, Any], *, parent_key: str = "", sep: str = ".") -> dict[str, Any]:
     """Flatten a nested dictionary by separating the keys with `sep`.
 
     :param d: Dictionary to be flattened.
@@ -41,7 +40,7 @@ def flatten_dict(
     items: list[tuple[str, Any]] = []
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, MutableMapping):
+        if isinstance(v, Mapping):
             items.extend(flatten_dict(v, parent_key=new_key, sep=sep).items())
         else:
             items.append((new_key, v))
