@@ -25,9 +25,7 @@ __all__ = [
 ]
 
 
-def flatten_dict(
-    d: Mapping[str, Any], *, parent_key: str = "", sep: str = "."
-) -> dict[str, Any]:
+def flatten_dict(d: Mapping[str, Any], *, parent_key: str = "", sep: str = ".") -> dict[str, Any]:
     """Flatten a nested dictionary by separating the keys with `sep`.
 
     :param d: Dictionary to be flattened.
