@@ -264,7 +264,7 @@ class TrainingMode(Enum):
     """step-based training"""
 
 
-class BatchSamplerBase(Sampler[Sequence[int]]):
+class BatchSamplerBase(Sampler[List[int]]):
     def __init__(self, epoch_length: int | None = None) -> None:
         self.epoch_length: Final[int | None] = epoch_length
 
