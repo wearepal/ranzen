@@ -94,6 +94,7 @@ reportUnnecessaryIsInstance = "warning"
 reportPrivateImportUsage = "none"
 reportPrivateUsage = "none"
 reportUnnecessaryTypeIgnoreComment = "warning"
+reportUnnecessaryCast = "warning"
 
 [tool.ruff]
 line-length = 100

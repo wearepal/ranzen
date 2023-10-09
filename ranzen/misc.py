@@ -1,10 +1,11 @@
 from __future__ import annotations
+from collections.abc import Mapping
 import copy
 from enum import Enum, auto
 import functools
 import operator
 import sys
-from typing import Any, Dict, Iterable, MutableMapping, Type, TypeVar, overload
+from typing import Any, Dict, Iterable, Type, TypeVar, overload
 from typing_extensions import Self, TypeGuard
 
 from ranzen.types import Addable
@@ -24,9 +25,7 @@ __all__ = [
 ]
 
 
-def flatten_dict(
-    d: MutableMapping[str, Any], *, parent_key: str = "", sep: str = "."
-) -> dict[str, Any]:
+def flatten_dict(d: Mapping[str, Any], *, parent_key: str = "", sep: str = ".") -> dict[str, Any]:
     """Flatten a nested dictionary by separating the keys with `sep`.
 
     :param d: Dictionary to be flattened.
@@ -41,7 +40,7 @@ def flatten_dict(
     items: list[tuple[str, Any]] = []
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, MutableMapping):
+        if isinstance(v, Mapping):
             items.extend(flatten_dict(v, parent_key=new_key, sep=sep).items())
         else:
             items.append((new_key, v))
@@ -147,15 +146,15 @@ else:
                 raise TypeError("too many arguments for str(): %r" % (values,))
             if len(values) == 1:
                 # it must be a string
-                if not isinstance(values[0], str):
+                if not isinstance(values[0], str):  # pyright: ignore
                     raise TypeError("%r is not a string" % (values[0],))
             if len(values) >= 2:
                 # check that encoding argument is a string
-                if not isinstance(values[1], str):
+                if not isinstance(values[1], str):  # pyright: ignore
                     raise TypeError("encoding must be a string, not %r" % (values[1],))
             if len(values) == 3:
                 # check that errors argument is a string
-                if not isinstance(values[2], str):
+                if not isinstance(values[2], str):  # pyright: ignore
                     raise TypeError("errors must be a string, not %r" % (values[2]))
             value = str(*values)
             member = str.__new__(cls, value)
@@ -167,9 +166,9 @@ else:
 
         def _generate_next_value_(  # type: ignore
             name: str,
-            start: int,  # pyright: ignore
-            count: int,  # pyright: ignore
-            last_values: list[Any],  # pyright: ignore
+            start: int,
+            count: int,
+            last_values: list[Any],
         ) -> str:
             """
             Return the lower-cased version of the member name.

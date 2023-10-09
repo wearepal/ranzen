@@ -148,7 +148,7 @@ class Adafactor(Optimizer):
                 if grad.is_sparse:
                     raise RuntimeError("Adafactor does not support sparse gradients.")
 
-                state = self.state[p]  # type: ignore
+                state = self.state[p]
                 grad_shape = grad.shape
 
                 factored, use_first_moment = self._get_options(group, grad_shape)

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, cast, overload
+from typing import Optional, overload
 
 import torch
 from torch import Tensor
@@ -181,7 +181,7 @@ class RandomCutMix:
             elif num_classes < 1:
                 raise ValueError(f"{ num_classes } must be a positive integer.")
             if num_classes > 2:
-                targets = cast(Tensor, F.one_hot(targets.long(), num_classes=num_classes))
+                targets = F.one_hot(targets.long(), num_classes=num_classes)
         # Targets need to be floats to be mixed up.
         targets = targets.float()
         target_lambdas = 1.0 - cropped_area_ratios

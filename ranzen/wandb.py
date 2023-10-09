@@ -7,6 +7,8 @@ from loguru import logger
 import pandas as pd
 import wandb
 
+from ranzen.misc import flatten_dict
+
 
 @lru_cache(None)
 def get_api() -> wandb.Api:
@@ -69,7 +71,8 @@ class RunsDownloader:
             # We call ._json_dict to omit large files
             summary_list.append(run.summary._json_dict)
             # run.config is the input metrics.  We remove special values that start with _.
-            config_list.append({k: v for k, v in run.config.items() if not k.startswith("_")})
+            config = {k: v for k, v in run.config.items() if not k.startswith("_")}
+            config_list.append(flatten_dict(config, sep="."))
             # run.name is the name of the run.
             name_list.append(run.name)
         summary_df = pd.DataFrame.from_records(summary_list)
