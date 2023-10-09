@@ -37,8 +37,8 @@ def random_seed(seed_value: int, *, use_cuda: bool) -> None:
     if use_cuda:
         torch.cuda.manual_seed(seed_value)
         torch.cuda.manual_seed_all(seed_value)
-        torch.backends.cudnn.deterministic = True  # pyright: ignore
-        torch.backends.cudnn.benchmark = False  # pyright: ignore
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
 
 T = TypeVar("T")
@@ -94,7 +94,7 @@ class Event:
             self._event_start = datetime.now()
         return self
 
-    def __exit__(self, *args: Any) -> None:  # pyright: ignore
+    def __exit__(self, *args: Any) -> None:
         if self._cuda:
             event_end = torch.cuda.Event(enable_timing=True)
             event_end.record(stream=torch.cuda.current_stream())

@@ -37,7 +37,7 @@ def test_parsable() -> None:
 def test_parsable_valid() -> None:
     class Foo:  # pyright: ignore
         @parsable
-        def __init__(self, a: int, b: Union[int, float], c: List[str]):  # pyright: ignore
+        def __init__(self, a: int, b: Union[int, float], c: List[str]):
             ...
 
 
@@ -46,7 +46,7 @@ def test_parsable_invalid_union() -> None:
 
         class Foo:  # pyright: ignore
             @parsable
-            def __init__(self, a: int, b: int | float, c: List[str]):  # pyright: ignore
+            def __init__(self, a: int, b: int | float, c: List[str]):
                 ...
 
 

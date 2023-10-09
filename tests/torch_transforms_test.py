@@ -4,7 +4,6 @@ from typing import Final, Literal, cast
 
 import pytest
 import torch
-from torch import Tensor
 import torch.nn.functional as F
 
 from ranzen.torch.transforms import MixUpMode, RandomCutMix, RandomMixUp
@@ -44,7 +43,7 @@ def test_mixup(
             low=0, high=num_classes, size=(BATCH_SIZE,), dtype=torch.long, generator=generator
         )
         if one_hot:
-            targets = cast(Tensor, F.one_hot(targets, num_classes=num_classes))
+            targets = F.one_hot(targets, num_classes=num_classes)
         targets = targets.float()
     if num_groups is None:
         groups_or_edges = None
@@ -140,7 +139,7 @@ def test_cutmix(
             low=0, high=num_classes, size=(BATCH_SIZE,), dtype=torch.long, generator=generator
         )
         if one_hot:
-            targets = cast(Tensor, F.one_hot(targets, num_classes=num_classes))
+            targets = F.one_hot(targets, num_classes=num_classes)
         targets = targets.float()
     if num_groups is None:
         groups_or_edges = None
