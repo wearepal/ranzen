@@ -5,7 +5,7 @@ extend_exclude = ".undodir/*"
 
 [tool.poetry]
 name = "ranzen"
-version = "2.3.1"
+version = "2.3.2"
 description = "A toolkit facilitating machine-learning experimentation."
 authors = ["PAL <info@predictive-analytics-lab.com>"]
 license = "Apache License 2.0"
