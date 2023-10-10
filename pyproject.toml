@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 100
-target-version = ['py38']
+target-version = ['py310']
 extend_exclude = ".undodir/*"
 
 [tool.poetry]
@@ -14,10 +14,9 @@ packages = [
 ]
 include=["ranzen/py.typed"]
 classifiers=[
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "License :: OSI Approved :: Apache Software License",
   "Operating System :: OS Independent",
   "Typing :: Typed",
@@ -27,7 +26,7 @@ repository="https://github.com/wearepal/ranzen"
 readme="README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.8.0,<3.12"
+python = ">=3.10,<3.13"
 typing-extensions = ">=4.5.0"
 numpy = "^1.23.2"
 
@@ -53,7 +52,7 @@ all = ["attrs", "hydra-core", "loguru", "neoconfigen", "pandas", "wandb"]
 black = "^23.1"
 
 [tool.poetry.group.lint.dependencies]
-ruff = "^0.0.285"
+ruff = ">=0.0.285"
 
 [tool.poetry.group.docs.dependencies]
 darglint = "^1.8.0"
@@ -84,7 +83,7 @@ priority = "explicit"
 
 [tool.pyright]
 typeCheckingMode = "strict"
-pythonVersion = "3.8"
+pythonVersion = "3.10"
 reportUnknownArgumentType = "none"
 reportUnknownMemberType = "none"
 reportUnknownVariableType = "none"
@@ -117,7 +116,7 @@ ignore = [
     "PLW2901", # overwriting loop variable
     "PLC0105", # covariant typevars have to end in "_co"
 ]
-target-version = "py38"
+target-version = "py310"
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F403"]
