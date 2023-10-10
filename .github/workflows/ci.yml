@@ -23,8 +23,8 @@ jobs:
         poetry install --no-interaction --no-root --only format
     - name: Format with black
       run: |
-        poetry run black --check -l 100 -t py38 -S ranzen/
-        poetry run black --check -l 100 -t py38 -S tests/
+        poetry run black --check -l 100 -t py310 -S ranzen/
+        poetry run black --check -l 100 -t py310 -S tests/
 
   lint_with_ruff:
     runs-on: ubuntu-latest
@@ -85,10 +85,10 @@ jobs:
       # ----------------------------------------------
       - name: Install poetry
         run: pipx install poetry
-      - name: Set up Python 3.8
+      - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: 3.10
           cache: 'poetry'
 
       # ----------------------------------------------
@@ -96,7 +96,7 @@ jobs:
       # ----------------------------------------------
       - name: Install dependencies
         run: |
-          poetry env use 3.8
+          poetry env use 3.10
           poetry install --no-interaction --no-root -E all --with torchcpu --without format --without lint --without docs
 
       # ----------------------------------------------
