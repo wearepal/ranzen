@@ -1,6 +1,5 @@
 # Most of the code here has been copied from:
 # https://github.com/pytorch/fairseq/blob/main/fairseq/optim/adafactor.py
-from __future__ import annotations
 import math
 from typing import Iterable, Sequence, cast
 from typing_extensions import TypedDict
