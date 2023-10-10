@@ -1680,4 +1680,4 @@ wandb = ["pandas", "wandb"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "ec1a0a6cef534d4eee71566df5e4a514a9f4172dde785b0c6e304092f4c4c4b5"
+content-hash = "2a20e7f2757c643acb8e1d81a8559ff479211bc31417067f17368b9de3662d75"

@@ -54,6 +54,9 @@ black = "^23.1"
 [tool.poetry.group.lint.dependencies]
 ruff = ">=0.0.285"
 
+[tool.poetry.group.docs]
+optional = true
+
 [tool.poetry.group.docs.dependencies]
 darglint = "^1.8.0"
 sphinx = "^7.2.6"
