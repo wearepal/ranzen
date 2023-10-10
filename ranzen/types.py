@@ -1,4 +1,3 @@
-from __future__ import annotations
 from dataclasses import Field
 from typing import Any, ClassVar, Protocol, TypedDict, TypeVar, get_type_hints, runtime_checkable
 from typing_extensions import Self, TypeGuard

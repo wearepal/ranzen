@@ -1,5 +1,4 @@
 """Decorator functions."""
-from __future__ import annotations
 from enum import Enum
 from typing import Any, Callable, Protocol, TypeVar
 from typing_extensions import deprecated

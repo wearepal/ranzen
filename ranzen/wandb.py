@@ -1,5 +1,4 @@
 """Wandb-related functionality."""
-from __future__ import annotations
 from functools import lru_cache
 from typing import Sequence
 
@@ -62,7 +61,7 @@ class RunsDownloader:
         logger.info(f"Changed config for {i} runs.")
 
     @staticmethod
-    def _runs_to_df(runs: Sequence[wandb.wandb_run.Run]) -> pd.DataFrame:  # type: ignore
+    def _runs_to_df(runs: Sequence[wandb.sdk.wandb_run.Run]) -> pd.DataFrame:  # type: ignore
         summary_list = []
         config_list = []
         name_list = []
