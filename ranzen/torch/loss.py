@@ -6,7 +6,7 @@ from typing import Optional, Union
 from torch import Tensor, nn
 import torch.nn.functional as F
 
-from ranzen import parsable, str_to_enum
+from ranzen import str_to_enum
 
 __all__ = [
     "CrossEntropyLoss",
@@ -148,7 +148,6 @@ def cross_entropy_loss(
 class CrossEntropyLoss(nn.Module):
     weight: Tensor | None
 
-    @parsable
     def __init__(
         self,
         *,

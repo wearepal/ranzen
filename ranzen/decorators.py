@@ -1,10 +1,10 @@
 """Decorator functions."""
 from __future__ import annotations
 from enum import Enum
-from typing import Any, Callable, Protocol, TypeVar, get_type_hints
+from typing import Any, Callable, Protocol, TypeVar
 from typing_extensions import deprecated
 
-__all__ = ["enum_name_str", "implements", "parsable"]
+__all__ = ["enum_name_str", "implements"]
 
 
 _T = TypeVar("_T")
@@ -36,18 +36,6 @@ class implements:  # pylint: disable=invalid-name
         super_method = getattr(self.interface, func.__name__, None)
         assert super_method is not None, f"'{func.__name__}' does not exist in {self.interface}"
         return func
-
-
-def parsable(func: _F) -> _F:
-    """Mark an object's __init__ as parsable by Configen, so only pre-3.9 type annotations should be used."""
-    assert func.__name__ == "__init__", "@parsable can only be used to decorate __init__."
-    try:
-        get_type_hints(func)
-    except TypeError:
-        raise ValueError(
-            "the type annotations of this function are not automatically parseable."
-        ) from None
-    return func
 
 
 E = TypeVar("E", bound=Enum)
