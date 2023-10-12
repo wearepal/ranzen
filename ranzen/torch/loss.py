@@ -31,14 +31,15 @@ class ReductionType(Enum):
 def reduce(losses: Tensor, reduction_type: ReductionType | str) -> Tensor:
     if isinstance(reduction_type, str):
         reduction_type = str_to_enum(str_=reduction_type, enum=ReductionType)
-    if reduction_type is ReductionType.mean:
-        return losses.mean()
-    elif reduction_type is ReductionType.batch_mean:
-        return losses.sum() / losses.size(0)
-    elif reduction_type is ReductionType.sum:
-        return losses.sum()
-    elif reduction_type is ReductionType.none:
-        return losses
+    match reduction_type:
+        case ReductionType.mean:
+            return losses.mean()
+        case ReductionType.batch_mean:
+            return losses.sum() / losses.size(0)
+        case ReductionType.sum:
+            return losses.sum()
+        case ReductionType.none:
+            return losses
     raise TypeError(
         f"Received invalid type '{type(reduction_type)}' for argument 'reduction_type'."
     )
