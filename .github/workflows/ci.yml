@@ -42,10 +42,10 @@ jobs:
         poetry install --no-interaction --no-root --only lint
     - name: Lint with ruff
       run: |
-        poetry run ruff check --format=github ranzen
+        poetry run ruff check --output-format=github ranzen
     - name: Lint tests with ruff
       run: |
-        poetry run ruff check --format=github tests
+        poetry run ruff check --output-format=github tests
 
   check_docstrings:
 
