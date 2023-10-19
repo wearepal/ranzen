@@ -1,9 +1,10 @@
 from dataclasses import Field
 from typing import Any, ClassVar, Protocol, TypedDict, TypeVar, get_type_hints, runtime_checkable
-from typing_extensions import Self, TypeGuard
+from typing_extensions import TypeGuard
 
 __all__ = ["Addable", "DataclassInstance", "Sized", "is_td_instance"]
 
+T_contra = TypeVar("T_contra", contravariant=True)
 T_co = TypeVar("T_co", covariant=True)
 
 
@@ -14,8 +15,8 @@ class Sized(Protocol[T_co]):
 
 
 @runtime_checkable
-class Addable(Protocol[T_co]):
-    def __add__(self, other: Self, /) -> Self:
+class Addable(Protocol[T_contra, T_co]):
+    def __add__(self, other: T_contra, /) -> T_co:
         ...
 
 

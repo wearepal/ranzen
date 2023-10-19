@@ -70,6 +70,17 @@ class CosineLRWithLinearWarmup(_LRScheduler):
     """
     Sets the learning rate of each parameter group to follow a linear warmup schedule between
     lr_start and base_lr followed by a cosine annealing schedule between base_lr and lr_min.
+
+    :param optimizer: Optimizer whose parameter groups are to be scheduled.
+    :param warmup_iters: Maximum number of iterations for linear warmup.
+        Float values are interpreted as a fraction of ``total_iters``.
+
+    :param lr_start: Learning rate at the beginning of linear warmup.
+    :param total_iters: Total number of iterations.
+    :param lr_min: Minimum learning rate permitted with cosine annealing.
+    :param last_epoch: The index of the last epoch.
+
+    :raises AttributeError: If warmup_iters is a float and not in the range [0, 1].
     """
 
     last_epoch: int
@@ -86,18 +97,6 @@ class CosineLRWithLinearWarmup(_LRScheduler):
         lr_min: float = 0.0,
         last_epoch: int = -1,
     ) -> None:
-        """
-        :param optimizer: Optimizer whose parameter groups are to be scheduled.
-        :param warmup_iters: Maximum number of iterations for linear warmup.
-            Float values are interpreted as a fraction of ``total_iters``.
-
-        :param total_iters: Total number of iterations.
-        :param lr_start: Learning rate at the beginning of linear warmup.
-        :param lr_min: Minimum learning rate permitted with cosine annealing.
-        :param last_epoch: The index of the last epoch.
-
-        :raises AttributeError: If warmup_iters is a float and not in the range [0, 1].
-        """
         self.total_iters = total_iters
         self.lr_start = lr_start
         self.lr_min = lr_min

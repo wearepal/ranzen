@@ -21,6 +21,30 @@ class SAM(Optimizer):
     algorithm addresses the original algorithm's sensitivity to parameter re-scaling
     that can lead to weakening of the connection between sharpness and generalization gap.
 
+    :param base_optimizer: Base optimizer for SAM.
+    :param rho: Neighborhood size.
+    :param adaptive: Whether to use the adaptive variant of the algorithm.
+
+    :raises ValueError: if ``rho`` is negative.
+
+    :example:
+        .. code-block:: python
+
+            # Use AdamW as the base optimizer.
+            base_optimizer = AdamW(model.parameters())
+            # Wrap the base optimizer in SAM.
+            optimizer = SAM(base_optimizer)
+
+            # Closure required for recomputing the loss after computing epsilon(w).
+            def _closure():
+              return loss_function(logits=model(input), targets=targets)
+
+            loss = _closure()
+            loss.backward()
+
+            optimizer.step(closure=_closure)
+            optimizer.zero_grad()
+
     .. _Sharpness Aware Minimization:
         https://arxiv.org/abs/2010.01412
     .. _ASAM:
@@ -33,32 +57,7 @@ class SAM(Optimizer):
         *,
         rho: float = 0.05,
         adaptive: bool = True,
-    ) -> None:
-        """
-        :param base_optimizer: Base optimizer for SAM.
-        :param rho: Neighborhood size.
-        :param adaptive: Whether to use the adaptive variant of the algorithm.
-
-        :raises ValueError: if ``rho`` is negative.
-
-        :example:
-            .. code-block:: python
-
-                # Use AdamW as the base optimizer.
-                base_optimizer = AdamW(model.parameters())
-                # Wrap the base optimizer in SAM.
-                optimizer = SAM(base_optimizer)
-
-                # Closure required for recomputing the loss after computing epsilon(w).
-                def _closure():
-                  return loss_function(logits=model(input), targets=targets)
-
-                loss = _closure()
-                loss.backward()
-
-                optimizer.step(closure=_closure)
-                optimizer.zero_grad()
-        """
+    ):
         if rho < 0.0:
             raise ValueError(f"Invalid rho value: {rho}. (Should be non-negative)")
 
