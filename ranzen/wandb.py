@@ -25,7 +25,7 @@ class RunsDownloader:
     def runs(self, *run_ids: str) -> pd.DataFrame:
         """Download runs given the run IDs (e.g., "qvlp96vk").
 
-        :param run_ids: IDs for the runs to download.
+        :param \\*run_ids: IDs for the runs to download.
 
         :returns: the downloaded runs as a pandas DataFrame
         """

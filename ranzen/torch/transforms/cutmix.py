@@ -19,12 +19,29 @@ class RandomCutMix:
     This implementation samples the bounding-box coordinates independently for each pair of samples
     being mixed, and, unlike other implementations, does so in a way that is fully-vectorised.
 
-    .. _CutMix:
-        https://arxiv.org/abs/1905.04899
-
     .. note::
         This implementation randomly mixes images within a batch.
 
+    :param alpha: hyperparameter of the Beta distribution used for sampling the areas
+        of the bounding boxes.
+
+    :param p: The probability with which the transform will be applied to a given sample.
+
+    :param num_classes: The total number of classes in the dataset that needs to be specified if
+        wanting to mix up targets that are label-enoded. Passing label-encoded targets without
+        specifying ``num_classes`` will result in a RuntimeError.
+
+    :param inplace: Whether the transform should be performed in-place.
+
+    :param generator: Pseudo-random-number generator to use for sampling. Note that
+        :class:`torch.distributions.Beta` does not accept such generator object and so
+        the sampling procedure is only partially deterministic as a function of it.
+
+    :raises ValueError: if ``p`` is not in the range [0, 1] , if ``num_classes < 1``, or if
+        ``alpha`` is not a positive real number.
+
+    .. _CutMix:
+        https://arxiv.org/abs/1905.04899
     """
 
     def __init__(
@@ -36,25 +53,6 @@ class RandomCutMix:
         inplace: bool = False,
         generator: Optional[torch.Generator] = None,
     ) -> None:
-        """
-        :param alpha: hyperparameter of the Beta distribution used for sampling the areas
-            of the bounding boxes.
-
-        :param num_classes: The total number of classes in the dataset that needs to be specified if
-            wanting to mix up targets that are label-enoded. Passing label-encoded targets without
-            specifying ``num_classes`` will result in a RuntimeError.
-
-        :param p: The probability with which the transform will be applied to a given sample.
-
-        :param inplace: Whether the transform should be performed in-place.
-
-        :param generator: Pseudo-random-number generator to use for sampling. Note that
-            :class:`torch.distributions.Beta` does not accept such generator object and so
-            the sampling procedure is only partially deterministic as a function of it.
-
-        :raises ValueError: if ``p`` is not in the range [0, 1] , if ``num_classes < 1``, or if
-            ``alpha`` is not a positive real number.
-        """
         super().__init__()
         if not 0 <= p <= 1:
             raise ValueError("'p' must be in the range [0, 1].")

@@ -65,16 +65,15 @@ D = TypeVar("D", bound=SizedDataset)
 class Subset(Generic[D]):
     r"""
     Subset of a dataset at specified indices.
+
+    :param dataset: The whole Dataset.
+    :param indices: Indices in the whole set selected for subset.
     """
 
     dataset: D
     indices: Sequence[int]
 
-    def __init__(self, dataset: D, indices: Sequence[int]) -> None:
-        """
-        :param dataset: The whole Dataset.
-        :param indices: Indices in the whole set selected for subset.
-        """
+    def __init__(self, dataset: D, indices: Sequence[int]):
         self.dataset = dataset
         self.indices = indices
 
@@ -301,14 +300,15 @@ class SequentialBatchSampler(BatchSamplerBase):
     r"""Infinitely samples elements sequentially, always in the same order.
 
     This is useful for enabling iteration-based training.
-    Note that unlike torch's SequentialSampler which is an ordinary sampler that yields independent sample indexes,
-    this is a BatchSampler, requiring slightly different treatment when used with a DataLoader.
+    Note that unlike torch's SequentialSampler which is an ordinary sampler that yields independent
+    sample indexes, this is a BatchSampler, requiring slightly different treatment when used with a
+    DataLoader.
 
     :param data_source: Object of the same size as the data to be sampled from.
-    :param batch size: How many samples per batch to load.
+    :param batch_size: How many samples per batch to load.
+    :param training_mode: The training mode to use (epoch vs. step).
     :param shuffle: Set to ``True`` to have the data reshuffled at every epoch.
     :param drop_last: Set to ``True`` to drop the last incomplete batch,
-    :param shuffle: Set to ``True`` to have the data reshuffled
     :param generator: Pseudo-random-number generator to use for shuffling the dataset.
 
     :example:
@@ -400,22 +400,25 @@ class StratifiedBatchSampler(BatchSamplerBase):
     :param num_samples_per_group: Number of samples to draw per group. Note that if a multiplier is > 1
         then effectively more samples will be drawn for that group.
 
-    :param multipliers: An optional dictionary that maps group IDs to multipliers. If a multiplier is
-        greater than 1, the corresponding group will be sampled at twice the rate as the other
+    :param multipliers: An optional dictionary that maps group IDs to multipliers. If a multiplier
+        is greater than 1, the corresponding group will be sampled at twice the rate as the other
         groups. If a multiplier is 0, the group will be skipped.
 
     :param base_sampler: The base sampling strategy to use (sequential vs. random).
 
-    :param replacement: if ``True``, samples are drawn with replacement. If not, they are drawn without
-        replacement, which means that when a sample index is drawn for a row, it cannot be drawn
-        again for that row.
+    :param training_mode: The training mode to use (epoch vs. step).
 
+    :param replacement: if ``True``, samples are drawn with replacement. If not, they are drawn
+        without replacement, which means that when a sample index is drawn for a row, it cannot be
+        drawn again for that row.
 
-    :param shuffle: Whether to shuffle the subsets of the data after each pass (only applicable when the
-        base_sampler is set to ``sequential``).
+    :param shuffle: Whether to shuffle the subsets of the data after each pass (only applicable when
+        the base_sampler is set to ``sequential``).
 
     :param drop_last: Set to ``True`` to drop the last (on a per-group basis) incomplete batch.
     :param generator: Pseudo-random-number generator to use for shuffling the dataset.
+    :raises ValueError: If ``num_samples_per_group`` is non-positive, if ``replacement`` is not a
+        bool, or if there are not enough samples in a group to sample ``num_samples_per_group``.
 
     :example:
         >>> list(StratifiedSampler([0, 0, 0, 0, 1, 1, 2], 10, replacement=True))
@@ -610,15 +613,15 @@ class GreedyCoreSetSampler(BatchSamplerBase):
 
     Said approximation takes the form of the furtherst-frist traversal (FFT) algorithm.
 
-    :param batch_size: Budget for the core-set,
-
     :param embeddings: Embedded dataset from which to sample the core-sets according;
         the order of the embeddings, v, must match the order of the dataset
         (i.e. f(x_i) = v_i, for embedding function f and inputs x)
 
-    :param oversampling_factor: How many times larger than the budget the batch to be sampled from
+    :param batch_size: Budget for the core-set,
 
+    :param oversampling_factor: How many times larger than the budget the batch to be sampled from
         should be.
+
     :param generator: Pseudo-random-number generator to use for shuffling the dataset.
     """
 
@@ -685,7 +688,19 @@ class GreedyCoreSetSampler(BatchSamplerBase):
 
 
 class WeightedBatchSampler(BatchSamplerBase):
-    r"""Implements a batch-sampler version of :class:`torch.utils.data.WeightedRandomSampler`."""
+    r"""Implements a batch-sampler version of :class:`torch.utils.data.WeightedRandomSampler`.
+
+    :param weights:  A sequence or tensor of weights, not necessarily summing to one.
+    :param batch_size: Number of samples to draw per batch/iteration.
+    :param replacement: If ``True``, samples are drawn with replacement.
+        If not, they are drawn without replacement, which means that when a sample index is drawn
+        for a row, it cannot be drawn again for that row.
+
+    :param generator: Pseudo-random-number generator to use for randomly sampling indexes.
+
+    :raises ValueError: If ``batch_size`` is non-positive or is greater than the number of weights
+        when ``replacement=False``
+    """
 
     def __init__(
         self,
@@ -695,18 +710,6 @@ class WeightedBatchSampler(BatchSamplerBase):
         replacement: bool = True,
         generator: torch.Generator | None = None,
     ) -> None:
-        """
-        :param batch_size: Number of samples to draw per batch/iteration.
-        :param weights:  A sequence or tensor of weights, not necessarily summing to one.
-        :param replacement: If ``True``, samples are drawn with replacement.
-            If not, they are drawn without replacement, which means that when a sample index is drawn
-            for a row, it cannot be drawn again for that row.
-
-        :param generator: Pseudo-random-number generator to use for randomly sampling indexes.
-
-        :raises ValueError: If ``batch_size`` is non-positive or is greater than the number of weights
-            when ``replacement=False``
-        """
         if batch_size < 1:
             raise ValueError(
                 f"batch_size must be a positive integer, but got batch_size={batch_size}."
@@ -811,6 +814,8 @@ class ApproxStratBatchSampler(BatchSamplerBase):
         together with ``num_samples_per_group``.
     :param training_mode: Iteration-based vs epoch-based.
     :param generator: Torch generator for random numbers.
+    :raises ValueError: If not exactly one of ``num_samples_per_group`` and
+        ``num_samples_per_class`` is specified.
     """
 
     def __init__(

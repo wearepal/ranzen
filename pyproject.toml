@@ -58,12 +58,12 @@ ruff = ">=0.0.285"
 optional = true
 
 [tool.poetry.group.docs.dependencies]
-darglint = "^1.8.0"
 sphinx = "^7.2.6"
 autodocsumm = "*"
 typing-extensions = "*"
 furo = "*"
 toml = "*"
+pydoclint = "^0.3.6"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.1.2"
@@ -150,6 +150,13 @@ classes = [
   "SAM",
   "LAMB",
 ]
+
+[tool.pydoclint]
+style = "sphinx"
+# we don't put types in docstrings
+arg-type-hints-in-docstring = false
+check-return-types = false
+check-yield-types = false
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

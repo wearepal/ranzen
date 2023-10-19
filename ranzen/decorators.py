@@ -19,15 +19,13 @@ class IdentityFunction(Protocol[_T]):
 class implements:  # pylint: disable=invalid-name
     """Mark a function as implementing an interface.
 
+    :param interface: the interface that is implemented
+
     .. warning::
         This decorator is deprecated in favour of :func:`typing_extensions.override` instead.
     """
 
     def __init__(self, interface: type):
-        """Instantiate the decorator.
-
-        :param interface: the interface that is implemented
-        """
         self.interface = interface
 
     def __call__(self, func: _F) -> _F:
