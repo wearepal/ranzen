@@ -63,7 +63,7 @@ autodocsumm = "*"
 typing-extensions = "*"
 furo = "*"
 toml = "*"
-pydoclint = "^0.3.6"
+pydoclint = ">=0.3.8,<1.0.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.1.2"

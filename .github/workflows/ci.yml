@@ -75,10 +75,9 @@ jobs:
         run: |
           poetry env use 3.10
           poetry install --no-interaction --no-root -E all --with torchcpu --without format --without lint --with docs
-      # Temporarily disabled
-      # - name: Check docstrings with pydoclint
-      #   run: |
-      #     poetry run pydoclint ranzen
+      - name: Check docstrings with pydoclint
+        run: |
+          poetry run pydoclint ranzen
       - name: Build with sphinx
         run: |
           poetry run sphinx-build -W -b html ./docs ./docs/_build
