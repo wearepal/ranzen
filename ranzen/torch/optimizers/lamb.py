@@ -43,6 +43,7 @@ class LAMB(Optimizer):
         eps: float = 1e-6,
         weight_decay: float = 0.0,
         clamp_value: float = 10.0,
+        *,
         debias: bool = False,
     ) -> None:
         if lr <= 0.0:

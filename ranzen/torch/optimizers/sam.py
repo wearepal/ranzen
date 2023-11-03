@@ -67,7 +67,7 @@ class SAM(Optimizer):
         super(SAM, self).__init__(params=base_optimizer.param_groups, defaults=defaults)
 
     @torch.no_grad()
-    def _first_step(self, zero_grad: bool = False) -> None:
+    def _first_step(self, *, zero_grad: bool = False) -> None:
         grad_norm = self._grad_norm()
         for group in self.param_groups:
             scale = group["rho"] / (grad_norm + 1e-12)
@@ -83,7 +83,7 @@ class SAM(Optimizer):
             self.zero_grad()
 
     @torch.no_grad()
-    def _second_step(self, zero_grad: bool = False) -> None:
+    def _second_step(self, *, zero_grad: bool = False) -> None:
         for group in self.param_groups:
             for p in group["params"]:
                 if p.grad is None:

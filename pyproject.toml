@@ -103,6 +103,7 @@ line-length = 100
 select = [
     "E", # pycodestyle
     "F", # pyflakes
+    "FBT", # boolean trap
     "I", # isort
     # "N", # naming
     "PLC", # pylint convention
@@ -123,6 +124,7 @@ target-version = "py310"
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F403"]
+"tests/*" = ["FBT"]
 
 [tool.ruff.isort]
 known-third-party = [
