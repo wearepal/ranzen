@@ -23,8 +23,8 @@ jobs:
         poetry install --no-interaction --no-root --only format
     - name: Format with black
       run: |
-        poetry run black --check -l 100 -t py38 -S ranzen/
-        poetry run black --check -l 100 -t py38 -S tests/
+        poetry run black --check -l 100 -t py310 -S ranzen/
+        poetry run black --check -l 100 -t py310 -S tests/
 
   lint_with_ruff:
     runs-on: ubuntu-latest
@@ -42,33 +42,45 @@ jobs:
         poetry install --no-interaction --no-root --only lint
     - name: Lint with ruff
       run: |
-        poetry run ruff check --format=github ranzen
+        poetry run ruff check --output-format=github ranzen
     - name: Lint tests with ruff
       run: |
-        poetry run ruff check --format=github tests
+        poetry run ruff check --output-format=github tests
 
   check_docstrings:
 
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-    - name: Install poetry
-      run: pipx install poetry
-    - name: Install dependencies
-      run: |
-        poetry env use 3.11
-        poetry install --no-interaction --no-root --only docs
-    - name: Check docstrings with darglint
-      run: |
-        poetry run darglint --docstring-style sphinx -v 2 -z long ranzen
-    - name: Build with sphinx
-      run: |
-        poetry run sphinx-build -W -b html ./docs ./docs/_build
+      # ----------------------------------------------
+      #  ----  check-out repo and set-up python ----
+      # ----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v3
+      # ----------------------------------------------
+      #  -----  install & configure poetry  -----
+      # ----------------------------------------------
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: 'poetry'
+
+      # ----------------------------------------------
+      # install dependencies if cache does not exist
+      # ----------------------------------------------
+      - name: Install dependencies
+        run: |
+          poetry env use 3.10
+          poetry install --no-interaction --no-root -E all --with torchcpu --without format --without lint --with docs
+      - name: Check docstrings with pydoclint
+        run: |
+          poetry run pydoclint ranzen
+      - name: Build with sphinx
+        run: |
+          poetry run sphinx-build -W -b html ./docs ./docs/_build
 
   run_tests_and_type_checking:
     needs: [format_with_black, lint_with_ruff, check_docstrings]
@@ -85,10 +97,10 @@ jobs:
       # ----------------------------------------------
       - name: Install poetry
         run: pipx install poetry
-      - name: Set up Python 3.8
+      - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: "3.10"
           cache: 'poetry'
 
       # ----------------------------------------------
@@ -96,8 +108,8 @@ jobs:
       # ----------------------------------------------
       - name: Install dependencies
         run: |
-          poetry env use 3.8
-          poetry install --no-interaction --no-root -E all --with torchcpu --without format --without lint --without docs
+          poetry env use 3.10
+          poetry install --no-interaction --no-root -E all --with torchcpu --without format --without lint
 
       # ----------------------------------------------
       #  -----         Run type checking        -----

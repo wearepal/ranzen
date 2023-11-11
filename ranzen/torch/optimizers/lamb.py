@@ -1,4 +1,3 @@
-from __future__ import annotations
 import math
 from typing import Iterable
 from typing_extensions import override
@@ -13,14 +12,24 @@ __all__ = ["LAMB"]
 
 
 class LAMB(Optimizer):
-    r"""
-    Implements the LAMB algorithm introduced in `Large Batch Optimization for Deep Learning`_.
+    r"""Implements the LAMB algorithm introduced in `Large Batch Optimization for Deep Learning`_.
 
     LAMB serves as the AdamW counterpart to the LARS optimizer, similarly employing layerwise
     adaptive learning rates train models effectively with large batch sizes.
 
     .. note::
         Implementation based on: https://github.com/cybertronai/pytorch-lamb
+
+    :param params: iterable of parameters to optimize or dicts defining parameter groups.
+    :param lr: learning rate.
+    :param betas: coefficients used for computing running averages of gradient and its square.
+    :param eps: term added to the denominator to improve numerical stability.
+    :param weight_decay: weight decay coefficient.
+    :param clamp_value: value to clamp the norm of the weights to.
+    :param debias: whether to include the bias-correction term (1 - beta**step) from Adam.
+
+    :raises ValueError: if any one of ``lr``, ``betas``, ``eps``, or ``weight_decay`` is not in
+        its permitted range.
 
     .. _Large Batch Optimization for Deep Learning:
         https://arxiv.org/abs/1904.00962v5
@@ -34,20 +43,9 @@ class LAMB(Optimizer):
         eps: float = 1e-6,
         weight_decay: float = 0.0,
         clamp_value: float = 10.0,
+        *,
         debias: bool = False,
     ) -> None:
-        """
-        :param params: iterable of parameters to optimize or dicts defining parameter groups.
-        :param lr: learning rate.
-        :param betas: coefficients used for computing running averages of gradient and its square.
-        :param eps: term added to the denominator to improve numerical stability.
-        :param weight_decay: weight decay coefficient.
-        :param clamp_value: value to clamp the norm of the weights to.
-        :param debias: whether to include the bias-correction term (1 - beta**step) from Adam.
-
-        :raises ValueError: if any one of ``lr``, ``betas``, ``eps``, or ``weight_decay`` is not in
-            its permitted range.
-        """
         if lr <= 0.0:
             raise ValueError(f"Invalid learning rate: {lr}")
         if eps < 0.0:

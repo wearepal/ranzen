@@ -28,7 +28,7 @@ release = toml.load("../pyproject.toml")["tool"]["poetry"]["version"]
 
 # -- General configuration ---------------------------------------------------
 
-autoclass_content = "both"  # include both class docstring and __init__
+autoclass_content = "class"  # take info only from class docstring and not __init__
 autodoc_class_signature = "mixed"
 autodoc_default_options = {
     # Make sure that any autodoc declarations show the right members
@@ -40,23 +40,19 @@ autodoc_default_options = {
     "autosummary-nosignatures": True,
 }
 autodoc_typehints = "description"
-autodoc_type_aliases = {
-    "pl.Trainer": "pytorch_lightning.Trainer",
-    "pl.LightningModule": "pytorch_lightning.LightningModule",
-}
-autodoc_mock_imports = [
-    "attrs",
-    "hydra",
-    "loguru",
-    "numpy",
-    "omegaconf",
-    "pandas",
-    "pytorch_lightning",
-    "torch",
-    "tqdm",
-    "wandb",
-    "wrapt",
-]
+# autodoc_mock_imports = [
+#     "attrs",
+#     "hydra",
+#     "loguru",
+#     "numpy",
+#     "omegaconf",
+#     "pandas",
+#     "pytorch_lightning",
+#     "torch",
+#     "tqdm",
+#     "wandb",
+#     "wrapt",
+# ]
 add_module_names = False
 
 # Add any Sphinx extension module names here, as strings. They can be

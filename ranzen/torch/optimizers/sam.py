@@ -1,4 +1,3 @@
-from __future__ import annotations
 from typing import Any
 from typing_extensions import override
 
@@ -22,6 +21,30 @@ class SAM(Optimizer):
     algorithm addresses the original algorithm's sensitivity to parameter re-scaling
     that can lead to weakening of the connection between sharpness and generalization gap.
 
+    :param base_optimizer: Base optimizer for SAM.
+    :param rho: Neighborhood size.
+    :param adaptive: Whether to use the adaptive variant of the algorithm.
+
+    :raises ValueError: if ``rho`` is negative.
+
+    :example:
+        .. code-block:: python
+
+            # Use AdamW as the base optimizer.
+            base_optimizer = AdamW(model.parameters())
+            # Wrap the base optimizer in SAM.
+            optimizer = SAM(base_optimizer)
+
+            # Closure required for recomputing the loss after computing epsilon(w).
+            def _closure():
+              return loss_function(logits=model(input), targets=targets)
+
+            loss = _closure()
+            loss.backward()
+
+            optimizer.step(closure=_closure)
+            optimizer.zero_grad()
+
     .. _Sharpness Aware Minimization:
         https://arxiv.org/abs/2010.01412
     .. _ASAM:
@@ -34,32 +57,7 @@ class SAM(Optimizer):
         *,
         rho: float = 0.05,
         adaptive: bool = True,
-    ) -> None:
-        """
-        :param base_optimizer: Base optimizer for SAM.
-        :param rho: Neighborhood size.
-        :param adaptive: Whether to use the adaptive variant of the algorithm.
-
-        :raises ValueError: if ``rho`` is negative.
-
-        :example:
-            .. code-block:: python
-
-                # Use AdamW as the base optimizer.
-                base_optimizer = AdamW(model.parameters())
-                # Wrap the base optimizer in SAM.
-                optimizer = SAM(base_optimizer)
-
-                # Closure required for recomputing the loss after computing epsilon(w).
-                def _closure():
-                  return loss_function(logits=model(input), targets=targets)
-
-                loss = _closure()
-                loss.backward()
-
-                optimizer.step(closure=_closure)
-                optimizer.zero_grad()
-        """
+    ):
         if rho < 0.0:
             raise ValueError(f"Invalid rho value: {rho}. (Should be non-negative)")
 
@@ -69,7 +67,7 @@ class SAM(Optimizer):
         super(SAM, self).__init__(params=base_optimizer.param_groups, defaults=defaults)
 
     @torch.no_grad()
-    def _first_step(self, zero_grad: bool = False) -> None:
+    def _first_step(self, *, zero_grad: bool = False) -> None:
         grad_norm = self._grad_norm()
         for group in self.param_groups:
             scale = group["rho"] / (grad_norm + 1e-12)
@@ -85,7 +83,7 @@ class SAM(Optimizer):
             self.zero_grad()
 
     @torch.no_grad()
-    def _second_step(self, zero_grad: bool = False) -> None:
+    def _second_step(self, *, zero_grad: bool = False) -> None:
         for group in self.param_groups:
             for p in group["params"]:
                 if p.grad is None:

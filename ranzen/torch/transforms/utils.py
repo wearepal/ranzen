@@ -1,4 +1,3 @@
-from __future__ import annotations
 import operator
 from typing import NamedTuple
 import warnings
@@ -70,10 +69,10 @@ def sample_paired_indices(
             # Compute the pairwise indicator matrix, indicating whether any two samples
             # belong to the same group (0) or different groups (1)
             comp = operator.ne if cross_group else operator.eq
-            connections = comp(groups[indices], groups.t())  # [num_selected, batch_size]
+            connections: Tensor = comp(groups[indices], groups.t())  # [num_selected, batch_size]
             if not cross_group:
                 # Fill the diagonal with 'False' to prevent self-matches.
-                connections.fill_diagonal_(False)
+                connections.fill_diagonal_(fill_value=False)
             # For each sample, compute how many other samples there are that belong
             # to a different group.
         elif groups_or_edges.ndim == 2:
@@ -83,7 +82,7 @@ def sample_paired_indices(
                 )
             connections = groups_or_edges[indices]
             # Fill the diagonal with 'False' to prevent self-matches.
-            connections.fill_diagonal_(False)
+            connections.fill_diagonal_(fill_value=False)
         else:
             raise ValueError(
                 "'groups_or_edges' must be a vector denoting group membership or a boolean-type"

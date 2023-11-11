@@ -5,7 +5,7 @@ from enum import Enum, auto
 import functools
 import operator
 import sys
-from typing import Any, Dict, Iterable, Type, TypeVar, overload
+from typing import Any, Iterable, Type, TypeVar, overload
 from typing_extensions import Self, TypeGuard
 
 from ranzen.types import Addable
@@ -72,7 +72,7 @@ def gcopy(
     :param obj: Object to be copied.
     :param deep: Whether to create deep (True) or shallow (False) copies.
     :param num_copies: Number of copies to create with 'None' being equivalent to 1.
-    :param kwargs: Key-word arguments specifying a name of an attribute and the
+    :param \\**kwargs: Key-word arguments specifying a name of an attribute and the
         new value to set it to in the copies.
 
     :returns: A copy or list of copies (if num_copies > 1) of the object 'obj'.
@@ -181,7 +181,7 @@ _VT = TypeVar("_VT", bound=Addable)
 _VT2 = TypeVar("_VT2", bound=Addable)
 
 
-class AddDict(Dict[_KT, _VT], Addable):
+class AddDict(dict[_KT, _VT], Addable[int | dict, dict]):
     """
     Extension of the built-in dictionary class that supports the use of the ``__add__`` operator for
     key-wise addition.

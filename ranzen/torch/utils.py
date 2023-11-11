@@ -1,8 +1,8 @@
-from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from datetime import datetime
 import random
 from typing import Any, List, Optional, TypeVar, Union, overload
+from typing_extensions import Self
 
 import numpy as np
 import numpy.typing as npt
@@ -82,7 +82,7 @@ class Event:
         self._cuda = torch.cuda.is_available()
         self._event_start: torch.cuda.Event | datetime
 
-    def __enter__(self) -> Event:
+    def __enter__(self) -> Self:
         """Mark a time.
 
         Mimics torch.cuda.Event.

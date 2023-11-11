@@ -1,12 +1,10 @@
 """Test decorators."""
-from __future__ import annotations
 from enum import Enum, auto
-from typing import List, Union
 from typing_extensions import deprecated
 
 import pytest
 
-from ranzen import enum_name_str, parsable  # pyright: ignore
+from ranzen import enum_name_str  # pyright: ignore
 
 
 @pytest.mark.parametrize("explanation", ["All things that have form eventually decay."])
@@ -25,29 +23,6 @@ def test_deprecated(explanation: str) -> None:
 
     with pytest.deprecated_call():
         foo()  # pyright: ignore
-
-
-def test_parsable() -> None:
-    class Foo:  # pyright: ignore
-        @parsable
-        def __init__(self) -> None:
-            ...
-
-
-def test_parsable_valid() -> None:
-    class Foo:  # pyright: ignore
-        @parsable
-        def __init__(self, a: int, b: Union[int, float], c: List[str]):
-            ...
-
-
-def test_parsable_invalid_union() -> None:
-    with pytest.raises(ValueError):
-
-        class Foo:  # pyright: ignore
-            @parsable
-            def __init__(self, a: int, b: int | float, c: List[str]):
-                ...
 
 
 def test_enum_str() -> None:

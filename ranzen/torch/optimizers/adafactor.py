@@ -1,6 +1,5 @@
 # Most of the code here has been copied from:
 # https://github.com/pytorch/fairseq/blob/main/fairseq/optim/adafactor.py
-from __future__ import annotations
 import math
 from typing import Iterable, Sequence, cast
 from typing_extensions import TypedDict
@@ -39,12 +38,33 @@ class ParamState(TypedDict):
 
 class Adafactor(Optimizer):
     """Implements Adafactor algorithm.
+
     This implementation is based on: `Adafactor: Adaptive Learning Rates with
     Sublinear Memory Cost <see https://arxiv.org/abs/1804.04235>`_. Note that
     this optimizer internally adjusts the learning rate depending on the
-    ``multiply_by_parameter_scale*, ``relative_step`` and ``warmup_init``
+    ``multiply_by_parameter_scale``, ``relative_step`` and ``warmup_init``
     options. To use a manual (external) learning rate schedule you should set
-    ``multiply_by_parameter_scale=False`` and `relative_step=False``.
+    ``multiply_by_parameter_scale=False`` and ``relative_step=False``.
+
+    :param params: iterable of parameters to optimize or dicts defining parameter groups
+
+    :param lr: learning rate. If ``None``, a time-dependent learning rate will instead be computed.
+
+    :param eps: regularization constants for square gradient
+        and parameter scale respectively.
+
+    :param clipping_threshold: threshold of root mean square of final gradient update.
+
+    :param decay_rate: coefficient used to compute running averages of square gradient.
+
+    :param beta1: coefficient used for computing running averages of gradient.
+
+    :param weight_decay: weight decay coefficient.
+    :param multiply_by_parameter_scale: if True, learning rate is scaled by
+        root mean square of parameter.
+
+    :param warmup_init: time-dependent learning rate computation depends on
+        whether warm-up initialization is being used.
     """
 
     param_groups: list[ParamGroup]  # type: ignore
@@ -62,31 +82,6 @@ class Adafactor(Optimizer):
         multiply_by_parameter_scale: bool = False,
         warmup_init: bool = False,
     ) -> None:
-        """
-        :param params: iterable of parameters to optimize or dicts defining
-            parameter groups
-
-        :param lr: learning rate. If ``None``, a time-dependent learning rate
-            will instead be computed.
-
-        :param eps: regularization constants for square gradient
-            and parameter scale respectively.
-
-        :param clipping_threshold: threshold of root mean square of
-            final gradient update.
-
-        :param decay_rate: coefficient used to compute running averages of square
-            gradient.
-
-        :param beta1: coefficient used for computing running averages of gradient.
-
-        :param weight_decay: weight decay coefficient.
-        :param multiply_by_parameter_scale: if True, learning rate is scaled by
-            root mean square of parameter.
-
-        :param warmup_init: time-dependent learning rate computation depends on
-            whether warm-up initialization is being used.
-        """
         relative_step = lr is None
         defaults = dict(
             lr=lr,

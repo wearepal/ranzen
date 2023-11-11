@@ -1,4 +1,3 @@
-from __future__ import annotations
 from abc import abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, is_dataclass, replace
@@ -417,7 +416,7 @@ class Relay:
             neoconfigen.
 
         :param instantiate_recursively: Whether to recursively instantiate the relay instance.
-        :param options: Option or sequence of options (value) to register for each group (key).
+        :param \\**options: Option or sequence of options (value) to register for each group (key).
             If an option is a type or is an :class:`Option` with :attr:`Option.name` as ``None``,
             then a name will be generated based on the class name and used to register the option,
             else, the specified value for :attr:`Option.name` will be used.
@@ -432,6 +431,8 @@ class Relay:
     @abstractmethod
     def run(self, raw_config: dict[str, Any] | None = None) -> Any:
         """Run the relay.
+
         :param raw_config: Dictionary containing the configuration used to instantiate the relay.
+        :returns: Any value that the experiment wishes to return.
         """
         ...

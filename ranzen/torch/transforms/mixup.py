@@ -44,11 +44,38 @@ class RandomMixUp(Generic[LS]):
     based on lambda, and selective pair-sampling. Furthermore, unlike the official implementation,
     samples are guaranteed not to be paired with themselves.
 
-    .. _mixup:
-        https://arxiv.org/abs/1904.00962v5
-
     .. note::
         This implementation randomly mixes images within a batch.
+
+    :param lambda_sampler: The distribution from which to sample lambda (the mixup interpolation
+        parameter).
+
+    :param mode: Which mode to use to mix up samples: geometric or linear.
+
+        .. note::
+            The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for
+            positive inputs.
+
+    :param p: The probability with which the transform will be applied to a given sample.
+    :param num_classes: The total number of classes in the dataset that needs to be specified if
+        wanting to mix up targets that are label-enoded. Passing label-encoded targets without
+        specifying ``num_classes`` will result in a RuntimeError.
+
+    :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
+
+        .. note::
+            If the ``lambda_sampler`` is a BernoulliDistribution, then featurewise sampling will
+            always be enabled.
+
+    :param inplace: Whether the transform should be performed in-place.
+    :param generator: Pseudo-random-number generator to use for sampling. Note that
+        :class:`torch.distributions.Distribution` does not accept such generator object and so
+        the sampling procedure is only partially deterministic as a function of it.
+
+    :raises ValueError: if ``p`` is not in the range [0, 1] or ``num_classes < 1``.
+
+    .. _mixup:
+        https://arxiv.org/abs/1904.00962v5
     """
 
     def __init__(
@@ -62,34 +89,6 @@ class RandomMixUp(Generic[LS]):
         inplace: bool = False,
         generator: torch.Generator | None = None,
     ) -> None:
-        """
-        :param lambda_sampler: The distribution from which to sample lambda (the mixup interpolation
-            parameter).
-
-        :param mode: Which mode to use to mix up samples: geometric or linear.
-
-            .. note::
-                The (weighted) geometric mean, enabled by ``mode=geometric``, is only valid for
-                positive inputs.
-
-        :param p: The probability with which the transform will be applied to a given sample.
-        :param num_classes: The total number of classes in the dataset that needs to be specified if
-            wanting to mix up targets that are label-enoded. Passing label-encoded targets without
-            specifying ``num_classes`` will result in a RuntimeError.
-
-        :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
-
-            .. note::
-                If the ``lambda_sampler`` is a BernoulliDistribution, then featurewise sampling will
-                always be enabled.
-
-        :param inplace: Whether the transform should be performed in-place.
-        :param generator: Pseudo-random-number generator to use for sampling. Note that
-            :class:`torch.distributions.Distribution` does not accept such generator object and so
-            the sampling procedure is only partially deterministic as a function of it.
-
-        :raises ValueError: if ``p`` is not in the range [0, 1] or ``num_classes < 1``.
-        """
         super().__init__()
         self.lambda_sampler: LS = lambda_sampler
         if not 0 <= p <= 1:
@@ -135,8 +134,8 @@ class RandomMixUp(Generic[LS]):
         :param num_classes: The total number of classes in the dataset that needs to be specified if
             wanting to mix up targets that are label-enoded. Passing label-encoded targets without
             specifying ``num_classes`` will result in a RuntimeError.
-        :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
         :param inplace: Whether the transform should be performed in-place.
+        :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
         :param generator: Pseudo-random-number generator to use for sampling. Note that
             :class:`torch.distributions.Distribution` does not accept such generator object and so
             the sampling procedure is only partially deterministic as a function of it.
@@ -185,8 +184,8 @@ class RandomMixUp(Generic[LS]):
             wanting to mix up targets that are label-enoded. Passing label-encoded targets without
             specifying ``num_classes`` will result in a RuntimeError unless ``num_classes`` is specified
             at call-time.
-        :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
         :param inplace: Whether the transform should be performed in-place.
+        :param featurewise: Whether to sample sample feature-wise instead of sample-wise.
         :param generator: Pseudo-random-number generator to use for sampling. Note that
             :class:`torch.distributions.Distribution` does not accept such generator object and so
             the sampling procedure is only partially deterministic as a function of it.

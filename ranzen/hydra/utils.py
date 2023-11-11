@@ -1,5 +1,4 @@
 """Functions for dealing with hydra."""
-from __future__ import annotations
 from collections.abc import MutableMapping
 from contextlib import contextmanager
 import dataclasses
@@ -67,6 +66,19 @@ def recursively_instantiate(
     }
 
 
+class GroupRegistration:
+    """Helper for registering a group in hydra."""
+
+    def __init__(self, cs: ConfigStore, *, group_name: str, package: str):
+        self._cs = cs
+        self._group_name = group_name
+        self._package = package
+
+    def add_option(self, config_class: type, *, name: str) -> None:
+        """Register a schema as an option for this group."""
+        self._cs.store(group=self._group_name, name=name, node=config_class, package=self._package)
+
+
 class SchemaRegistration:
     """Register hydra schemas.
 
@@ -98,19 +110,6 @@ class SchemaRegistration:
         """Return a context manager for a new group."""
         package = target_path.replace("/", ".")
         yield GroupRegistration(self._cs, group_name=group_name, package=package)
-
-
-class GroupRegistration:
-    """Helper for registering a group in hydra."""
-
-    def __init__(self, cs: ConfigStore, *, group_name: str, package: str):
-        self._cs = cs
-        self._group_name = group_name
-        self._package = package
-
-    def add_option(self, config_class: type, *, name: str) -> None:
-        """Register a schema as an option for this group."""
-        self._cs.store(group=self._group_name, name=name, node=config_class, package=self._package)
 
 
 def prepare_for_logging(hydra_config: DictConfig, *, enum_to_str: bool = True) -> dict[str, Any]:
