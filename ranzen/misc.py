@@ -245,7 +245,8 @@ class AddDict(dict[_KT, _VT], Addable[int | dict, dict]):
         ...
 
     def __radd__(self, other: int | dict[_KT, _VT2]) -> Self | AddDict[_KT, _VT | _VT2]:
-        return self + other
+        # Calling `__add__` directly because with the `+` syntax, pyright complains for some reason.
+        return self.__add__(other)
 
 
 A = TypeVar("A", bound=Addable)

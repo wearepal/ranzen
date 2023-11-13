@@ -66,7 +66,7 @@ class SAM(Optimizer):
         self.param_groups = self.base_optimizer.param_groups
         super(SAM, self).__init__(params=base_optimizer.param_groups, defaults=defaults)
 
-    @torch.no_grad()
+    @torch.no_grad()  # pyright: ignore
     def _first_step(self, *, zero_grad: bool = False) -> None:
         grad_norm = self._grad_norm()
         for group in self.param_groups:
@@ -82,7 +82,7 @@ class SAM(Optimizer):
         if zero_grad:
             self.zero_grad()
 
-    @torch.no_grad()
+    @torch.no_grad()  # pyright: ignore
     def _second_step(self, *, zero_grad: bool = False) -> None:
         for group in self.param_groups:
             for p in group["params"]:
@@ -95,7 +95,7 @@ class SAM(Optimizer):
         if zero_grad:
             self.zero_grad()
 
-    @torch.no_grad()
+    @torch.no_grad()  # pyright: ignore
     @override
     def step(self, closure: LossClosure) -> Tensor:  # type: ignore
         r"""Performs a single optimization step.
