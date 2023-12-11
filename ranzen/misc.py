@@ -1,12 +1,12 @@
 from __future__ import annotations
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 import copy
 from enum import Enum, auto
 import functools
 import operator
 import sys
-from typing import Any, Iterable, Type, TypeVar, overload
-from typing_extensions import Self, TypeGuard
+from typing import Any, TypeGuard, TypeVar, overload
+from typing_extensions import Self
 
 from ranzen.types import Addable
 
@@ -140,7 +140,7 @@ else:
 
         _value_: str
 
-        def __new__(cls: Type[_S], *values: str) -> _S:
+        def __new__(cls: type[_S], *values: str) -> _S:
             "values must already be of type `str`"
             if len(values) > 3:
                 raise TypeError("too many arguments for str(): %r" % (values,))

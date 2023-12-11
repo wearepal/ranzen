@@ -1,11 +1,11 @@
 """Functions for dealing with hydra."""
-from collections.abc import MutableMapping
+from collections.abc import Iterator, MutableMapping, Sequence
 from contextlib import contextmanager
 import dataclasses
 from dataclasses import MISSING, Field, asdict, is_dataclass
 from enum import Enum
 import shlex
-from typing import Any, Dict, Final, Iterator, Sequence, Union, cast
+from typing import Any, Final, Union, cast
 from typing_extensions import deprecated
 
 import attrs
@@ -122,7 +122,7 @@ def prepare_for_logging(hydra_config: DictConfig, *, enum_to_str: bool = True) -
         hydra_config, throw_on_missing=True, enum_to_str=enum_to_str, resolve=True
     )
     assert isinstance(raw_config, dict)
-    raw_config = cast(Dict[str, Any], raw_config)
+    raw_config = cast(dict[str, Any], raw_config)
     return {
         f"{key}/{OmegaConf.get_type(dict_).__name__}"  # type: ignore
         if isinstance(dict_ := hydra_config[key], DictConfig)

@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from collections import defaultdict
+from collections.abc import Sequence
 from dataclasses import dataclass, is_dataclass, replace
 from enum import Enum
 from functools import lru_cache
@@ -15,22 +16,17 @@ from types import ModuleType
 from typing import (
     Any,
     ClassVar,
-    DefaultDict,
-    Dict,
     Final,
     Generic,
-    List,
     NamedTuple,
     Optional,
-    Sequence,
-    Tuple,
-    Type,
+    TypeAlias,
     TypeVar,
     Union,
     cast,
     final,
 )
-from typing_extensions import Self, TypeAlias
+from typing_extensions import Self
 
 import hydra
 from hydra.core.config_search_path import ConfigSearchPath
@@ -120,7 +116,7 @@ class _SchemaImportInfo(NamedTuple):
 
 
 Options: TypeAlias = Union[
-    Option, Type[T], Sequence[Type[T]], Sequence[Option[T]], Sequence[Union[Type[T], Option[T]]]
+    Option, type[T], Sequence[type[T]], Sequence[Option[T]], Sequence[Union[type[T], Option[T]]]
 ]
 
 
@@ -228,7 +224,7 @@ class Relay:
         return module.replace(".", "/")
 
     @classmethod
-    def _generate_conf(cls, output_dir: Path, *, module_class_dict: dict[str, List[str]]) -> None:
+    def _generate_conf(cls, output_dir: Path, *, module_class_dict: dict[str, list[str]]) -> None:
         from configen.config import ConfigenConf, ModuleConf  # type: ignore
         from configen.configen import generate_module  # type: ignore
 
@@ -267,7 +263,7 @@ class Relay:
         *,
         clear_cache: bool = False,
         **options: Options,
-    ) -> Tuple[type[Any], DefaultDict[str, List[Option]], DefaultDict[str, List[Option]]]:
+    ) -> tuple[type[Any], defaultdict[str, list[Option]], defaultdict[str, list[Option]]]:
         configen_dir = config_dir / "configen"
         primary_schema_fp = (
             configen_dir / cls._module_to_fp(cls.__module__) / cls._CONFIGEN_FILENAME
@@ -278,9 +274,9 @@ class Relay:
             shutil.rmtree(configen_dir)
         if not primary_schema_fp.exists():
             schemas_to_generate[cls.__module__].append(cls.__name__)
-        imported_schemas: DefaultDict[str, list[Option]] = defaultdict(list)
-        schemas_to_import: DefaultDict[str, list[_SchemaImportInfo]] = defaultdict(list)
-        schemas_to_init: DefaultDict[str, list[Option]] = defaultdict(list)
+        imported_schemas: defaultdict[str, list[Option]] = defaultdict(list)
+        schemas_to_import: defaultdict[str, list[_SchemaImportInfo]] = defaultdict(list)
+        schemas_to_init: defaultdict[str, list[Option]] = defaultdict(list)
 
         for group, group_options in options.items():
             if not isinstance(group_options, Sequence):
@@ -393,7 +389,7 @@ class Relay:
         def launcher(cfg: Any, /) -> Any:
             relay: Self = instantiate(cfg, _recursive_=instantiate_recursively)
             config_dict = cast(
-                Dict[str, Any],
+                dict[str, Any],
                 OmegaConf.to_container(cfg, throw_on_missing=True, enum_to_str=False, resolve=True),
             )
             return relay.run(config_dict)

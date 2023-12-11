@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from collections import defaultdict
+from collections.abc import Iterator, Sequence, Sized
 from dataclasses import dataclass
 from enum import Enum, auto
 import math
@@ -7,14 +8,10 @@ from typing import (
     Any,
     Final,
     Generic,
-    Iterator,
-    List,
     Literal,
     NewType,
     Optional,
     Protocol,
-    Sequence,
-    Sized,
     TypeVar,
     Union,
     cast,
@@ -262,7 +259,7 @@ class TrainingMode(Enum):
     """step-based training"""
 
 
-class BatchSamplerBase(Sampler[List[int]]):
+class BatchSamplerBase(Sampler[list[int]]):
     def __init__(self, epoch_length: int | None = None) -> None:
         self.epoch_length: Final[int | None] = epoch_length
 
@@ -564,11 +561,10 @@ class StratifiedBatchSampler(BatchSamplerBase):
                             # The batch is incomplete and drop-last is enabled - terminate the iteration
                             if self.drop_last and (not batch_reduction_factor):
                                 return
-                    else:
-                        if batch_reduction_factor is not None:
-                            # Subsample the indexes according to the batch-reduction-factor
-                            reduced_sample_count = round(len(idxs_of_idxs) * batch_reduction_factor)
-                            idxs_of_idxs = idxs_of_idxs[:reduced_sample_count]
+                    elif batch_reduction_factor is not None:
+                        # Subsample the indexes according to the batch-reduction-factor
+                        reduced_sample_count = round(len(idxs_of_idxs) * batch_reduction_factor)
+                        idxs_of_idxs = idxs_of_idxs[:reduced_sample_count]
                     # Collate the indexes
                     sampled_idxs.extend(group_idxs[idxs_of_idxs].tolist())
 
@@ -843,8 +839,8 @@ class ApproxStratBatchSampler(BatchSamplerBase):
         classes = class_labels_t.unique().tolist()
         subgroups = subgroup_labels_t.unique().tolist()
         # cast to nice-looking types
-        classes = cast(List[Y], classes)
-        subgroups = cast(List[S], subgroups)
+        classes = cast(list[Y], classes)
+        subgroups = cast(list[S], subgroups)
 
         # get the indexes for each group separately and store them in a hierarchical dict
         groupwise_idxs: defaultdict[Y, list[Tensor]] = defaultdict(list)

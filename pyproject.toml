@@ -112,6 +112,7 @@ select = [
     "PLW", # pylint warning
     "PTH", # use-pathlib
     # "UP", # pyupgrade
+    "UP035", # newer imports
     "W",
 ]
 ignore = [
