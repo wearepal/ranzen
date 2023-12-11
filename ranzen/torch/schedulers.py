@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from dataclasses import dataclass, field
 import math
-from typing import Generic, List, Optional, TypeVar, Union, overload
+from typing import Generic, Optional, TypeVar, Union, overload
 from typing_extensions import override
 
 import torch
@@ -27,7 +27,7 @@ class LinearWarmupLR(_LRScheduler):
     """
 
     last_epoch: int
-    base_lrs: List[float]
+    base_lrs: list[float]
     optimizer: Optimizer
 
     def __init__(
@@ -84,7 +84,7 @@ class CosineLRWithLinearWarmup(_LRScheduler):
     """
 
     last_epoch: int
-    base_lrs: List[float]
+    base_lrs: list[float]
     optimizer: Optimizer
 
     def __init__(

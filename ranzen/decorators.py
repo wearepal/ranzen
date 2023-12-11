@@ -1,6 +1,7 @@
 """Decorator functions."""
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, Protocol, TypeVar
+from typing import Any, Protocol, TypeVar
 from typing_extensions import deprecated
 
 __all__ = ["enum_name_str", "implements"]

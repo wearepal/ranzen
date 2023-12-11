@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional, Protocol
+from typing import Any, Optional, Protocol
 from typing_extensions import Self
 from unittest.mock import patch
 
@@ -54,7 +54,7 @@ class DummyRelay(Relay):
             attr2=attr2,
         )
 
-    def run(self, raw_config: Optional[Dict[str, Any]] = None) -> None:
+    def run(self, raw_config: Optional[dict[str, Any]] = None) -> None:
         print(raw_config)
         print("running")
 

@@ -1,5 +1,5 @@
-from typing import Callable
-from typing_extensions import TypeAlias
+from collections.abc import Callable
+from typing import TypeAlias
 
 from torch import Tensor
 
