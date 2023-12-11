@@ -1,6 +1,15 @@
+from collections.abc import Mapping
 from dataclasses import Field
-from typing import Any, ClassVar, Protocol, TypedDict, TypeVar, get_type_hints, runtime_checkable
-from typing_extensions import TypeGuard
+from typing import (
+    Any,
+    ClassVar,
+    Protocol,
+    TypeGuard,
+    TypeVar,
+    get_type_hints,
+    is_typeddict,
+    runtime_checkable,
+)
 
 __all__ = ["Addable", "DataclassInstance", "Sized", "is_td_instance"]
 
@@ -25,7 +34,7 @@ class DataclassInstance(Protocol):
     __dataclass_fields__: ClassVar[dict[str, Field[Any]]]
 
 
-TD = TypeVar("TD", bound=TypedDict)
+TD = TypeVar("TD", bound=Mapping)
 
 
 def is_td_instance(dict_: dict[str, Any], cls_: type[TD], *, strict: bool = False) -> TypeGuard[TD]:
@@ -46,6 +55,7 @@ def is_td_instance(dict_: dict[str, Any], cls_: type[TD], *, strict: bool = Fals
     :returns: ``True`` if ``dict_`` conforms to the target ``TypedDict`` class, ``cls_``,
         and ``False`` otherwise.
     """
+    assert is_typeddict(cls_), "cls_ must be a TypedDict class."
     hints = get_type_hints(cls_)
     if strict and (len(dict_) != len(hints)):
         return False
