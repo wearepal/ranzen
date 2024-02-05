@@ -20,11 +20,10 @@ jobs:
     - name: Install dependencies
       run: |
         poetry env use 3.11
-        poetry install --no-interaction --no-root --only format
-    - name: Format with black
+        poetry install --no-interaction --no-root --only lint
+    - name: Format with ruff
       run: |
-        poetry run black --check -l 100 -t py310 -S ranzen/
-        poetry run black --check -l 100 -t py310 -S tests/
+        poetry run ruff format --diff .
 
   lint_with_ruff:
     runs-on: ubuntu-latest
@@ -42,10 +41,7 @@ jobs:
         poetry install --no-interaction --no-root --only lint
     - name: Lint with ruff
       run: |
-        poetry run ruff check --output-format=github ranzen
-    - name: Lint tests with ruff
-      run: |
-        poetry run ruff check --output-format=github tests
+        poetry run ruff check --output-format=github .
 
   check_docstrings:
 
