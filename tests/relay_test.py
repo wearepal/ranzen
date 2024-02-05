@@ -84,10 +84,7 @@ def test_relay(tmpdir: Path, clear_cache: bool, instantiate_recursively: bool) -
         conf_dir = tmpdir / DummyRelay._config_dir_name()  # pylint: disable=protected-access
         assert conf_dir.exists()
         assert (
-            conf_dir
-            / "configen"
-            / "relay_test"
-            / DummyRelay._CONFIGEN_FILENAME  # pylint: disable=protected-access
+            conf_dir / "configen" / "relay_test" / DummyRelay._CONFIGEN_FILENAME  # pylint: disable=protected-access
         ).exists()
         for key in options.keys():
             assert (conf_dir / key).exists()
