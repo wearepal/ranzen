@@ -1581,13 +1581,13 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 
 [[package]]
 name = "wandb"
-version = "0.16.2"
+version = "0.16.3"
 description = "A CLI and library for interacting with the Weights & Biases API."
 optional = true
 python-versions = ">=3.7"
 files = [
-    {file = "wandb-0.16.2-py3-none-any.whl", hash = "sha256:6b119cf3c01f35e7276b62d052128e5320621d182c9eb5796a12cf62a9b3134f"},
-    {file = "wandb-0.16.2.tar.gz", hash = "sha256:e40cd79ea6272fe4762a80b9f47b172e141daeb3b56eb9d1e192ebd10752e64e"},
+    {file = "wandb-0.16.3-py3-none-any.whl", hash = "sha256:b8907ddd775c27dc6c12687386a86b5d6acf291060f9ae680bbc61cc8fc03237"},
+    {file = "wandb-0.16.3.tar.gz", hash = "sha256:d789acda32053b18b7a160d0595837e45a3c8a79d25e1fe1f051875303f480ec"},
 ]
 
 [package.dependencies]
@@ -1613,6 +1613,7 @@ launch = ["PyYAML (>=6.0.0)", "awscli", "azure-containerregistry", "azure-identi
 media = ["bokeh", "moviepy", "numpy", "pillow", "plotly (>=5.18.0)", "rdkit-pypi", "soundfile"]
 models = ["cloudpickle"]
 perf = ["orjson"]
+reports = ["pydantic (>=2.0.0)"]
 sweeps = ["sweeps (>=0.2.0)"]
 
 [[package]]
