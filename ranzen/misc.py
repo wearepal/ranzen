@@ -1,5 +1,5 @@
 from __future__ import annotations
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 import copy
 from enum import Enum, auto
 import functools
@@ -7,6 +7,8 @@ import operator
 import sys
 from typing import Any, TypeGuard, TypeVar, overload
 from typing_extensions import Self
+
+import numpy as np
 
 from ranzen.types import Addable
 
@@ -17,6 +19,7 @@ __all__ = [
     "flatten_dict",
     "gcopy",
     "reduce_add",
+    "reproducible_random_split",
     "some",
     "str_to_enum",
     "unwrap_or",
@@ -300,3 +303,40 @@ class Split(StrEnum):
     TRAIN = auto()
     VAL = auto()
     TEST = auto()
+
+
+def reproducible_random_split(
+    len_: int, props: Sequence[float] | float, seed: int
+) -> list[list[int]]:
+    """Split a dataset in a reproducible way, based on proportions.
+
+    :param len_: Length of the dataset to split.
+    :param props: The fractional size of each subset into which to randomly split the data.
+        Elements must be non-negative and sum to 1 or less; if less then the size of the final
+        split will be computed by complement.
+    :param seed: The PRNG used for determining the random splits.
+
+    :returns: Indices for random subsets of the data of the requested proportions.
+    :raises ValueError: If sum(props) > 1.
+    """
+    if isinstance(props, (float, int)):
+        props = [props]
+
+    sum_ = np.sum(props)
+    if (sum_ > 1.0) or any(prop < 0 for prop in props):
+        raise ValueError("Values for `props` must be positive and sum to 1 or less.")
+    section_sizes = [round(prop * len_) for prop in props]
+    if (total_len := sum(section_sizes)) < len_:
+        section_sizes.append(len_ - total_len)
+
+    # MT19937 isn't the best random number generator, but it's reproducible, so we're using it.
+    generator = np.random.Generator(np.random.MT19937(seed))
+
+    indices = np.arange(sum(section_sizes))
+    # Shuffle the indices in-place.
+    generator.shuffle(indices)
+
+    return [
+        indices[offset - length : offset].tolist()
+        for offset, length in zip(np.cumsum(section_sizes), section_sizes)
+    ]

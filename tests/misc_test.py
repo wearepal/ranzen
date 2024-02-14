@@ -3,7 +3,7 @@ from enum import auto
 
 import pytest
 
-from ranzen import AddDict, StrEnum, flatten_dict, gcopy
+from ranzen import AddDict, StrEnum, flatten_dict, gcopy, reproducible_random_split
 
 
 def test_flatten_dict() -> None:
@@ -84,3 +84,31 @@ def test_adddict() -> None:
     assert d34["bar"] == d3["bar"] + d4["bar"]
     with pytest.raises(TypeError):
         d1 += d3
+
+
+@pytest.mark.parametrize(
+    "seed, train, val, test",
+    [
+        (0, [6, 1, 0, 5, 3, 8, 7], [9, 2], [4]),
+        (1, [1, 0, 9, 8, 6, 3, 7], [4, 2], [5]),
+        (888, [6, 4, 9, 7, 0, 1, 5], [8, 2], [3]),
+    ],
+)
+def test_reproducible_random_split(
+    seed: int, train: list[int], val: list[int], test: list[int]
+) -> None:
+    LEN = 10
+    splits = reproducible_random_split(LEN, props=[0.7, 0.2, 0.1], seed=seed)
+    assert len(splits) == 3
+    assert sum(len(split) for split in splits) == LEN
+    assert splits[0] == train
+    assert splits[1] == val
+    assert splits[2] == test
+
+    # Do the same thing again.
+    splits = reproducible_random_split(LEN, props=[0.7, 0.2, 0.1], seed=seed)
+    assert len(splits) == 3
+    assert sum(len(split) for split in splits) == LEN
+    assert splits[0] == train
+    assert splits[1] == val
+    assert splits[2] == test
