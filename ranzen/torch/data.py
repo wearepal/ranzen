@@ -88,6 +88,7 @@ def prop_random_split(
     props: Sequence[float] | float,
     as_indices: Literal[False] = ...,
     seed: int | None = ...,
+    reproducible: bool = ...,
 ) -> list[Subset[D]]:
     ...
 
@@ -99,6 +100,7 @@ def prop_random_split(
     props: Sequence[float] | float,
     as_indices: Literal[True],
     seed: int | None = ...,
+    reproducible: bool = ...,
 ) -> list[list[int]]:
     ...
 
@@ -110,6 +112,7 @@ def prop_random_split(
     props: Sequence[float] | float,
     as_indices: bool = ...,
     seed: int | None = ...,
+    reproducible: bool = ...,
 ) -> list[list[int]]:
     ...
 
@@ -121,6 +124,7 @@ def prop_random_split(
     props: Sequence[float] | float,
     as_indices: bool = ...,
     seed: int | None = ...,
+    reproducible: bool = ...,
 ) -> list[Subset[D]] | list[list[int]]:
     ...
 
@@ -131,6 +135,7 @@ def prop_random_split(
     props: Sequence[float] | float,
     as_indices: bool = False,
     seed: int | None = None,
+    reproducible: bool = False,
 ) -> list[Subset[D]] | list[list[int]]:
     """Splits a dataset based on proportions rather than on absolute sizes
 
@@ -145,6 +150,9 @@ def prop_random_split(
         the function always returns the split indices.
 
     :param seed: The PRNG used for determining the random splits.
+
+    :param reproducible: If ``True``, use a generator which is reproducible across machines,
+        operating systems, and Python versions.
 
     :returns: Random subsets of the data of the requested proportions.
 
@@ -165,12 +173,20 @@ def prop_random_split(
     if (sum_ > 1.0) or any(prop < 0 for prop in props):
         raise ValueError("Values for 'props` must be positive and sum to 1 or less.")
     section_sizes = [round(prop * len_) for prop in props]
-    if sum_ < 1:
-        section_sizes.append(len_ - sum(section_sizes))
-    generator = torch.default_generator if seed is None else torch.Generator().manual_seed(seed)
-    indices = torch.randperm(sum(section_sizes), generator=generator).tolist()
+    if (current_len := sum(section_sizes)) < len_:
+        section_sizes.append(len_ - current_len)
+
+    if reproducible:
+        # MT19937 isn't the best random number generator, but it's reproducible, so we're using it.
+        generator = np.random.Generator(np.random.MT19937(seed))
+        indices = np.arange(sum(section_sizes))
+        generator.shuffle(indices)  # Shuffle the indices in-place.
+    else:
+        generator = torch.default_generator if seed is None else torch.Generator().manual_seed(seed)
+        indices = torch.randperm(sum(section_sizes), generator=generator)
+
     splits = [
-        indices[offset - length : offset]
+        indices[offset - length : offset].tolist()
         for offset, length in zip(np.cumsum(section_sizes), section_sizes)
     ]
 
