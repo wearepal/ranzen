@@ -150,12 +150,12 @@ else:
                     raise TypeError("%r is not a string" % (values[0],))
             if len(values) >= 2:
                 # check that encoding argument is a string
-                if not isinstance(values[1], str):  # pyright: ignore
-                    raise TypeError("encoding must be a string, not %r" % (values[1],))
+                if not isinstance(v1 := values[1], str):  # pyright: ignore
+                    raise TypeError("encoding must be a string, not %r" % (v1,))
             if len(values) == 3:
                 # check that errors argument is a string
-                if not isinstance(values[2], str):  # pyright: ignore
-                    raise TypeError("errors must be a string, not %r" % (values[2]))
+                if not isinstance(v2 := values[2], str):  # pyright: ignore
+                    raise TypeError("errors must be a string, not %r" % (v2))
             value = str(*values)
             member = str.__new__(cls, value)
             member._value_ = value
