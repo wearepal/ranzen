@@ -89,6 +89,8 @@ reportPrivateImportUsage = "none"
 reportPrivateUsage = "none"
 reportUnnecessaryTypeIgnoreComment = "warning"
 reportUnnecessaryCast = "warning"
+reportShadowedImports = "warning"
+reportImportCycles = "warning"
 
 [tool.ruff]
 line-length = 100

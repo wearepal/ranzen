@@ -120,3 +120,35 @@ def test_approximate_stratified_sampler_class() -> None:
     # all elements appear at least once
     # (this is not guaranteed, but with 100 samples, it is overwhelmingly likely; 1:2^100)
     assert all(any((i in batch) for batch in batches) for i in range(5))
+
+
+@pytest.mark.parametrize(
+    "seed, train, val, test",
+    [
+        (0, [6, 1, 0, 5, 3, 8, 7], [9, 2], [4]),
+        (1, [1, 0, 9, 8, 6, 3, 7], [4, 2], [5]),
+        (888, [6, 4, 9, 7, 0, 1, 5], [8, 2], [3]),
+    ],
+)
+def test_reproducible_random_split(
+    seed: int, train: list[int], val: list[int], test: list[int]
+) -> None:
+    LEN = 10
+    splits = prop_random_split(
+        LEN, props=[0.7, 0.2, 0.1], seed=seed, as_indices=True, reproducible=True
+    )
+    assert len(splits) == 3
+    assert sum(len(split) for split in splits) == LEN
+    assert splits[0] == train
+    assert splits[1] == val
+    assert splits[2] == test
+
+    # Do the same thing again.
+    splits = prop_random_split(
+        LEN, props=[0.7, 0.2, 0.1], seed=seed, as_indices=True, reproducible=True
+    )
+    assert len(splits) == 3
+    assert sum(len(split) for split in splits) == LEN
+    assert splits[0] == train
+    assert splits[1] == val
+    assert splits[2] == test

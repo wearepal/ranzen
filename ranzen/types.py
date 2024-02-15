@@ -1,8 +1,9 @@
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import Field
 from typing import (
     Any,
     ClassVar,
+    Generic,
     Protocol,
     TypeGuard,
     TypeVar,
@@ -11,7 +12,7 @@ from typing import (
     runtime_checkable,
 )
 
-__all__ = ["Addable", "DataclassInstance", "Sized", "is_td_instance"]
+__all__ = ["Addable", "DataclassInstance", "Sized", "SizedDataset", "Subset", "is_td_instance"]
 
 T_contra = TypeVar("T_contra", contravariant=True)
 T_co = TypeVar("T_co", covariant=True)
@@ -63,3 +64,40 @@ def is_td_instance(dict_: dict[str, Any], cls_: type[TD], *, strict: bool = Fals
         if (key not in dict_) or (not isinstance(dict_[key], type_)):
             return False
     return True
+
+
+T_co = TypeVar("T_co", covariant=True)
+
+
+@runtime_checkable
+class SizedDataset(Protocol[T_co]):
+    def __getitem__(self, index: int) -> T_co:
+        ...
+
+    def __len__(self) -> int:
+        ...
+
+
+D = TypeVar("D", bound=SizedDataset)
+
+
+class Subset(Generic[D]):
+    r"""
+    Subset of a dataset at specified indices.
+
+    :param dataset: The whole Dataset.
+    :param indices: Indices in the whole set selected for subset.
+    """
+
+    dataset: D
+    indices: Sequence[int]
+
+    def __init__(self, dataset: D, indices: Sequence[int]):
+        self.dataset = dataset
+        self.indices = indices
+
+    def __getitem__(self, index: int) -> Any:
+        return self.dataset[self.indices[index]]
+
+    def __len__(self) -> int:
+        return len(self.indices)
