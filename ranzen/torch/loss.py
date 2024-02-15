@@ -242,6 +242,7 @@ class CrossEntropyLoss(nn.Module):
         >>> output = loss(input, target)
         >>> output.backward()
     """
+
     weight: Tensor | None
 
     def __init__(

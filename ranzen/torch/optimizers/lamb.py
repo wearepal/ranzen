@@ -1,5 +1,5 @@
+from collections.abc import Iterable
 import math
-from typing import Iterable
 from typing_extensions import override
 
 import torch
@@ -40,10 +40,10 @@ class LAMB(Optimizer):
         params: Iterable[Tensor],
         lr: float = 1e-3,
         betas: tuple[float, float] = (0.9, 0.999),
+        *,
         eps: float = 1e-6,
         weight_decay: float = 0.0,
         clamp_value: float = 10.0,
-        *,
         debias: bool = False,
     ) -> None:
         if lr <= 0.0:

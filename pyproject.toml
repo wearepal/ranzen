@@ -1,8 +1,3 @@
-[tool.black]
-line-length = 100
-target-version = ['py310']
-extend_exclude = ".undodir/*"
-
 [tool.poetry]
 name = "ranzen"
 version = "2.4.0"
@@ -48,11 +43,8 @@ logging = ["loguru"]
 hydra = ["attrs", "hydra-core", "neoconfigen"]
 all = ["attrs", "hydra-core", "loguru", "neoconfigen", "pandas", "wandb"]
 
-[tool.poetry.group.format.dependencies]
-black = "^23.1"
-
 [tool.poetry.group.lint.dependencies]
-ruff = ">=0.0.285"
+ruff = ">=0.2"
 
 [tool.poetry.group.docs]
 optional = true
@@ -97,9 +89,17 @@ reportPrivateImportUsage = "none"
 reportPrivateUsage = "none"
 reportUnnecessaryTypeIgnoreComment = "warning"
 reportUnnecessaryCast = "warning"
+reportShadowedImports = "warning"
+reportImportCycles = "warning"
 
 [tool.ruff]
 line-length = 100
+target-version = "py310"
+
+[tool.ruff.format]
+exclude = [".undodir/*"]
+
+[tool.ruff.lint]
 select = [
     "E", # pycodestyle
     "F", # pyflakes
@@ -112,6 +112,7 @@ select = [
     "PLW", # pylint warning
     "PTH", # use-pathlib
     # "UP", # pyupgrade
+    "UP035", # newer imports
     "W",
 ]
 ignore = [
@@ -120,13 +121,12 @@ ignore = [
     "PLW2901", # overwriting loop variable
     "PLC0105", # covariant typevars have to end in "_co"
 ]
-target-version = "py310"
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F403"]
 "tests/*" = ["FBT"]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-third-party = [
   "black",
   "hydra",

@@ -1,7 +1,7 @@
 from collections.abc import Iterable, Iterator
 from datetime import datetime
 import random
-from typing import Any, List, Optional, TypeVar, Union, overload
+from typing import Any, Optional, TypeVar, Union, overload
 from typing_extensions import Self
 
 import numpy as np
@@ -122,7 +122,7 @@ def batchwise_pdist(x: Tensor, chunk_size: int = 1000, p_norm: float = 2.0) -> T
     """
     chunks = torch.split(x, chunk_size)
 
-    columns: List[Tensor] = []
+    columns: list[Tensor] = []
     for chunk in chunks:
         shards = [torch.cdist(chunk, other_chunk, p_norm) for other_chunk in chunks]
         column = torch.cat(shards, dim=1)

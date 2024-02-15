@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional, Protocol
+from typing import Any, Optional, Protocol
 from typing_extensions import Self
 from unittest.mock import patch
 
@@ -54,7 +54,7 @@ class DummyRelay(Relay):
             attr2=attr2,
         )
 
-    def run(self, raw_config: Optional[Dict[str, Any]] = None) -> None:
+    def run(self, raw_config: Optional[dict[str, Any]] = None) -> None:
         print(raw_config)
         print("running")
 
@@ -84,10 +84,7 @@ def test_relay(tmpdir: Path, clear_cache: bool, instantiate_recursively: bool) -
         conf_dir = tmpdir / DummyRelay._config_dir_name()  # pylint: disable=protected-access
         assert conf_dir.exists()
         assert (
-            conf_dir
-            / "configen"
-            / "relay_test"
-            / DummyRelay._CONFIGEN_FILENAME  # pylint: disable=protected-access
+            conf_dir / "configen" / "relay_test" / DummyRelay._CONFIGEN_FILENAME  # pylint: disable=protected-access
         ).exists()
         for key in options.keys():
             assert (conf_dir / key).exists()

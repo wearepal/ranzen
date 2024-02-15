@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from dataclasses import dataclass, field
 import math
-from typing import Generic, List, Optional, TypeVar, Union, overload
+from typing import Generic, Optional, TypeVar, Union, overload
 from typing_extensions import override
 
 import torch
@@ -27,7 +27,7 @@ class LinearWarmupLR(_LRScheduler):
     """
 
     last_epoch: int
-    base_lrs: List[float]
+    base_lrs: list[float]
     optimizer: Optimizer
 
     def __init__(
@@ -84,7 +84,7 @@ class CosineLRWithLinearWarmup(_LRScheduler):
     """
 
     last_epoch: int
-    base_lrs: List[float]
+    base_lrs: list[float]
     optimizer: Optimizer
 
     def __init__(
@@ -165,7 +165,7 @@ class Scheduler(Generic[T]):
     def _update(self, value: T) -> T:
         ...
 
-    @torch.no_grad()
+    @torch.no_grad()  # pyright: ignore
     def step(self) -> None:
         """Update the scheduled value."""
         self.val = self._update(self.val)
@@ -266,7 +266,7 @@ class WarmupScheduler(Scheduler[T]):
     def warmed_up(self) -> bool:
         return self._curr_step == self.warmup_steps
 
-    @torch.no_grad()
+    @torch.no_grad()  # pyright: ignore
     @override
     def step(self) -> None:
         if not self.warmed_up:

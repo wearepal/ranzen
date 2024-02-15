@@ -1,26 +1,10 @@
 from abc import abstractmethod
 from collections import defaultdict
+from collections.abc import Iterator, Sequence, Sized
 from dataclasses import dataclass
 from enum import Enum, auto
 import math
-from typing import (
-    Any,
-    Final,
-    Generic,
-    Iterator,
-    List,
-    Literal,
-    NewType,
-    Optional,
-    Protocol,
-    Sequence,
-    Sized,
-    TypeVar,
-    Union,
-    cast,
-    overload,
-    runtime_checkable,
-)
+from typing import Final, Generic, NewType, Optional, TypeVar, Union, cast
 from typing_extensions import Self, override
 
 import numpy as np
@@ -29,7 +13,10 @@ import torch
 from torch import Tensor
 from torch.utils.data import Sampler
 
+from ranzen.misc import prop_random_split as prop_random_split  # noqa: PLC0414
 from ranzen.misc import some, str_to_enum
+from ranzen.types import SizedDataset as SizedDataset  # noqa: PLC0414
+from ranzen.types import Subset as Subset  # noqa: PLC0414
 
 __all__ = [
     "ApproxStratBatchSampler",
@@ -45,141 +32,6 @@ __all__ = [
     "prop_random_split",
     "stratified_split_indices",
 ]
-
-
-T_co = TypeVar("T_co", covariant=True)
-
-
-@runtime_checkable
-class SizedDataset(Protocol[T_co]):
-    def __getitem__(self, index: int) -> T_co:
-        ...
-
-    def __len__(self) -> int:
-        ...
-
-
-D = TypeVar("D", bound=SizedDataset)
-
-
-class Subset(Generic[D]):
-    r"""
-    Subset of a dataset at specified indices.
-
-    :param dataset: The whole Dataset.
-    :param indices: Indices in the whole set selected for subset.
-    """
-
-    dataset: D
-    indices: Sequence[int]
-
-    def __init__(self, dataset: D, indices: Sequence[int]):
-        self.dataset = dataset
-        self.indices = indices
-
-    def __getitem__(self, index: int) -> Any:
-        return self.dataset[self.indices[index]]
-
-    def __len__(self) -> int:
-        return len(self.indices)
-
-
-@overload
-def prop_random_split(
-    dataset_or_size: D,
-    *,
-    props: Sequence[float] | float,
-    as_indices: Literal[False] = ...,
-    seed: int | None = ...,
-) -> list[Subset[D]]:
-    ...
-
-
-@overload
-def prop_random_split(
-    dataset_or_size: SizedDataset,
-    *,
-    props: Sequence[float] | float,
-    as_indices: Literal[True],
-    seed: int | None = ...,
-) -> list[list[int]]:
-    ...
-
-
-@overload
-def prop_random_split(
-    dataset_or_size: int,
-    *,
-    props: Sequence[float] | float,
-    as_indices: bool = ...,
-    seed: int | None = ...,
-) -> list[list[int]]:
-    ...
-
-
-@overload
-def prop_random_split(
-    dataset_or_size: D | int,
-    *,
-    props: Sequence[float] | float,
-    as_indices: bool = ...,
-    seed: int | None = ...,
-) -> list[Subset[D]] | list[list[int]]:
-    ...
-
-
-def prop_random_split(
-    dataset_or_size: D | int,
-    *,
-    props: Sequence[float] | float,
-    as_indices: bool = False,
-    seed: int | None = None,
-) -> list[Subset[D]] | list[list[int]]:
-    """Splits a dataset based on proportions rather than on absolute sizes
-
-    :param dataset_or_size: Dataset or size (length) of the dataset to split.
-    :param props: The fractional size of each subset into which to randomly split the data.
-        Elements must be non-negative and sum to 1 or less; if less then the size of the final
-        split will be computed by complement.
-
-    :param as_indices: If ``True`` the raw indices are returned instead of subsets constructed
-        from them when `dataset_or_len` is a dataset. This means that when `dataset_or_len`
-        corresponds to the length of a dataset, this argument has no effect and
-        the function always returns the split indices.
-
-    :param seed: The PRNG used for determining the random splits.
-
-    :returns: Random subsets of the data of the requested proportions.
-
-    :raises ValueError: If the dataset does not have a ``__len__`` method or sum(props) > 1.
-    """
-    if isinstance(dataset_or_size, int):
-        len_ = dataset_or_size
-    else:
-        if not hasattr(dataset_or_size, "__len__"):
-            raise ValueError(
-                "Split proportions can only be computed for datasets with __len__ defined."
-            )
-        len_ = len(dataset_or_size)
-
-    if isinstance(props, (float, int)):
-        props = [props]
-    sum_ = np.sum(props)
-    if (sum_ > 1.0) or any(prop < 0 for prop in props):
-        raise ValueError("Values for 'props` must be positive and sum to 1 or less.")
-    section_sizes = [round(prop * len_) for prop in props]
-    if sum_ < 1:
-        section_sizes.append(len_ - sum(section_sizes))
-    generator = torch.default_generator if seed is None else torch.Generator().manual_seed(seed)
-    indices = torch.randperm(sum(section_sizes), generator=generator).tolist()
-    splits = [
-        indices[offset - length : offset]
-        for offset, length in zip(np.cumsum(section_sizes), section_sizes)
-    ]
-
-    if as_indices or isinstance(dataset_or_size, int):
-        return splits
-    return [Subset(dataset_or_size, indices=split) for split in splits]
 
 
 _S = TypeVar("_S")
@@ -262,7 +114,7 @@ class TrainingMode(Enum):
     """step-based training"""
 
 
-class BatchSamplerBase(Sampler[List[int]]):
+class BatchSamplerBase(Sampler[list[int]]):
     def __init__(self, epoch_length: int | None = None) -> None:
         self.epoch_length: Final[int | None] = epoch_length
 
@@ -564,11 +416,10 @@ class StratifiedBatchSampler(BatchSamplerBase):
                             # The batch is incomplete and drop-last is enabled - terminate the iteration
                             if self.drop_last and (not batch_reduction_factor):
                                 return
-                    else:
-                        if batch_reduction_factor is not None:
-                            # Subsample the indexes according to the batch-reduction-factor
-                            reduced_sample_count = round(len(idxs_of_idxs) * batch_reduction_factor)
-                            idxs_of_idxs = idxs_of_idxs[:reduced_sample_count]
+                    elif batch_reduction_factor is not None:
+                        # Subsample the indexes according to the batch-reduction-factor
+                        reduced_sample_count = round(len(idxs_of_idxs) * batch_reduction_factor)
+                        idxs_of_idxs = idxs_of_idxs[:reduced_sample_count]
                     # Collate the indexes
                     sampled_idxs.extend(group_idxs[idxs_of_idxs].tolist())
 
@@ -843,8 +694,8 @@ class ApproxStratBatchSampler(BatchSamplerBase):
         classes = class_labels_t.unique().tolist()
         subgroups = subgroup_labels_t.unique().tolist()
         # cast to nice-looking types
-        classes = cast(List[Y], classes)
-        subgroups = cast(List[S], subgroups)
+        classes = cast(list[Y], classes)
+        subgroups = cast(list[S], subgroups)
 
         # get the indexes for each group separately and store them in a hierarchical dict
         groupwise_idxs: defaultdict[Y, list[Tensor]] = defaultdict(list)
