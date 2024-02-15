@@ -1,27 +1,30 @@
 from __future__ import annotations
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 import copy
 from enum import Enum, auto
 import functools
 import operator
 import sys
-from typing import Any, TypeGuard, TypeVar, overload
+from typing import Any, Literal, TypeGuard, TypeVar, overload
 from typing_extensions import Self
 
-from ranzen.types import Addable
+import numpy as np
+
+from ranzen.types import Addable, SizedDataset, Subset
 
 __all__ = [
     "AddDict",
+    "Split",
+    "Stage",
     "StrEnum",
     "default_if_none",
     "flatten_dict",
     "gcopy",
+    "prop_random_split",
     "reduce_add",
     "some",
     "str_to_enum",
     "unwrap_or",
-    "Stage",
-    "Split",
 ]
 
 
@@ -300,3 +303,121 @@ class Split(StrEnum):
     TRAIN = auto()
     VAL = auto()
     TEST = auto()
+
+
+D = TypeVar("D", bound=SizedDataset)
+
+
+@overload
+def prop_random_split(
+    dataset_or_size: D,
+    *,
+    props: Sequence[float] | float,
+    as_indices: Literal[False] = ...,
+    seed: int | None = ...,
+    reproducible: bool = ...,
+) -> list[Subset[D]]:
+    ...
+
+
+@overload
+def prop_random_split(
+    dataset_or_size: SizedDataset,
+    *,
+    props: Sequence[float] | float,
+    as_indices: Literal[True],
+    seed: int | None = ...,
+    reproducible: bool = ...,
+) -> list[list[int]]:
+    ...
+
+
+@overload
+def prop_random_split(
+    dataset_or_size: int,
+    *,
+    props: Sequence[float] | float,
+    as_indices: bool = ...,
+    seed: int | None = ...,
+    reproducible: bool = ...,
+) -> list[list[int]]:
+    ...
+
+
+@overload
+def prop_random_split(
+    dataset_or_size: D | int,
+    *,
+    props: Sequence[float] | float,
+    as_indices: bool = ...,
+    seed: int | None = ...,
+    reproducible: bool = ...,
+) -> list[Subset[D]] | list[list[int]]:
+    ...
+
+
+def prop_random_split(
+    dataset_or_size: D | int,
+    *,
+    props: Sequence[float] | float,
+    as_indices: bool = False,
+    seed: int | None = None,
+    reproducible: bool = False,
+) -> list[Subset[D]] | list[list[int]]:
+    """Splits a dataset based on proportions rather than on absolute sizes
+
+    :param dataset_or_size: Dataset or size (length) of the dataset to split.
+    :param props: The fractional size of each subset into which to randomly split the data.
+        Elements must be non-negative and sum to 1 or less; if less then the size of the final
+        split will be computed by complement.
+
+    :param as_indices: If ``True`` the raw indices are returned instead of subsets constructed
+        from them when `dataset_or_len` is a dataset. This means that when `dataset_or_len`
+        corresponds to the length of a dataset, this argument has no effect and
+        the function always returns the split indices.
+
+    :param seed: The PRNG used for determining the random splits.
+
+    :param reproducible: If ``True``, use a generator which is reproducible across machines,
+        operating systems, and Python versions.
+
+    :returns: Random subsets of the data of the requested proportions.
+
+    :raises ValueError: If the dataset does not have a ``__len__`` method or sum(props) > 1.
+    """
+    if isinstance(dataset_or_size, int):
+        len_ = dataset_or_size
+    else:
+        if not hasattr(dataset_or_size, "__len__"):
+            raise ValueError(
+                "Split proportions can only be computed for datasets with __len__ defined."
+            )
+        len_ = len(dataset_or_size)
+
+    if isinstance(props, (float, int)):
+        props = [props]
+    sum_ = np.sum(props)
+    if (sum_ > 1.0) or any(prop < 0 for prop in props):
+        raise ValueError("Values for 'props` must be positive and sum to 1 or less.")
+    section_sizes = [round(prop * len_) for prop in props]
+    if (current_len := sum(section_sizes)) < len_:
+        section_sizes.append(len_ - current_len)
+
+    if reproducible:
+        if seed is None:
+            raise ValueError("Must specify seed for reproducible split.")
+        # MT19937 isn't the best random number generator, but it's reproducible, so we're using it.
+        generator = np.random.Generator(np.random.MT19937(seed))
+    else:
+        generator = np.random.default_rng(seed)
+    indices = np.arange(sum(section_sizes))
+    generator.shuffle(indices)  # Shuffle the indices in-place.
+
+    splits = [
+        indices[offset - length : offset].tolist()
+        for offset, length in zip(np.cumsum(section_sizes), section_sizes)
+    ]
+
+    if as_indices or isinstance(dataset_or_size, int):
+        return splits
+    return [Subset(dataset_or_size, indices=split) for split in splits]
