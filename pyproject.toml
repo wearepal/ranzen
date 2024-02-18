@@ -44,7 +44,7 @@ hydra = ["attrs", "hydra-core", "neoconfigen"]
 all = ["attrs", "hydra-core", "loguru", "neoconfigen", "pandas", "wandb"]
 
 [tool.poetry.group.lint.dependencies]
-ruff = ">=0.2"
+ruff = ">=0.2.2"
 
 [tool.poetry.group.docs]
 optional = true
@@ -97,6 +97,7 @@ line-length = 100
 target-version = "py310"
 
 [tool.ruff.format]
+quote-style = "preserve"
 exclude = [".undodir/*"]
 
 [tool.ruff.lint]
