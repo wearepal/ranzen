@@ -887,17 +887,17 @@ test = ["enum34", "ipaddress", "mock", "pywin32", "wmi"]
 
 [[package]]
 name = "pydoclint"
-version = "0.4.0"
+version = "0.4.1"
 description = "A Python docstring linter that checks arguments, returns, yields, and raises sections"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pydoclint-0.4.0-py2.py3-none-any.whl", hash = "sha256:2b266a1332f7c8a1badea115b164a230908004b349750c8ede553a96c4d991b4"},
-    {file = "pydoclint-0.4.0.tar.gz", hash = "sha256:d645845e316463a151e0828013b4ea9cf4510626a6c4a5abbf7c0447ecafdd3b"},
+    {file = "pydoclint-0.4.1-py2.py3-none-any.whl", hash = "sha256:4e32fdf0a47a2199377617f09af0a82a2157f80543026f919a17112a396e752f"},
+    {file = "pydoclint-0.4.1.tar.gz", hash = "sha256:d39ed26a793203afadb1917011710fbf258ac3dddcd79b53212e0a2107221643"},
 ]
 
 [package.dependencies]
-click = ">=8.0.0"
+click = ">=8.1.0"
 docstring-parser-fork = ">=0.0.5"
 tomli = {version = ">=2.0.1", markers = "python_version < \"3.11\""}
 
