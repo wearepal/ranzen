@@ -1,4 +1,5 @@
 """Test decorators."""
+
 from enum import Enum, auto
 from typing_extensions import deprecated
 
@@ -11,15 +12,13 @@ from ranzen import enum_name_str  # pyright: ignore
 def test_deprecated(explanation: str) -> None:
     @deprecated(explanation)
     class Foo:
-        def __init__(self) -> None:
-            ...
+        def __init__(self) -> None: ...
 
     with pytest.deprecated_call():
         Foo()  # pyright: ignore
 
     @deprecated(explanation)
-    def foo() -> None:
-        ...
+    def foo() -> None: ...
 
     with pytest.deprecated_call():
         foo()  # pyright: ignore

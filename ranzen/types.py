@@ -20,14 +20,12 @@ T_co = TypeVar("T_co", covariant=True)
 
 @runtime_checkable
 class Sized(Protocol[T_co]):
-    def __len__(self) -> int:
-        ...
+    def __len__(self) -> int: ...
 
 
 @runtime_checkable
 class Addable(Protocol[T_contra, T_co]):
-    def __add__(self, other: T_contra, /) -> T_co:
-        ...
+    def __add__(self, other: T_contra, /) -> T_co: ...
 
 
 @runtime_checkable
@@ -71,11 +69,9 @@ T_co = TypeVar("T_co", covariant=True)
 
 @runtime_checkable
 class SizedDataset(Protocol[T_co]):
-    def __getitem__(self, index: int) -> T_co:
-        ...
+    def __getitem__(self, index: int) -> T_co: ...
 
-    def __len__(self) -> int:
-        ...
+    def __len__(self) -> int: ...
 
 
 D = TypeVar("D", bound=SizedDataset)
