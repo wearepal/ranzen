@@ -1,4 +1,5 @@
 """Decorator functions."""
+
 from collections.abc import Callable
 from enum import Enum
 from typing import Any, Protocol, TypeVar
@@ -12,8 +13,7 @@ _F = TypeVar("_F", bound=Callable[..., Any])
 
 
 class IdentityFunction(Protocol[_T]):
-    def __call__(self, __x: _T) -> _T:
-        ...
+    def __call__(self, __x: _T) -> _T: ...
 
 
 @deprecated("Use 'typing_extensions.override' instead.")

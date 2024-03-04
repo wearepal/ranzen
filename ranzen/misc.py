@@ -54,13 +54,11 @@ T = TypeVar("T")
 
 
 @overload
-def gcopy(obj: T, *, deep: bool = True, num_copies: None = ..., **kwargs: Any) -> T:
-    ...
+def gcopy(obj: T, *, deep: bool = True, num_copies: None = ..., **kwargs: Any) -> T: ...
 
 
 @overload
-def gcopy(obj: T, *, deep: bool = True, num_copies: int, **kwargs: Any) -> list[T]:
-    ...
+def gcopy(obj: T, *, deep: bool = True, num_copies: int, **kwargs: Any) -> list[T]: ...
 
 
 def gcopy(
@@ -204,12 +202,10 @@ class AddDict(dict[_KT, _VT], Addable[int | dict, dict]):
     """
 
     @overload
-    def __add__(self, other: int) -> Self:
-        ...
+    def __add__(self, other: int) -> Self: ...
 
     @overload
-    def __add__(self, other: dict[_KT, _VT2]) -> AddDict[_KT, _VT | _VT2]:
-        ...
+    def __add__(self, other: dict[_KT, _VT2]) -> AddDict[_KT, _VT | _VT2]: ...
 
     def __add__(self, other: int | dict[_KT, _VT2]) -> Self | AddDict[_KT, _VT | _VT2]:
         # Allow ``other`` to be an integer, but specifying the identity function, for compatibility
@@ -240,12 +236,10 @@ class AddDict(dict[_KT, _VT], Addable[int | dict, dict]):
         return copy
 
     @overload
-    def __radd__(self, other: int) -> Self:
-        ...
+    def __radd__(self, other: int) -> Self: ...
 
     @overload
-    def __radd__(self, other: dict[_KT, _VT2]) -> AddDict[_KT, _VT | _VT2]:
-        ...
+    def __radd__(self, other: dict[_KT, _VT2]) -> AddDict[_KT, _VT | _VT2]: ...
 
     def __radd__(self, other: int | dict[_KT, _VT2]) -> Self | AddDict[_KT, _VT | _VT2]:
         # Calling `__add__` directly because with the `+` syntax, pyright complains for some reason.
@@ -316,8 +310,7 @@ def prop_random_split(
     as_indices: Literal[False] = ...,
     seed: int | None = ...,
     reproducible: bool = ...,
-) -> list[Subset[D]]:
-    ...
+) -> list[Subset[D]]: ...
 
 
 @overload
@@ -328,8 +321,7 @@ def prop_random_split(
     as_indices: Literal[True],
     seed: int | None = ...,
     reproducible: bool = ...,
-) -> list[list[int]]:
-    ...
+) -> list[list[int]]: ...
 
 
 @overload
@@ -340,8 +332,7 @@ def prop_random_split(
     as_indices: bool = ...,
     seed: int | None = ...,
     reproducible: bool = ...,
-) -> list[list[int]]:
-    ...
+) -> list[list[int]]: ...
 
 
 @overload
@@ -352,8 +343,7 @@ def prop_random_split(
     as_indices: bool = ...,
     seed: int | None = ...,
     reproducible: bool = ...,
-) -> list[Subset[D]] | list[list[int]]:
-    ...
+) -> list[Subset[D]] | list[list[int]]: ...
 
 
 def prop_random_split(

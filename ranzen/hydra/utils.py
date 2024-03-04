@@ -1,4 +1,5 @@
 """Functions for dealing with hydra."""
+
 from collections.abc import Iterator, MutableMapping, Sequence
 from contextlib import contextmanager
 import dataclasses

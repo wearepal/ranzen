@@ -262,8 +262,7 @@ class RandomMixUp(Generic[LS]):
         groups_or_edges: Tensor | None = ...,
         cross_group: bool = ...,
         num_classes: int | None = ...,
-    ) -> InputsTargetsPair:
-        ...
+    ) -> InputsTargetsPair: ...
 
     @overload
     def _transform(
@@ -274,8 +273,7 @@ class RandomMixUp(Generic[LS]):
         groups_or_edges: Tensor | None = ...,
         cross_group: bool = ...,
         num_classes: int | None = ...,
-    ) -> Tensor:
-        ...
+    ) -> Tensor: ...
 
     def _transform(
         self,
@@ -358,8 +356,7 @@ class RandomMixUp(Generic[LS]):
         groups_or_edges: Tensor | None = ...,
         cross_group: bool = ...,
         num_classes: int | None = ...,
-    ) -> InputsTargetsPair:
-        ...
+    ) -> InputsTargetsPair: ...
 
     @overload
     def __call__(
@@ -370,8 +367,7 @@ class RandomMixUp(Generic[LS]):
         groups_or_edges: Tensor | None = ...,
         cross_group: bool = ...,
         num_classes: int | None = ...,
-    ) -> Tensor:
-        ...
+    ) -> Tensor: ...
 
     def __call__(
         self,

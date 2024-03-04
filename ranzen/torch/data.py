@@ -120,8 +120,7 @@ class BatchSamplerBase(Sampler[list[int]]):
 
     @override
     @abstractmethod
-    def __iter__(self) -> Iterator[list[int]]:
-        ...
+    def __iter__(self) -> Iterator[list[int]]: ...
 
     def __len__(self) -> float | int:
         """The number of samples drawn.
