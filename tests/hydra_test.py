@@ -63,6 +63,25 @@ def test_config_any() -> None:
         register_hydra_config(Config, options)
 
 
+def test_config_any_string() -> None:
+    @dataclass
+    class DataModule:
+        root: Path
+
+    @dataclass
+    class Config:
+        dm: "Any"
+
+    # we're assuming that the only reason you want to use Any is that
+    # you want to use variants
+    options = {}
+    with pytest.raises(ValueError):
+        register_hydra_config(Config, options)
+
+    options = {"dm": {"base": DataModule}}
+    register_hydra_config(Config, options)
+
+
 def test_config_base_class() -> None:
     @dataclass
     class DataModule:
@@ -131,6 +150,26 @@ def test_config_with_default() -> None:
     register_hydra_config(Config, options)
 
     options = {"model": {"base": Model}}
+    with pytest.raises(ValueError):
+        register_hydra_config(Config, options)
+
+
+@dataclass
+class _GlobalModel:
+    layers: int = 1
+
+
+def test_config_with_default_string() -> None:
+    """Need to use a global class here because otherwise the type annotations can'b be resolved."""
+
+    @dataclass
+    class Config:
+        model: "_GlobalModel" = dataclasses.field(default_factory=_GlobalModel)
+
+    options = {}
+    register_hydra_config(Config, options)
+
+    options = {"model": {"base": _GlobalModel}}
     with pytest.raises(ValueError):
         register_hydra_config(Config, options)
 

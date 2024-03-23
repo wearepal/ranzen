@@ -6,7 +6,7 @@ import dataclasses
 from dataclasses import MISSING, asdict, is_dataclass
 from enum import Enum
 import shlex
-from typing import Any, Final, cast, get_args
+from typing import Any, Final, cast, get_args, get_type_hints
 from typing_extensions import deprecated
 
 from hydra.core.config_store import ConfigStore
@@ -174,60 +174,67 @@ def register_hydra_config(
     assert isinstance(main_cls, type), "`main_cls` has to be a type."
     if not is_dataclass(main_cls):
         raise ValueError(f"The config class {main_cls.__name__} should be a dataclass.")
-    configs = dataclasses.fields(main_cls)
+    entries = dataclasses.fields(main_cls)
+    try:
+        types = get_type_hints(main_cls)
+    except NameError as exc:
+        raise ValueError(
+            f"Can't resolve type hints from the config class: `{main_cls.__name__}`."
+        ) from exc
 
-    for config in configs:
-        if config.type == Any or (isinstance(typ := config.type, str) and typ == "Any"):
-            if config.name in groups:
-                for name, variant in groups[config.name].items():
-                    if not is_dataclass(variant):
+    for entry in entries:
+        typ = types[entry.name]
+        if typ == Any:
+            if (group := groups.get(entry.name)) is not None:
+                for var_name, var_class in group.items():
+                    if not is_dataclass(var_class):
                         raise ValueError(
-                            f"All variants should be dataclasses: `{variant.__name__}` "
-                            f"of variant `{config.name}={name}` is not a dataclass."
+                            f"All variants should be dataclasses: type `{var_class.__name__}` "
+                            f"of variant `{entry.name}={var_name}` is not a dataclass."
                         )
             else:
-                raise ValueError(f"{IF} type `Any`, {NEED} variants: `{config.name}`")
-            if config.default is not MISSING or config.default_factory is not MISSING:
-                raise ValueError(f"{IF} type `Any`, {NEED} no default value: `{config.name}`")
+                raise ValueError(f"{IF} type `Any`, {NEED} variants: `{entry.name}`")
+            if entry.default is not MISSING or entry.default_factory is not MISSING:
+                raise ValueError(f"{IF} type `Any`, {NEED} no default value: `{entry.name}`")
         else:
-            if is_dataclass(config.type):
-                if config.default is MISSING and config.default_factory is MISSING:
-                    if config.name not in groups:
+            if is_dataclass(typ):
+                if entry.default is MISSING and entry.default_factory is MISSING:
+                    if (group := groups.get(entry.name)) is not None:
+                        for var_name, var_class in group.items():
+                            if not issubclass(var_class, typ):
+                                raise ValueError(
+                                    f"All variants should be subclasses of their entry's type: type"
+                                    f" `{var_class.__name__}` of variant `{entry.name}={var_name}` "
+                                    f"is not a subclass of `{typ.__name__}`."
+                                )
+                    else:
                         raise ValueError(
                             f"{IF} a dataclass type, "
-                            f"{NEED} a default value or registered variants: `{config.name}`."
+                            f"{NEED} a default value or registered variants: `{entry.name}`. "
                             "You can specify a default value with `field(default_factory=...)`."
                         )
-                    else:
-                        for name, variant in groups[config.name].items():
-                            if not issubclass(variant, config.type):
-                                raise ValueError(
-                                    f"All variants should be subclasses of their entry's type: "
-                                    f"type `{variant.__name__}` of variant `{config.name}={name}` "
-                                    f"is not a subclass of `{config.type.__name__}`."
-                                )
                 else:
-                    if config.name in groups:
+                    if entry.name in groups:
                         raise ValueError(
-                            f"Can't have both a default value and variants: `{config.name}`"
+                            f"Can't have both a default value and variants: `{entry.name}`."
                         )
-            elif config.name in groups:
+            elif entry.name in groups:
                 raise ValueError(
-                    f"Entry `{config.name}` has registered variants, but its type, "
-                    f"`{config.type.__name__}`, is not a dataclass."
+                    f"Entry `{entry.name}` has registered variants, but its type, "
+                    f"`{entry.type.__name__}`, is not a dataclass."
                 )
 
     cs = ConfigStore.instance()
     cs.store(node=main_cls, name=schema_name)
     for group, entries in groups.items():
-        for name, node in entries.items():
-            if (bases := getattr(node, "__orig_bases__", None)) is not None:
+        for var_name, var_type in entries.items():
+            if (bases := getattr(var_type, "__orig_bases__", None)) is not None:
                 if len(bases) > 0 and len(get_args(bases[0])) > 0:
                     raise ValueError(
-                        f"Can't register a dataclass with generic base class: `{node.__name__}` "
-                        f"with base class `{bases[0].__name__}`."
+                        f"Can't register a dataclass with generic base class: `{var_type.__name__}`"
+                        f" with base class `{bases[0].__name__}`."
                     )
             try:
-                cs.store(node=node, name=name, group=group)
+                cs.store(node=var_type, name=var_name, group=group)
             except Exception as exc:
-                raise RuntimeError(f"{main_cls=}, {node=}, {name=}, {group=}") from exc
+                raise RuntimeError(f"{main_cls=}, {var_type=}, {var_name=}, {group=}") from exc
