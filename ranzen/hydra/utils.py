@@ -221,7 +221,8 @@ def register_hydra_config(
             elif entry.name in groups:
                 raise ValueError(
                     f"Entry `{entry.name}` has registered variants, but its type, "
-                    f"`{entry.type.__name__}`, is not a dataclass."
+                    f"`{getattr(typ, '__name__', str(typ))}`, is not a dataclass. "
+                    "(Note that unions of dataclasses are not allowed either.)"
                 )
 
     cs = ConfigStore.instance()

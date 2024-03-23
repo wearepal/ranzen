@@ -115,6 +115,25 @@ def test_config_base_class() -> None:
         register_hydra_config(Config, options)
 
 
+def test_config_union() -> None:
+    @dataclass
+    class CMnist:
+        colorize: bool
+
+    @dataclass
+    class CelebA:
+        target: str
+
+    @dataclass
+    class Config:
+        # This is unfortunately not supported.
+        dm: CMnist | CelebA
+
+    options = {"dm": {"cmnist": CMnist, "celeba": CelebA}}
+    with pytest.raises(ValueError):
+        register_hydra_config(Config, options)
+
+
 def test_config_any_with_default() -> None:
     """An Any field with default is completely out."""
 
