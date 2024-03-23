@@ -2,17 +2,15 @@ import dataclasses
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any
+from typing import Any, Generic, TypeVar
 
-import attrs
-from attrs import define
 from omegaconf import MISSING, DictConfig, MissingMandatoryValue, OmegaConf
 import pytest
 
 from ranzen.hydra import prepare_for_logging, register_hydra_config
 
 
-def test_dataclass_no_default() -> None:
+def test_config_no_default() -> None:
     """This isn't so much wrong as just clumsy."""
 
     @dataclass
@@ -28,11 +26,18 @@ def test_dataclass_no_default() -> None:
         register_hydra_config(Config, options)
 
     options = {"dm": {"base": DataModule}}
+    register_hydra_config(Config, options)
+
+    @dataclass
+    class UnrelatedClass:
+        root: Path
+
+    options = {"dm": {"base": UnrelatedClass}}
     with pytest.raises(ValueError):
         register_hydra_config(Config, options)
 
 
-def test_dataclass_any() -> None:
+def test_config_any() -> None:
     @dataclass
     class DataModule:
         root: Path
@@ -50,8 +55,48 @@ def test_dataclass_any() -> None:
     options = {"dm": {"base": DataModule}}
     register_hydra_config(Config, options)
 
+    class NotDC:
+        x: int
 
-def test_dataclass_any_with_default() -> None:
+    options = {"dm": {"base": NotDC}}
+    with pytest.raises(ValueError):
+        register_hydra_config(Config, options)
+
+
+def test_config_base_class() -> None:
+    @dataclass
+    class DataModule:
+        root: Path
+
+    @dataclass
+    class CMnist(DataModule):
+        colorize: bool
+
+    @dataclass
+    class CelebA(DataModule):
+        target: str
+
+    @dataclass
+    class Config:
+        dm: DataModule
+
+    options = {}
+    with pytest.raises(ValueError):
+        register_hydra_config(Config, options)
+
+    options = {"dm": {"cmnist": CMnist, "celeba": CelebA}}
+    register_hydra_config(Config, options)
+
+    @dataclass
+    class NotSubclass:
+        root: Path
+
+    options = {"dm": {"base": NotSubclass}}
+    with pytest.raises(ValueError):
+        register_hydra_config(Config, options)
+
+
+def test_config_any_with_default() -> None:
     """An Any field with default is completely out."""
 
     @dataclass
@@ -71,7 +116,7 @@ def test_dataclass_any_with_default() -> None:
         register_hydra_config(Config, options)
 
 
-def test_dataclass_with_default() -> None:
+def test_config_with_default() -> None:
     """A normal field with a default should not have variants."""
 
     @dataclass
@@ -90,84 +135,21 @@ def test_dataclass_with_default() -> None:
         register_hydra_config(Config, options)
 
 
-def test_attrs_no_default() -> None:
-    """This isn't so much wrong as just clumsy."""
+T = TypeVar("T")
 
-    @define
-    class DataModule:
+
+def test_config_generic() -> None:
+    class Base(Generic[T]): ...
+
+    @dataclass
+    class DataModule(Base):
         root: Path
 
-    @define
+    @dataclass
     class Config:
         dm: DataModule
 
-    options = {}
-    with pytest.raises(ValueError):
-        register_hydra_config(Config, options)
-
-    options = {"dm": {"base": DataModule}}
-    with pytest.raises(ValueError):
-        register_hydra_config(Config, options)
-
-
-def test_attrs_any() -> None:
-    @define
-    class DataModule:
-        root: Path
-
-    @define
-    class Config:
-        dm: Any
-
-    # we're assuming that the only reason you want to use Any is that
-    # you want to use variants
-    options = {}
-    with pytest.raises(ValueError):
-        register_hydra_config(Config, options)
-
-    options = {"dm": {"base": DataModule}}
-    register_hydra_config(Config, options)
-
-
-def test_attrs_any_with_default() -> None:
-    """An Any field with default is completely out."""
-
-    @define
-    class Model:
-        layers: int = 1
-
-    @define
-    class Config:
-        # it should of course be `factory` and not `default` here,
-        # but OmegaConf is stupid as always
-        model: Any = attrs.field(default=Model)
-
-    options = {}
-    with pytest.raises(ValueError):
-        register_hydra_config(Config, options)
-
-    options = {"model": {"base": Model}}
-    with pytest.raises(ValueError):
-        register_hydra_config(Config, options)
-
-
-def test_attrs_with_default() -> None:
-    """A normal field with a default should not have variants."""
-
-    @define
-    class Model:
-        layers: int = 1
-
-    @define
-    class Config:
-        # it should of course be `factory` and not `default` here,
-        # but OmegaConf is stupid as always
-        model: Model = attrs.field(default=Model)
-
-    options = {}
-    register_hydra_config(Config, options)
-
-    options = {"model": {"base": Model}}
+    options = {"dm": {"asdf": DataModule}}
     with pytest.raises(ValueError):
         register_hydra_config(Config, options)
 

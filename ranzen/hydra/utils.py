@@ -3,14 +3,12 @@
 from collections.abc import Iterator, MutableMapping, Sequence
 from contextlib import contextmanager
 import dataclasses
-from dataclasses import MISSING, Field, asdict, is_dataclass
+from dataclasses import MISSING, asdict, is_dataclass
 from enum import Enum
 import shlex
-from typing import Any, Final, Union, cast
+from typing import Any, Final, cast, get_args
 from typing_extensions import deprecated
 
-import attrs
-from attrs import NOTHING, Attribute
 from hydra.core.config_store import ConfigStore
 from hydra.core.hydra_config import HydraConfig
 from hydra.utils import instantiate
@@ -174,38 +172,61 @@ def register_hydra_config(
             register_hydra_config(Config, groups)
     """
     assert isinstance(main_cls, type), "`main_cls` has to be a type."
-    configs: Union[tuple[Attribute, ...], tuple[Field, ...]]
-    is_dc = is_dataclass(main_cls)
-    if is_dc:
-        configs = dataclasses.fields(main_cls)
-    elif attrs.has(main_cls):
-        configs = attrs.fields(main_cls)
-    else:
-        raise ValueError(
-            f"The given class {main_cls.__name__} is neither a dataclass nor an attrs class."
-        )
-    ABSENT = MISSING if is_dc else NOTHING
+    if not is_dataclass(main_cls):
+        raise ValueError(f"The config class {main_cls.__name__} should be a dataclass.")
+    configs = dataclasses.fields(main_cls)
 
     for config in configs:
         if config.type == Any or (isinstance(typ := config.type, str) and typ == "Any"):
-            if config.name not in groups:
-                raise ValueError(f"{IF} type Any, {NEED} variants: `{config.name}`")
-            if config.default is not ABSENT or (
-                isinstance(config, Field) and config.default_factory is not ABSENT
-            ):
-                raise ValueError(f"{IF} type Any, {NEED} no default value: `{config.name}`")
-        else:
             if config.name in groups:
-                raise ValueError(f"{IF} a real type, {NEED} no variants: `{config.name}`")
-            if config.default is ABSENT and not (
-                isinstance(config, Field) and config.default_factory is not ABSENT
-            ):
-                raise ValueError(f"{IF} a real type, {NEED} a default value: `{config.name}`")
+                for name, variant in groups[config.name].items():
+                    if not is_dataclass(variant):
+                        raise ValueError(
+                            f"All variants should be dataclasses: `{variant.__name__}` "
+                            f"of variant `{config.name}={name}` is not a dataclass."
+                        )
+            else:
+                raise ValueError(f"{IF} type `Any`, {NEED} variants: `{config.name}`")
+            if config.default is not MISSING or config.default_factory is not MISSING:
+                raise ValueError(f"{IF} type `Any`, {NEED} no default value: `{config.name}`")
+        else:
+            if is_dataclass(config.type):
+                if config.default is MISSING and config.default_factory is MISSING:
+                    if config.name not in groups:
+                        raise ValueError(
+                            f"{IF} a dataclass type, "
+                            f"{NEED} a default value or registered variants: `{config.name}`."
+                            "You can specify a default value with `field(default_factory=...)`."
+                        )
+                    else:
+                        for name, variant in groups[config.name].items():
+                            if not issubclass(variant, config.type):
+                                raise ValueError(
+                                    f"All variants should be subclasses of their entry's type: "
+                                    f"type `{variant.__name__}` of variant `{config.name}={name}` "
+                                    f"is not a subclass of `{config.type.__name__}`."
+                                )
+                else:
+                    if config.name in groups:
+                        raise ValueError(
+                            f"Can't have both a default value and variants: `{config.name}`"
+                        )
+            elif config.name in groups:
+                raise ValueError(
+                    f"Entry `{config.name}` has registered variants, but its type, "
+                    f"`{config.type.__name__}`, is not a dataclass."
+                )
 
     cs = ConfigStore.instance()
     cs.store(node=main_cls, name=schema_name)
     for group, entries in groups.items():
         for name, node in entries.items():
+            if (bases := getattr(node, "__orig_bases__", None)) is not None:
+                if len(bases) > 0 and len(get_args(bases[0])) > 0:
+                    raise ValueError(
+                        f"Can't register a dataclass with generic base class: `{node.__name__}` "
+                        f"with base class `{bases[0].__name__}`."
+                    )
             try:
                 cs.store(node=node, name=name, group=group)
             except Exception as exc:
