@@ -222,7 +222,7 @@ def register_hydra_config(
                 raise ValueError(
                     f"Entry `{entry.name}` has registered variants, but its type annotation, "
                     f"`{getattr(typ, '__name__', str(typ))}`, is not a dataclass. "
-                    "(Note that unions of dataclasses are not allowed either.)"
+                    "(Note that unions of dataclasses are not allowed either.) "
                     "You can always use `Any` for the type annotation."
                 )
 
