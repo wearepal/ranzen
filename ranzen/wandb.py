@@ -1,4 +1,5 @@
 """Wandb-related functionality."""
+
 from collections.abc import Sequence
 from functools import lru_cache
 

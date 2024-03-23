@@ -14,8 +14,7 @@ class DummyOption(Protocol):
     name: str
 
     @property
-    def value(self) -> int | str:
-        ...
+    def value(self) -> int | str: ...
 
 
 @dataclass

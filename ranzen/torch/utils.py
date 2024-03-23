@@ -148,13 +148,11 @@ DT = TypeVar("DT", bound=Union[np.number, np.bool_])
 
 
 @overload
-def to_numpy(tensor: Tensor, *, dtype: DT) -> npt.NDArray[DT]:
-    ...
+def to_numpy(tensor: Tensor, *, dtype: DT) -> npt.NDArray[DT]: ...
 
 
 @overload
-def to_numpy(tensor: Tensor, *, dtype: None = ...) -> npt.NDArray:
-    ...
+def to_numpy(tensor: Tensor, *, dtype: None = ...) -> npt.NDArray: ...
 
 
 def to_numpy(

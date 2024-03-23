@@ -113,8 +113,7 @@ class RandomCutMix:
         groups_or_edges: Tensor | None = ...,
         cross_group: bool = ...,
         num_classes: int | None = None,
-    ) -> InputsTargetsPair:
-        ...
+    ) -> InputsTargetsPair: ...
 
     @overload
     def _transform(
@@ -125,8 +124,7 @@ class RandomCutMix:
         groups_or_edges: Tensor | None = ...,
         cross_group: bool = ...,
         num_classes: int | None = None,
-    ) -> Tensor:
-        ...
+    ) -> Tensor: ...
 
     def _transform(
         self,
@@ -198,8 +196,7 @@ class RandomCutMix:
         groups_or_edges: Tensor | None = ...,
         cross_group: bool = ...,
         num_classes: int | None = ...,
-    ) -> InputsTargetsPair:
-        ...
+    ) -> InputsTargetsPair: ...
 
     @overload
     def __call__(
@@ -210,8 +207,7 @@ class RandomCutMix:
         groups_or_edges: Tensor | None = ...,
         cross_group: bool = ...,
         num_classes: int | None = ...,
-    ) -> Tensor:
-        ...
+    ) -> Tensor: ...
 
     def __call__(
         self,

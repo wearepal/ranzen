@@ -4,11 +4,9 @@ version = "2.4.2"
 description = "A toolkit facilitating machine-learning experimentation."
 authors = ["PAL <info@predictive-analytics-lab.com>"]
 license = "Apache License 2.0"
-packages = [
-  { include = "ranzen" },
-]
-include=["ranzen/py.typed"]
-classifiers=[
+packages = [{ include = "ranzen" }]
+include = ["ranzen/py.typed"]
+classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -16,9 +14,9 @@ classifiers=[
   "Operating System :: OS Independent",
   "Typing :: Typed",
 ]
-keywords=["typing", "python"]
-repository="https://github.com/wearepal/ranzen"
-readme="README.md"
+keywords = ["typing", "python"]
+repository = "https://github.com/wearepal/ranzen"
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
@@ -27,7 +25,7 @@ numpy = "^1.23.2"
 
 # wandb dependencies
 pandas = { version = "^1.5.0", optional = true }
-wandb = { version= ">=0.15", optional = true }
+wandb = { version = ">=0.15", optional = true }
 
 # logging dependencies
 loguru = { version = "^0.6.0", optional = true }
@@ -44,7 +42,7 @@ hydra = ["attrs", "hydra-core", "neoconfigen"]
 all = ["attrs", "hydra-core", "loguru", "neoconfigen", "pandas", "wandb"]
 
 [tool.poetry.group.lint.dependencies]
-ruff = ">=0.2"
+ruff = ">=0.2.2"
 
 [tool.poetry.group.docs]
 optional = true
@@ -97,29 +95,30 @@ line-length = 100
 target-version = "py310"
 
 [tool.ruff.format]
+quote-style = "preserve"
 exclude = [".undodir/*"]
 
 [tool.ruff.lint]
 select = [
-    "E", # pycodestyle
-    "F", # pyflakes
-    "FBT", # boolean trap
-    "I", # isort
-    # "N", # naming
-    "PLC", # pylint convention
-    "PLE", # pylint error
-    # "PLR", # pylint refactor
-    "PLW", # pylint warning
-    "PTH", # use-pathlib
-    # "UP", # pyupgrade
-    "UP035", # newer imports
-    "W",
+  "E",   # pycodestyle
+  "F",   # pyflakes
+  "FBT", # boolean trap
+  "I",   # isort
+  # "N", # naming
+  "PLC", # pylint convention
+  "PLE", # pylint error
+  # "PLR", # pylint refactor
+  "PLW", # pylint warning
+  "PTH", # use-pathlib
+  # "UP", # pyupgrade
+  "UP035", # newer imports
+  "W",
 ]
 ignore = [
-    "E501", # line length
-    "F541", # f-string without placeholder
-    "PLW2901", # overwriting loop variable
-    "PLC0105", # covariant typevars have to end in "_co"
+  "E501",    # line length
+  "F541",    # f-string without placeholder
+  "PLW2901", # overwriting loop variable
+  "PLC0105", # covariant typevars have to end in "_co"
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -148,10 +147,7 @@ extra-standard-library = ["typing_extensions"]
 no-lines-before = ["future", "standard-library"]
 force-sort-within-sections = true
 split-on-trailing-comma = false
-classes = [
-  "SAM",
-  "LAMB",
-]
+classes = ["SAM", "LAMB"]
 
 [tool.pydoclint]
 style = "sphinx"
