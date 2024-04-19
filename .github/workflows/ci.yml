@@ -112,7 +112,7 @@ jobs:
       # ----------------------------------------------
       - name: Set python path for all subsequent actions
         run: echo "$(poetry env info --path)/bin" >> $GITHUB_PATH
-      - uses: jakebailey/pyright-action@v1
+      - uses: jakebailey/pyright-action@v2
         with:
           # don't show warnings
           level: error
