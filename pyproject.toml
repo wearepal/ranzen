@@ -65,9 +65,16 @@ optional = true
 [tool.poetry.group.torchcpu.dependencies]
 torch = { version = "*", source = "torchcpu", markers = "sys_platform == 'linux'" }
 
-
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.4.0"
+
+[tool.poetry.group.pyright]
+optional = true
+
+[tool.poetry.group.pyright.dependencies]
+# This depencency exists basically only for the CI.
+# It allows us to pin the version of pyright used in the CI.
+pyright = "^1.1.359"
 
 [[tool.poetry.source]]
 name = "torchcpu"
