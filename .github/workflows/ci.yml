@@ -105,17 +105,19 @@ jobs:
       - name: Install dependencies
         run: |
           poetry env use 3.10
-          poetry install --no-interaction --no-root -E all --with torchcpu --without lint
+          poetry install --no-interaction --no-root -E all --with torchcpu,pyright --without lint
 
       # ----------------------------------------------
       #  -----         Run type checking        -----
       # ----------------------------------------------
       - name: Set python path for all subsequent actions
         run: echo "$(poetry env info --path)/bin" >> $GITHUB_PATH
-      - uses: jakebailey/pyright-action@v1
+      - uses: jakebailey/pyright-action@v2
         with:
           # don't show warnings
           level: error
+          # use the version of pyright that we've installed with poetry above
+          version: PATH
 
       # ----------------------------------------------
       #  -----           Run Tests            -----
