@@ -105,19 +105,27 @@ jobs:
       - name: Install dependencies
         run: |
           poetry env use 3.10
-          poetry install --no-interaction --no-root -E all --with torchcpu,pyright --without lint
+          poetry install --no-interaction --no-root -E all --with torchcpu --without lint
 
       # ----------------------------------------------
       #  -----         Run type checking        -----
       # ----------------------------------------------
       - name: Set python path for all subsequent actions
         run: echo "$(poetry env info --path)/bin" >> $GITHUB_PATH
+      - name: Get Pyright Version
+        id: pyright-version
+        run: |
+          PYRIGHT_VERSION=$(jq -r '.devDependencies.pyright' < package.json)
+          echo "found pyright version: $PYRIGHT_VERSION"
+          echo "version=$PYRIGHT_VERSION" >> $GITHUB_OUTPUT
+        working-directory: .github
+        shell: bash
       - uses: jakebailey/pyright-action@v2
         with:
           # don't show warnings
           level: error
-          # use the version of pyright that we've installed with poetry above
-          version: PATH
+          # use the version we extracted above
+          version: ${{ steps.pyright-version.outputs.version }}
 
       # ----------------------------------------------
       #  -----           Run Tests            -----
