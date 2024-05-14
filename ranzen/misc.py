@@ -12,6 +12,11 @@ import numpy as np
 
 from ranzen.types import Addable, SizedDataset, Subset
 
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:
+    from backports.strenum import StrEnum
+
 __all__ = [
     "AddDict",
     "Split",
@@ -116,65 +121,6 @@ def str_to_enum(str_: str | E, *, enum: type[E]) -> E:
         raise TypeError(
             f"'{str_}' is not a valid option for enum '{enum.__name__}'; must be one of {valid_ls}."
         )
-
-
-if sys.version_info >= (3, 11):
-    # will be available in python 3.11
-    from enum import StrEnum
-else:
-    #
-    # the following is copied straight from https://github.com/python/cpython/blob/3.11/Lib/enum.py
-    #
-    # DO NOT CHANGE THIS CODE!
-    #
-    class ReprEnum(Enum):
-        """
-        Only changes the repr(), leaving str() and format() to the mixed-in type.
-        """
-
-    _S = TypeVar("_S", bound="StrEnum")
-
-    class StrEnum(str, ReprEnum):
-        """
-        Enum where members are also (and must be) strings
-        """
-
-        _value_: str
-
-        def __new__(cls: type[_S], *values: str) -> _S:
-            "values must already be of type `str`"
-            if len(values) > 3:
-                raise TypeError("too many arguments for str(): %r" % (values,))
-            if len(values) == 1:
-                # it must be a string
-                if not isinstance(values[0], str):  # pyright: ignore
-                    raise TypeError("%r is not a string" % (values[0],))
-            if len(values) >= 2:
-                # check that encoding argument is a string
-                if not isinstance(v1 := values[1], str):  # pyright: ignore
-                    raise TypeError("encoding must be a string, not %r" % (v1,))
-            if len(values) == 3:
-                # check that errors argument is a string
-                if not isinstance(v2 := values[2], str):  # pyright: ignore
-                    raise TypeError("errors must be a string, not %r" % (v2))
-            value = str(*values)
-            member = str.__new__(cls, value)
-            member._value_ = value
-            return member
-
-        def __str__(self) -> str:
-            return str.__str__(self)
-
-        def _generate_next_value_(  # type: ignore
-            name: str,
-            start: int,
-            count: int,
-            last_values: list[Any],
-        ) -> str:
-            """
-            Return the lower-cased version of the member name.
-            """
-            return name.lower()
 
 
 _KT = TypeVar("_KT")
