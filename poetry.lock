@@ -270,13 +270,13 @@ six = ">=1.4.0"
 
 [[package]]
 name = "docstring-parser-fork"
-version = "0.0.5"
+version = "0.0.9"
 description = "Parse Python docstrings in reST, Google and Numpydoc format"
 optional = false
-python-versions = ">=3.6,<4.0"
+python-versions = "<4.0,>=3.7"
 files = [
-    {file = "docstring_parser_fork-0.0.5-py3-none-any.whl", hash = "sha256:d521dea9b9cc6c60ab5569fa0c1115e3b84a83e6413266fb111a7c81cb935997"},
-    {file = "docstring_parser_fork-0.0.5.tar.gz", hash = "sha256:395ae8ee6a359e268670ebc4fe9a40dab917a94f6decd7cda8e86f9bea5c9456"},
+    {file = "docstring_parser_fork-0.0.9-py3-none-any.whl", hash = "sha256:0be85ad00cb25bf5beeb673e46e777facf0f47552fa3a7570d120ef7e3374401"},
+    {file = "docstring_parser_fork-0.0.9.tar.gz", hash = "sha256:95b23cc5092af85080c716a6da68360f5ae4fcffa75f4a3aca5e539783cbcc3d"},
 ]
 
 [[package]]
@@ -948,18 +948,18 @@ test = ["enum34", "ipaddress", "mock", "pywin32", "wmi"]
 
 [[package]]
 name = "pydoclint"
-version = "0.4.1"
+version = "0.5.3"
 description = "A Python docstring linter that checks arguments, returns, yields, and raises sections"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pydoclint-0.4.1-py2.py3-none-any.whl", hash = "sha256:4e32fdf0a47a2199377617f09af0a82a2157f80543026f919a17112a396e752f"},
-    {file = "pydoclint-0.4.1.tar.gz", hash = "sha256:d39ed26a793203afadb1917011710fbf258ac3dddcd79b53212e0a2107221643"},
+    {file = "pydoclint-0.5.3-py2.py3-none-any.whl", hash = "sha256:519917fc5ee97af3f0b3bf3f43208812b8ba68ec112c38238585fccdb7460e31"},
+    {file = "pydoclint-0.5.3.tar.gz", hash = "sha256:b2b47c50fd5da07ed879044decf27c17fbb7ba0356efb89891cbd082b561062c"},
 ]
 
 [package.dependencies]
 click = ">=8.1.0"
-docstring-parser-fork = ">=0.0.5"
+docstring-parser-fork = ">=0.0.9"
 tomli = {version = ">=2.0.1", markers = "python_version < \"3.11\""}
 
 [package.extras]
