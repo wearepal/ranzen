@@ -1,7 +1,7 @@
 import pytest
 import torch
 from torch import Tensor
-from torch.optim import AdamW
+from torch.optim.adamw import AdamW
 
 from ranzen.torch.optimizers import Adafactor, LAMB, SAM
 
