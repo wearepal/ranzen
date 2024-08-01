@@ -6,8 +6,8 @@ from typing_extensions import override
 
 import torch
 from torch import Tensor
-from torch.optim import Optimizer
 from torch.optim.lr_scheduler import CosineAnnealingLR, _LRScheduler
+from torch.optim.optimizer import Optimizer
 
 __all__ = [
     "CosineLRWithLinearWarmup",
@@ -128,7 +128,7 @@ class CosineLRWithLinearWarmup(_LRScheduler):
             self._scheduler = CosineAnnealingLR(
                 optimizer=self.optimizer,
                 T_max=self.total_iters - self.warmup_iters + 1,
-                eta_min=self.lr_min,
+                eta_min=self.lr_min,  # type: ignore
             )
         return self._scheduler
 

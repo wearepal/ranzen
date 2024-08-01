@@ -1,6 +1,7 @@
 import pytest
 import torch
-from torch import optim
+from torch.optim.adamw import AdamW
+from torch.optim.sgd import SGD
 
 from ranzen.torch.schedulers import LinearWarmupLR
 
@@ -9,7 +10,7 @@ def test_linear_warmup_lr() -> None:
     params = (torch.randn(1, 1, requires_grad=True),)
     base_lr = 1.0
     lr_start = 1.0e-1
-    optimizer = optim.SGD(params, lr=base_lr)
+    optimizer = SGD(params, lr=base_lr)
     scheduler = LinearWarmupLR(optimizer=optimizer, lr_start=lr_start, warmup_iters=1)
     for group in optimizer.param_groups:
         assert group["lr"] == lr_start
@@ -22,7 +23,7 @@ def test_linear_warmup_lr() -> None:
     for group in optimizer.param_groups:
         assert group["lr"] == base_lr
 
-    optimizer = optim.AdamW(params, lr=base_lr)
+    optimizer = AdamW(params, lr=base_lr)
     scheduler = LinearWarmupLR(optimizer=optimizer, lr_start=lr_start, warmup_iters=0)
     for group in optimizer.param_groups:
         assert group["lr"] == base_lr
@@ -31,7 +32,7 @@ def test_linear_warmup_lr() -> None:
     for group in optimizer.param_groups:
         assert group["lr"] == base_lr
 
-    optimizer = optim.AdamW(params, lr=base_lr)
+    optimizer = AdamW(params, lr=base_lr)
     scheduler = LinearWarmupLR(optimizer=optimizer, lr_start=lr_start, warmup_iters=2)
     _step()
     expected_lr_after_one_step = lr_start + 0.5 * (base_lr - lr_start)

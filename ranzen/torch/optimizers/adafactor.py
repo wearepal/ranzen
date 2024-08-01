@@ -6,7 +6,7 @@ from typing import TypedDict, cast
 
 import torch
 from torch import Tensor
-from torch.optim import Optimizer
+from torch.optim.optimizer import Optimizer
 
 from .common import LossClosure
 
