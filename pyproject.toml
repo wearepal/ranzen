@@ -156,6 +156,7 @@ style = "sphinx"
 arg-type-hints-in-docstring = false
 check-return-types = false
 check-yield-types = false
+check-class-attributes = false
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
