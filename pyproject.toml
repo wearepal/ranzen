@@ -105,6 +105,7 @@ select = [
   "FBT", # boolean trap
   "I",   # isort
   # "N", # naming
+  "NPY", # numpy
   "PD",  # pandas
   "PLC", # pylint convention
   "PLE", # pylint error
