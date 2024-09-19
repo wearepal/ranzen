@@ -1,7 +1,7 @@
 """Test decorators."""
 
 from enum import Enum, auto
-from typing_extensions import deprecated
+from typing_extensions import LiteralString, deprecated
 
 import pytest
 
@@ -9,7 +9,7 @@ from ranzen import enum_name_str  # pyright: ignore
 
 
 @pytest.mark.parametrize("explanation", ["All things that have form eventually decay."])
-def test_deprecated(explanation: str) -> None:
+def test_deprecated(explanation: LiteralString) -> None:
     @deprecated(explanation)
     class Foo:
         def __init__(self) -> None: ...

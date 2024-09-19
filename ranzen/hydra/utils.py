@@ -201,11 +201,12 @@ def register_hydra_config(
                 if entry.default is MISSING and entry.default_factory is MISSING:
                     if (group := groups.get(entry.name)) is not None:
                         for var_name, var_class in group.items():
-                            if not issubclass(var_class, typ):
+                            if not issubclass(var_class, typ):  # type: ignore
+                                typ_name = typ.__name__  # type: ignore
                                 raise ValueError(
                                     f"All variants should be subclasses of their entry's type: type"
                                     f" `{var_class.__name__}` of variant `{entry.name}={var_name}` "
-                                    f"is not a subclass of `{typ.__name__}`."
+                                    f"is not a subclass of `{typ_name}`."
                                 )
                     else:
                         raise ValueError(

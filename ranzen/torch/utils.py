@@ -31,7 +31,7 @@ def count_parameters(model: nn.Module) -> int:
 
 
 def random_seed(seed_value: int, *, use_cuda: bool) -> None:
-    np.random.seed(seed_value)  # cpu vars
+    np.random.seed(seed_value)  # cpu vars  # noqa: NPY002
     torch.manual_seed(seed_value)  # cpu  vars
     random.seed(seed_value)  # Python
     if use_cuda:
