@@ -57,7 +57,7 @@ toml = "*"
 pydoclint = ">=0.3.8,<1.0.0"
 
 [tool.poetry.group.test.dependencies]
-pytest = "^7.1.2"
+pytest = ">=7.1.2,<10.0.0"
 pandas-stubs = ">=1.4.3.220718"
 
 [tool.poetry.group.torchcpu]
